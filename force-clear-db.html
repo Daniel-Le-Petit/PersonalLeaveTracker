@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Clear IndexedDB</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #dc2626; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #b91c1c; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Force Clear IndexedDB</h1>
+    <p>Ce script va supprimer complètement la base de données IndexedDB du Leave Tracker.</p>
+    
+    <button onclick="clearAllDatabases()">🗑️ Supprimer TOUTES les bases de données</button>
+    <button onclick="clearSpecificDB()">🗑️ Supprimer LeaveTrackerDB uniquement</button>
+    
+    <div id="result"></div>
+
+    <script>
+        function clearAllDatabases() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Suppression de toutes les bases de données...</p>';
+            
+            // Lister toutes les bases de données
+            const request = indexedDB.databases();
+            
+            request.onsuccess = function() {
+                const databases = request.result;
+                let deletedCount = 0;
+                
+                databases.forEach(db => {
+                    const deleteRequest = indexedDB.deleteDatabase(db.name);
+                    deleteRequest.onsuccess = function() {
+                        deletedCount++;
+                        resultDiv.innerHTML = `<p class="success">✅ Base de données "${db.name}" supprimée</p>`;
+                        
+                        if (deletedCount === databases.length) {
+                            resultDiv.innerHTML += `<p class="success">🎉 ${deletedCount} base(s) de données supprimée(s) avec succès !</p>
+                                                   <p>Vous pouvez maintenant retourner à l'application.</p>`;
+                        }
+                    };
+                    deleteRequest.onerror = function() {
+                        resultDiv.innerHTML += `<p class="error">❌ Erreur lors de la suppression de "${db.name}"</p>`;
+                    };
+                });
+            };
+            
+            request.onerror = function() {
+                resultDiv.innerHTML = '<p class="error">❌ Erreur lors de la récupération de la liste des bases de données</p>';
+            };
+        }
+        
+        function clearSpecificDB() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Suppression de LeaveTrackerDB...</p>';
+            
+            const request = indexedDB.deleteDatabase('LeaveTrackerDB');
+            
+            request.onsuccess = function() {
+                resultDiv.innerHTML = '<p class="success">✅ LeaveTrackerDB supprimée avec succès !</p><p>Vous pouvez maintenant retourner à l\'application.</p>';
+            };
+            
+            request.onerror = function() {
+                resultDiv.innerHTML = '<p class="error">❌ Erreur lors de la suppression de LeaveTrackerDB</p>';
+            };
+        }
+    </script>
+</body>
+</html>

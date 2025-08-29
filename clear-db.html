@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nettoyer la base de données</title>
+</head>
+<body>
+    <h1>Nettoyage de la base de données IndexedDB</h1>
+    <button onclick="clearDatabase()">Supprimer la base de données</button>
+    <div id="result"></div>
+
+    <script>
+        function clearDatabase() {
+            const dbName = 'LeaveTrackerDB';
+            const request = indexedDB.deleteDatabase(dbName);
+            
+            request.onsuccess = function() {
+                document.getElementById('result').innerHTML = 
+                    '<p style="color: green;">✅ Base de données supprimée avec succès !</p>' +
+                    '<p>Vous pouvez maintenant retourner à l\'application.</p>';
+            };
+            
+            request.onerror = function() {
+                document.getElementById('result').innerHTML = 
+                    '<p style="color: red;">❌ Erreur lors de la suppression</p>';
+            };
+            
+            request.onblocked = function() {
+                document.getElementById('result').innerHTML = 
+                    '<p style="color: orange;">⚠️ Base de données bloquée, fermez tous les onglets de l\'application</p>';
+            };
+        }
+    </script>
+</body>
+</html>

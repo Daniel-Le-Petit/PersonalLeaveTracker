@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Navigation - Leave Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .test-link:hover {
+            background: #2563eb;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Navigation - Leave Tracker</h1>
+    
+    <div class="test-section">
+        <h2>✅ Problème résolu</h2>
+        <div class="status success">
+            <strong>Les erreurs TypeScript ont été corrigées !</strong><br>
+            Le problème était une incohérence entre les types 'autre' et 'other' dans le code.
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Test des pages</h2>
+        <p>Cliquez sur les liens suivants pour tester chaque page :</p>
+        
+        <a href="http://localhost:3000" class="test-link" target="_blank" rel="noopener">
+            🏠 Dashboard (Page principale)
+        </a>
+        
+        <a href="http://localhost:3000/add" class="test-link" target="_blank" rel="noopener">
+            ➕ Ajouter un congé
+        </a>
+        
+        <a href="http://localhost:3000/history" class="test-link" target="_blank" rel="noopener">
+            📋 Historique
+        </a>
+        
+        <a href="http://localhost:3000/calendar" class="test-link" target="_blank" rel="noopener">
+            📅 Calendrier
+        </a>
+        
+        <a href="http://localhost:3000/carryover" class="test-link" target="_blank" rel="noopener">
+            📦 Reliquats
+        </a>
+        
+        <a href="http://localhost:3000/settings" class="test-link" target="_blank" rel="noopener">
+            ⚙️ Paramètres
+        </a>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Corrections apportées</h2>
+        <div class="status info">
+            <ul>
+                <li><strong>Types TypeScript :</strong> Corrigé l'incohérence entre 'autre' et 'other'</li>
+                <li><strong>Configuration LEAVE_TYPES :</strong> Ajouté tous les types de congés manquants</li>
+                <li><strong>Fonctions utilitaires :</strong> Mis à jour les objets Record pour inclure tous les types</li>
+                <li><strong>Pages :</strong> Corrigé toutes les références dans add/page.tsx et carryover/page.tsx</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📱 Fonctionnalités disponibles</h2>
+        <div class="status success">
+            <ul>
+                <li>✅ <strong>Ajouter congés :</strong> Formulaire complet avec validation</li>
+                <li>✅ <strong>Historique :</strong> Liste de tous les congés avec filtres</li>
+                <li>✅ <strong>Calendrier :</strong> Vue calendrier des congés</li>
+                <li>✅ <strong>Reliquats :</strong> Gestion des congés reportés</li>
+                <li>✅ <strong>Dashboard :</strong> Vue d'ensemble avec statistiques</li>
+                <li>✅ <strong>Paramètres :</strong> Configuration de l'application</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🚀 Instructions</h2>
+        <div class="status info">
+            <ol>
+                <li>Assurez-vous que l'application est démarrée : <code>npm run dev</code></li>
+                <li>Ouvrez <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+                <li>Testez chaque page en cliquant sur les liens de navigation</li>
+                <li>Toutes les fonctionnalités devraient maintenant être accessibles</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Test simple pour vérifier que l'application est accessible
+        fetch('http://localhost:3000')
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Application accessible');
+                } else {
+                    console.log('❌ Application non accessible');
+                }
+            })
+            .catch(error => {
+                console.log('❌ Erreur de connexion:', error.message);
+            });
+    </script>
+</body>
+</html>

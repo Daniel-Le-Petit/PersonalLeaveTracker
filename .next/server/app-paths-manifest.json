@@ -1,0 +1,6 @@
+{
+  "/page": "app/page.js",
+  "/history/page": "app/history/page.js",
+  "/add/page": "app/add/page.js",
+  "/carryover/page": "app/carryover/page.js"
+}
