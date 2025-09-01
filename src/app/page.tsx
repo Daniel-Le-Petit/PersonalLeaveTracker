@@ -136,7 +136,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Erreur lors de l\'import:', error)
       if (error instanceof Error && error.message === 'Import annulé') {
-        toast.info('Import annulé')
+        toast('Import annulé')
       } else {
         toast.error('Erreur lors de l\'import')
       }
