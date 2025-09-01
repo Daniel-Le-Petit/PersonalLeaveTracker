@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } from '../types'
 import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummary } from '../utils/leaveUtils'
 import { leaveStorage } from '../utils/storage'
+import LeaveCharts from '../components/LeaveCharts'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -409,8 +410,13 @@ export default function Dashboard() {
                </div>
              </div>
            </div>
-         )}
-              </main>
+                  )}
+
+         {/* Graphiques des congés */}
+         <div className="mt-8">
+           <LeaveCharts leaves={leaves} currentYear={currentYear} />
+         </div>
+       </main>
 
        {/* Menu mobile des actions rapides */}
        {isMobileMenuOpen && (
