@@ -231,6 +231,51 @@ class LeaveStorage {
     return JSON.stringify(exportData, null, 2);
   }
 
+  // Nouvelle fonction d'export avec choix utilisateur
+  async exportDataWithUserChoice(): Promise<void> {
+    try {
+      const data = await this.exportData();
+      const filename = `leave-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+      
+      // Vérifier si l'API Web Share est disponible (mobile)
+      if (navigator.share && navigator.canShare) {
+        const blob = new Blob([data], { type: 'application/json' });
+        const file = new File([blob], filename, { type: 'application/json' });
+        
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Leave Tracker Backup',
+            text: `Sauvegarde Leave Tracker du ${new Date().toLocaleDateString('fr-FR')}`
+          });
+          return;
+        }
+      }
+      
+      // Fallback pour desktop ou navigateurs sans Web Share
+      this.downloadFile(data, filename);
+    } catch (error) {
+      console.error('Erreur lors de l\'export:', error);
+      // Fallback vers téléchargement direct
+      const data = await this.exportData();
+      const filename = `leave-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+      this.downloadFile(data, filename);
+    }
+  }
+
+  // Fonction de téléchargement direct (fallback)
+  private downloadFile(data: string, filename: string): void {
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   async importData(jsonData: string): Promise<void> {
     try {
       const data = JSON.parse(jsonData);
@@ -277,12 +322,58 @@ class LeaveStorage {
     }
   }
 
+  // Nouvelle fonction d'import avec sélection de fichier
+  async importDataWithFileSelection(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Créer un input file caché
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.style.display = 'none';
+      
+      input.onchange = async (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (!file) {
+          reject(new Error('Aucun fichier sélectionné'));
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          await this.importData(text);
+          resolve();
+        } catch (error) {
+          reject(error);
+        } finally {
+          // Nettoyer l'input
+          document.body.removeChild(input);
+        }
+      };
+
+      input.oncancel = () => {
+        reject(new Error('Import annulé'));
+        document.body.removeChild(input);
+      };
+
+      // Ajouter l'input au DOM et déclencher la sélection
+      document.body.appendChild(input);
+      input.click();
+    });
+  }
+
   // Sauvegarde de secours dans localStorage
   async backupToLocalStorage(): Promise<void> {
     try {
       const data = await this.exportData();
       localStorage.setItem('leave-tracker-backup', data);
       localStorage.setItem('leave-tracker-backup-date', new Date().toISOString());
+      
+      // Sauvegarde multiple pour plus de sécurité
+      const timestamp = new Date().toISOString().split('T')[0];
+      localStorage.setItem(`leave-tracker-backup-${timestamp}`, data);
+      
+      // Garder seulement les 5 dernières sauvegardes
+      this.cleanupOldBackups();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
     }
@@ -290,14 +381,85 @@ class LeaveStorage {
 
   async restoreFromLocalStorage(): Promise<boolean> {
     try {
+      // Essayer d'abord la sauvegarde la plus récente
       const backupData = localStorage.getItem('leave-tracker-backup');
-      if (!backupData) return false;
+      if (backupData) {
+        await this.importData(backupData);
+        return true;
+      }
 
-      await this.importData(backupData);
-      return true;
+      // Sinon, essayer les sauvegardes datées
+      const keys = Object.keys(localStorage).filter(key => 
+        key.startsWith('leave-tracker-backup-')
+      ).sort().reverse();
+
+      if (keys.length > 0) {
+        const latestBackup = localStorage.getItem(keys[0]);
+        if (latestBackup) {
+          await this.importData(latestBackup);
+          return true;
+        }
+      }
+
+      return false;
     } catch (error) {
       console.error('Erreur lors de la restauration:', error);
       return false;
+    }
+  }
+
+  private cleanupOldBackups(): void {
+    try {
+      const backupKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith('leave-tracker-backup-')
+      ).sort().reverse();
+
+      // Garder seulement les 5 dernières sauvegardes
+      if (backupKeys.length > 5) {
+        backupKeys.slice(5).forEach(key => {
+          localStorage.removeItem(key);
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors du nettoyage des sauvegardes:', error);
+    }
+  }
+
+  // Fonction pour obtenir la liste des sauvegardes disponibles
+  async getAvailableBackups(): Promise<Array<{ date: string; size: number }>> {
+    try {
+      const backups: Array<{ date: string; size: number }> = [];
+      
+      // Sauvegarde principale
+      const mainBackup = localStorage.getItem('leave-tracker-backup');
+      if (mainBackup) {
+        const backupDate = localStorage.getItem('leave-tracker-backup-date');
+        backups.push({
+          date: backupDate || 'Unknown',
+          size: mainBackup.length
+        });
+      }
+
+      // Sauvegardes datées
+      const backupKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith('leave-tracker-backup-')
+      ).sort().reverse();
+
+      backupKeys.forEach(key => {
+        const backup = localStorage.getItem(key);
+        if (backup) {
+          const date = key.replace('leave-tracker-backup-', '');
+          backups.push({
+            date,
+            size: backup.length
+          });
+        }
+      });
+
+      return backups;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des sauvegardes:', error);
+      return [];
     }
   }
 

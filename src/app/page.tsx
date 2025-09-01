@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } from '../types'
-import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateCurrentAvailableRTT, calculateMonthlyLeaveSummary } from '../utils/leaveUtils'
+import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummary } from '../utils/leaveUtils'
 import { leaveStorage } from '../utils/storage'
 
 export default function Dashboard() {
@@ -16,7 +16,6 @@ export default function Dashboard() {
   const [carryovers, setCarryovers] = useState<CarryoverLeave[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentYear] = useState(new Date().getFullYear())
-  const [currentRTT, setCurrentRTT] = useState<{ totalAvailable: number; details: Array<{ month: number; available: number; canTake: boolean; reason?: string }> } | null>(null)
   const [monthlySummary, setMonthlySummary] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
 
   useEffect(() => {
@@ -73,10 +72,6 @@ export default function Dashboard() {
       setHolidays(holidaysData)
       setCarryovers(carryoversData)
 
-      // Calculer les RTT disponibles actuellement
-      const rttAvailability = calculateCurrentAvailableRTT()
-      setCurrentRTT(rttAvailability)
-
       // Calculer le tableau mensuel détaillé
       if (settingsData && settingsData.quotas) {
         const monthlyData = calculateMonthlyLeaveSummary(
@@ -125,40 +120,27 @@ export default function Dashboard() {
 
   const handleExport = async () => {
     try {
-      const data = await leaveStorage.exportData()
-      const blob = new Blob([data], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `leave-tracker-backup-${new Date().toISOString().split('T')[0]}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      toast.success('Sauvegarde exportée avec succès')
+      await leaveStorage.exportDataWithUserChoice()
+      toast.success('Export réussi - Choisissez où sauvegarder le fichier')
     } catch (error) {
       console.error('Erreur lors de l\'export:', error)
       toast.error('Erreur lors de l\'export')
     }
   }
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      try {
-        const data = e.target?.result as string
-        await leaveStorage.importData(data)
-        await loadData()
-        toast.success('Données importées avec succès')
-      } catch (error) {
-        console.error('Erreur lors de l\'import:', error)
+  const handleImport = async () => {
+    try {
+      await leaveStorage.importDataWithFileSelection()
+      await loadData()
+      toast.success('Données importées avec succès')
+    } catch (error) {
+      console.error('Erreur lors de l\'import:', error)
+      if (error instanceof Error && error.message === 'Import annulé') {
+        toast.info('Import annulé')
+      } else {
         toast.error('Erreur lors de l\'import')
       }
     }
-    reader.readAsText(file)
   }
 
   const stats = calculateLeaveStats(leaves, currentYear)
@@ -198,16 +180,13 @@ export default function Dashboard() {
                 <Download className="w-4 h-4 mr-2" />
                 Exporter
               </button>
-              <label className="btn-secondary cursor-pointer">
+              <button
+                onClick={handleImport}
+                className="btn-secondary"
+              >
                 <Upload className="w-4 h-4 mr-2" />
                 Importer
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImport}
-                  className="hidden"
-                />
-              </label>
+              </button>
             </div>
           </div>
         </div>
@@ -360,88 +339,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* RTT Disponibles */}
-        {currentRTT && (
-          <div className="mt-8">
-            <div className="card">
-              <div className="card-header">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  📅 RTT Disponibles Actuellement
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  RTT que vous pouvez prendre à l'instant présent
-                </p>
-              </div>
-              <div className="card-body">
-                <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-                        Total RTT Disponibles
-                      </h3>
-                      <p className="text-sm text-green-600 dark:text-green-400">
-                        Basé sur les mois passés et le mois en cours (après le 15)
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                        {currentRTT.totalAvailable}
-                      </div>
-                      <div className="text-sm text-green-600 dark:text-green-400">
-                        jour{currentRTT.totalAvailable > 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rtt-grid-mobile">
-                  {currentRTT.details.map((monthDetail) => (
-                    <div
-                      key={monthDetail.month}
-                      className={`rtt-item-mobile rounded-lg border-2 ${
-                        monthDetail.canTake
-                          ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                          : 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
-                      }`}
-                    >
-                      <div className="text-center">
-                        <div className={`rtt-number-mobile font-semibold ${
-                          monthDetail.canTake
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-gray-500 dark:text-gray-400'
-                        }`}>
-                          {monthDetail.available}
-                        </div>
-                        <div className="rtt-month-mobile text-gray-600 dark:text-gray-400">
-                          {new Date(2024, monthDetail.month - 1).toLocaleDateString('fr-FR', { month: 'short' })}
-                        </div>
-                        {!monthDetail.canTake && monthDetail.reason && (
-                          <div className="text-xs text-red-500 dark:text-red-400 mt-1">
-                            {monthDetail.reason.includes('15') ? 'Après le 15' : 'Non disponible'}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                    💡 Comment ça marche ?
-                  </h4>
-                  <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• Vous gagnez 2 RTT par mois</li>
-                    <li>• Les RTT sont disponibles après la fin du mois</li>
-                    <li>• Pour le mois en cours : disponible après le 15</li>
-                    <li>• Les RTT non pris peuvent être reportés</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-                {/* Tableau mensuel détaillé */}
+        {/* Tableau mensuel détaillé */}
         {monthlySummary && (
           <div className="mt-8">
             <div className="card">
@@ -476,11 +374,17 @@ export default function Dashboard() {
                         <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
                           Total dispo
                         </th>
+                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                          Jours potentiels RTT
+                        </th>
+                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                          Jours potentiels CP
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                       {monthlySummary.months.map((month) => (
-                        <tr key={month.month} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <tr key={month.month} className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${month.isPastMonth ? 'opacity-60' : ''}`}>
                           <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700 sticky left-0 bg-white dark:bg-gray-900 z-10">
                             {month.monthName}
                           </td>
@@ -509,84 +413,47 @@ export default function Dashboard() {
                               {month.totalDispo}
                             </span>
                           </td>
+                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                            <span className={`font-medium ${month.isPastMonth ? 'text-gray-500 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}`}>
+                              {month.joursPotentielsRTT > 0 ? month.joursPotentielsRTT : '-'}
+                            </span>
+                          </td>
+                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                            <span className={`font-medium ${month.isPastMonth ? 'text-gray-500 dark:text-gray-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                              {month.joursPotentielsCP > 0 ? month.joursPotentielsCP : '-'}
+                            </span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
-
-                {/* Graphique des cumuls */}
-                <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    📈 Graphique des cumuls
-                  </h3>
-                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="space-y-4">
-                      {monthlySummary.months.map((month) => (
-                        <div key={month.month} className="space-y-2">
-                          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                            <span>{month.monthName}</span>
-                            <span>Total dispo: {month.totalCumulDispo} | Total pris: {month.totalCumulPris}</span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6 relative">
-                            {/* Barre de fond pour le total disponible */}
-                            <div 
-                              className="bg-gray-300 dark:bg-gray-600 h-6 rounded-full"
-                              style={{ width: `${Math.min(100, (month.totalCumulDispo / 60) * 100)}%` }}
-                            ></div>
-                            
-                            {/* Barre RTT cumulé */}
-                            <div 
-                              className="bg-green-500 h-6 rounded-l-full absolute top-0 left-0"
-                              style={{ width: `${Math.min(100, (month.rttCumulDispo / 60) * 100)}%` }}
-                            ></div>
-                            
-                            {/* Barre CP cumulé */}
-                            <div 
-                              className="bg-blue-500 h-6 absolute top-0"
-                              style={{ 
-                                left: `${Math.min(100, (month.rttCumulDispo / 60) * 100)}%`,
-                                width: `${Math.min(100, (month.cpCumulDispo / 60) * 100)}%`
-                              }}
-                            ></div>
-                            
-                            {/* Indicateur des congés pris */}
-                            <div 
-                              className="bg-red-500 h-6 absolute top-0 opacity-80"
-                              style={{ 
-                                left: `${Math.min(100, (month.rttCumulDispo / 60) * 100)}%`,
-                                width: `${Math.min(100, (month.rttCumulPris / 60) * 100)}%`
-                              }}
-                            ></div>
-                            <div 
-                              className="bg-red-500 h-6 absolute top-0 opacity-80"
-                              style={{ 
-                                left: `${Math.min(100, ((month.rttCumulDispo + month.cpCumulDispo) / 60) * 100)}%`,
-                                width: `${Math.min(100, (month.cpCumulPris / 60) * 100)}%`
-                              }}
-                            ></div>
-                          </div>
-                          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>RTT: {month.rttCumulDispo} dispo, {month.rttCumulPris} pris</span>
-                            <span>CP: {month.cpCumulDispo} dispo, {month.cpCumulPris} pris</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Légende */}
-                    <div className="mt-4 flex flex-wrap gap-4 text-xs">
+                  
+                  {/* Légende pour les nouvelles colonnes */}
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                      💡 Explication des colonnes
+                    </h4>
+                    <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-gray-400 rounded mr-2"></div>
+                        <span><strong>Mois grisé :</strong> Mois passé ou en cours (après le 15)</span>
+                      </div>
                       <div className="flex items-center">
                         <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                        <span>RTT cumulé</span>
+                        <span><strong>Jours potentiels RTT :</strong> RTT disponibles à prendre (priorité sur CP)</span>
                       </div>
                       <div className="flex items-center">
                         <div className="w-4 h-4 bg-blue-500 rounded mr-2"></div>
-                        <span>CP cumulé</span>
+                        <span><strong>Jours potentiels CP :</strong> CP disponibles à prendre</span>
                       </div>
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
-                        <span>Congés pris</span>
+                      <div className="mt-2 text-xs">
+                        <p><strong>Règles :</strong></p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>RTT : 2 par mois, disponibles après le 15 du mois</li>
+                          <li>CP : 25 jours par an, disponibles dès janvier</li>
+                          <li>Priorité RTT sur CP pour les vacances 2025</li>
+                          <li>Toussaint 2025 : 15 jours CP, Noël 2025 : 5 jours CP</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
@@ -697,73 +564,73 @@ export default function Dashboard() {
               </h2>
             </div>
             <div className="card-body">
-                             <div className="actions-mobile">
-                                 <Link href="/add" className="action-item-mobile">
-                   <div className="text-center">
-                     <div className="text-3xl mb-2">➕</div>
-                     <h3 className="font-semibold text-gray-900 dark:text-white">Ajouter un congé</h3>
-                     <p className="text-sm text-gray-600 dark:text-gray-400">Créer une nouvelle entrée</p>
-                   </div>
-                 </Link>
-                 
-                 <Link href="/history" className="action-item-mobile">
-                   <div className="text-center">
-                     <div className="text-3xl mb-2">📋</div>
-                     <h3 className="font-semibold text-gray-900 dark:text-white">Historique</h3>
-                     <p className="text-sm text-gray-600 dark:text-gray-400">Voir tous les congés</p>
-                   </div>
-                 </Link>
-                 
-                 <Link href="/calendar" className="action-item-mobile">
-                   <div className="text-center">
-                     <div className="text-3xl mb-2">📅</div>
-                     <h3 className="font-semibold text-gray-900 dark:text-white">Calendrier</h3>
-                     <p className="text-sm text-gray-600 dark:text-gray-400">Vue calendrier</p>
-                   </div>
-                 </Link>
-                 
-                 <Link href="/carryover" className="action-item-mobile">
-                   <div className="text-center">
-                     <div className="text-3xl mb-2">📦</div>
-                     <h3 className="font-semibold text-gray-900 dark:text-white">Reliquats</h3>
-                     <p className="text-sm text-gray-600 dark:text-gray-400">Congés reportés</p>
-                   </div>
-                 </Link>
+              <div className="actions-mobile">
+                <Link href="/add" className="action-item-mobile">
+                  <div className="text-center">
+                    <div className="text-3xl mb-2">➕</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Ajouter un congé</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Créer une nouvelle entrée</p>
+                  </div>
+                </Link>
+                
+                <Link href="/history" className="action-item-mobile">
+                  <div className="text-center">
+                    <div className="text-3xl mb-2">📋</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Historique</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Voir tous les congés</p>
+                  </div>
+                </Link>
+                
+                <Link href="/calendar" className="action-item-mobile">
+                  <div className="text-center">
+                    <div className="text-3xl mb-2">📅</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Calendrier</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Vue calendrier</p>
+                  </div>
+                </Link>
+                
+                <Link href="/carryover" className="action-item-mobile">
+                  <div className="text-center">
+                    <div className="text-3xl mb-2">📦</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Reliquats</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Congés reportés</p>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
-                 </div>
-       </main>
+        </div>
+      </main>
 
-       {/* Navigation Mobile */}
-       <nav className="mobile-nav md:hidden">
-         <div className="mobile-nav-container">
-           <Link href="/" className="mobile-nav-item-active">
-             <BarChart3 className="mobile-nav-icon" />
-             <span className="mobile-nav-label">Dashboard</span>
-           </Link>
-           <Link href="/add" className="mobile-nav-item-inactive">
-             <Plus className="mobile-nav-icon" />
-             <span className="mobile-nav-label">Ajouter</span>
-           </Link>
-           <Link href="/history" className="mobile-nav-item-inactive">
-             <Clock className="mobile-nav-icon" />
-             <span className="mobile-nav-label">Historique</span>
-           </Link>
-           <Link href="/calendar" className="mobile-nav-item-inactive">
-             <Calendar className="mobile-nav-icon" />
-             <span className="mobile-nav-label">Calendrier</span>
-           </Link>
-           <Link href="/carryover" className="mobile-nav-item-inactive">
-             <Package className="mobile-nav-icon" />
-             <span className="mobile-nav-label">Reliquats</span>
-           </Link>
-           <Link href="/settings" className="mobile-nav-item-inactive">
-             <Settings className="mobile-nav-icon" />
-             <span className="mobile-nav-label">Réglages</span>
-           </Link>
-         </div>
-       </nav>
-     </div>
-   )
- }
+      {/* Navigation Mobile */}
+      <nav className="mobile-nav md:hidden">
+        <div className="mobile-nav-container">
+          <Link href="/" className="mobile-nav-item-active">
+            <BarChart3 className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Dashboard</span>
+          </Link>
+          <Link href="/add" className="mobile-nav-item-inactive">
+            <Plus className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Ajouter</span>
+          </Link>
+          <Link href="/history" className="mobile-nav-item-inactive">
+            <Clock className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Historique</span>
+          </Link>
+          <Link href="/calendar" className="mobile-nav-item-inactive">
+            <Calendar className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Calendrier</span>
+          </Link>
+          <Link href="/carryover" className="mobile-nav-item-inactive">
+            <Package className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Reliquats</span>
+          </Link>
+          <Link href="/settings" className="mobile-nav-item-inactive">
+            <Settings className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Réglages</span>
+          </Link>
+        </div>
+      </nav>
+    </div>
+  )
+}

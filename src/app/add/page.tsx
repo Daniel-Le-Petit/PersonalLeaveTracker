@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { LeaveEntry, LeaveType } from '../../types'
-import { calculateWorkingDays, formatDate, frenchDateToISO, isValidFrenchDate, canTakeRTTForMonth, calculateAvailableRTTForPeriod } from '../../utils/leaveUtils'
+import { calculateWorkingDays, formatDate, frenchDateToISO, isValidFrenchDate, canTakeRTTForMonth, calculateAvailableRTTForPeriod, getHolidaysForYear } from '../../utils/leaveUtils'
 import { leaveStorage } from '../../utils/storage'
 
 export default function AddLeavePage() {
@@ -35,7 +35,7 @@ export default function AddLeavePage() {
           const days = calculateWorkingDays(
             startISO, 
             endISO, 
-            [], // holidays - empty array for now
+            getHolidaysForYear(new Date(startISO).getFullYear()), // holidays for the year
             formData.isHalfDay, 
             formData.halfDayType
           )

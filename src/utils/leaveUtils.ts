@@ -92,7 +92,10 @@ export function calculateWorkingDays(
 export function isHoliday(date: Date, holidays: PublicHoliday[]): boolean {
   return holidays.some(holiday => {
     const holidayDate = new Date(holiday.date);
-    return isSameDay(date, holidayDate);
+    // Comparer les dates en format YYYY-MM-DD pour éviter les problèmes de timezone
+    const dateStr = date.toISOString().split('T')[0];
+    const holidayStr = holidayDate.toISOString().split('T')[0];
+    return dateStr === holidayStr;
   });
 }
 
@@ -348,6 +351,9 @@ export function calculateMonthlyLeaveSummary(
     rttCumulPris: number;
     cpCumulPris: number;
     totalCumulPris: number;
+    joursPotentielsRTT: number;
+    joursPotentielsCP: number;
+    isPastMonth: boolean;
   }>;
   yearlyTotals: {
     rtt: { available: number; taken: number; remaining: number };
@@ -378,7 +384,17 @@ export function calculateMonthlyLeaveSummary(
   let rttCumulPris = 0;
   let cpCumulPris = 0;
 
+  // Vacances prévues 2025
+  const vacances2025 = {
+    toussaint: { mois: 11, jours: 15 },
+    noel: { mois: 12, jours: 5 } // 1 semaine = 5 jours ouvrés
+  };
+
   for (let month = 1; month <= 12; month++) {
+    // Vérifier si le mois est passé
+    const isPastMonth = month < currentDate.getMonth() + 1 || 
+                       (month === currentDate.getMonth() + 1 && currentDate.getDate() > 15);
+
     // RTT : 2 par mois
     const rttDispo = 2;
     rttCumulDispo += rttDispo;
@@ -406,6 +422,53 @@ export function calculateMonthlyLeaveSummary(
     rttCumulPris += rttPris;
     cpCumulPris += cpPris;
 
+    // Calculer les jours potentiels à prendre
+    let joursPotentielsRTT = 0;
+    let joursPotentielsCP = 0;
+
+    if (isPastMonth) {
+      // Pour les mois passés : afficher ce qui reste à prendre
+      joursPotentielsRTT = Math.max(0, rttCumulDispo - rttCumulPris);
+      joursPotentielsCP = Math.max(0, cpCumulDispo - cpCumulPris);
+    } else {
+      // Pour les mois futurs : afficher ce qui sera disponible
+      if (month === currentDate.getMonth() + 1) {
+        // Mois en cours : RTT disponibles après le 15
+        if (currentDate.getDate() > 15) {
+          joursPotentielsRTT = rttDispo;
+        } else {
+          joursPotentielsRTT = 0; // Pas encore disponible
+        }
+      } else {
+        // Mois futurs : RTT disponibles
+        joursPotentielsRTT = rttDispo;
+      }
+      
+      // CP disponibles pour les mois futurs
+      if (month === 1) {
+        joursPotentielsCP = cpQuota;
+      } else {
+        joursPotentielsCP = 0; // CP déjà disponibles en janvier
+      }
+    }
+
+    // Ajuster pour les vacances 2025
+    if (year === 2025) {
+      if (month === vacances2025.toussaint.mois) {
+        // Toussaint : priorité aux CP
+        if (joursPotentielsCP > 0) {
+          joursPotentielsCP = Math.min(joursPotentielsCP, vacances2025.toussaint.jours);
+          joursPotentielsRTT = 0; // Pas de RTT pendant les vacances
+        }
+      } else if (month === vacances2025.noel.mois) {
+        // Noël : priorité aux CP
+        if (joursPotentielsCP > 0) {
+          joursPotentielsCP = Math.min(joursPotentielsCP, vacances2025.noel.jours);
+          joursPotentielsRTT = 0; // Pas de RTT pendant les vacances
+        }
+      }
+    }
+
     const totalDispo = rttDispo + cpDispo;
     const totalCumulDispo = rttCumulDispo + cpCumulDispo;
     const totalCumulPris = rttCumulPris + cpCumulPris;
@@ -423,7 +486,10 @@ export function calculateMonthlyLeaveSummary(
       totalCumulDispo,
       rttCumulPris,
       cpCumulPris,
-      totalCumulPris
+      totalCumulPris,
+      joursPotentielsRTT,
+      joursPotentielsCP,
+      isPastMonth
     });
   }
 

@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { LeaveEntry, LeaveType } from '../../../types'
-import { calculateWorkingDays, formatDate, frenchDateToISO, isoDateToFrench, isValidFrenchDate } from '../../../utils/leaveUtils'
+import { calculateWorkingDays, formatDate, frenchDateToISO, isoDateToFrench, isValidFrenchDate, getHolidaysForYear } from '../../../utils/leaveUtils'
 import { leaveStorage } from '../../../utils/storage'
 
 export default function EditLeavePage() {
@@ -76,7 +76,7 @@ export default function EditLeavePage() {
           const days = calculateWorkingDays(
             startISO, 
             endISO, 
-            [], // holidays - empty array for now
+            getHolidaysForYear(new Date(startISO).getFullYear()), // holidays for the year
             formData.isHalfDay, 
             formData.halfDayType
           )
@@ -98,15 +98,15 @@ export default function EditLeavePage() {
       return
     }
 
-          if (!isValidFrenchDate(formData.startDate)) {
-        toast.error('Format de date de début invalide. Utilisez DD/MM/YYYY (ex: 02/01/2024)')
-        return
-      }
+    if (!isValidFrenchDate(formData.startDate)) {
+      toast.error('Format de date de début invalide. Utilisez DD/MM/YYYY (ex: 02/01/2024)')
+      return
+    }
 
-      if (!isValidFrenchDate(formData.endDate)) {
-        toast.error('Format de date de fin invalide. Utilisez DD/MM/YYYY (ex: 03/01/2024)')
-        return
-      }
+    if (!isValidFrenchDate(formData.endDate)) {
+      toast.error('Format de date de fin invalide. Utilisez DD/MM/YYYY (ex: 03/01/2024)')
+      return
+    }
 
     const startISO = frenchDateToISO(formData.startDate)
     const endISO = frenchDateToISO(formData.endDate)
@@ -150,9 +150,7 @@ export default function EditLeavePage() {
   const leaveTypes = [
     { value: 'cp', label: 'CP - Congés payés', color: 'bg-blue-100 text-blue-800' },
     { value: 'rtt', label: 'RTT - Réduction du temps de travail', color: 'bg-green-100 text-green-800' },
-    { value: 'sick', label: 'Maladie', color: 'bg-orange-100 text-orange-800' },
-    { value: 'unpaid', label: 'Sans solde', color: 'bg-red-100 text-red-800' },
-    { value: 'training', label: 'Formation', color: 'bg-purple-100 text-purple-800' },
+    { value: 'cet', label: 'CET - Compte épargne temps', color: 'bg-purple-100 text-purple-800' },
     { value: 'other', label: 'Autre', color: 'bg-gray-100 text-gray-800' }
   ]
 
@@ -232,7 +230,7 @@ export default function EditLeavePage() {
                         onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         className="input"
                         required
-                                                   placeholder="DD/MM/YYYY (ex: 02/01/2024)"
+                        placeholder="DD/MM/YYYY (ex: 02/01/2024)"
                       />
                     </div>
                     <div>
@@ -245,7 +243,7 @@ export default function EditLeavePage() {
                         onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         className="input"
                         required
-                                                   placeholder="DD/MM/YYYY (ex: 03/01/2024)"
+                        placeholder="DD/MM/YYYY (ex: 03/01/2024)"
                       />
                     </div>
                   </div>

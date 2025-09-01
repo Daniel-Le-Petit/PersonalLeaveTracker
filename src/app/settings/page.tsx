@@ -65,46 +65,31 @@ export default function SettingsPage() {
 
   const handleExport = async () => {
     try {
-      const data = await leaveStorage.exportData()
-      const blob = new Blob([data], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `leave-tracker-settings-${new Date().toISOString().split('T')[0]}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      toast.success('Paramètres exportés avec succès')
+      await leaveStorage.exportDataWithUserChoice()
+      toast.success('Export réussi - Choisissez où sauvegarder le fichier')
     } catch (error) {
       console.error('Erreur lors de l\'export:', error)
       toast.error('Erreur lors de l\'export')
     }
   }
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      try {
-        const data = e.target?.result as string
-        const importedData = JSON.parse(data)
-        
-        if (importedData.settings) {
-          setSettings(importedData.settings)
-          await leaveStorage.saveSettings(importedData.settings)
-          toast.success('Paramètres importés avec succès')
-        } else {
-          toast.error('Format de fichier invalide')
-        }
-      } catch (error) {
-        console.error('Erreur lors de l\'import:', error)
+  const handleImport = async () => {
+    try {
+      await leaveStorage.importDataWithFileSelection()
+      toast.success('Données importées avec succès')
+      // Recharger les paramètres
+      const savedSettings = await leaveStorage.getSettings()
+      if (savedSettings) {
+        setSettings(savedSettings)
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'import:', error)
+      if (error instanceof Error && error.message === 'Import annulé') {
+        toast.info('Import annulé')
+      } else {
         toast.error('Erreur lors de l\'import')
       }
     }
-    reader.readAsText(file)
   }
 
   const updateQuota = (type: string, value: number) => {
@@ -183,16 +168,13 @@ export default function SettingsPage() {
                 <Download className="w-4 h-4 mr-2" />
                 Exporter
               </button>
-              <label className="btn-secondary cursor-pointer">
+              <button
+                onClick={handleImport}
+                className="btn-secondary"
+              >
                 <Upload className="w-4 h-4 mr-2" />
                 Importer
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImport}
-                  className="hidden"
-                />
-              </label>
+              </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { AppSettings } from '../types'
 import { leaveStorage } from '../utils/storage'
+import DeploymentNotice from '../components/DeploymentNotice'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -104,6 +105,7 @@ export default function RootLayout({
         <div className="min-h-screen">
           {children}
         </div>
+        <DeploymentNotice />
         <Toaster
           position="top-right"
           toastOptions={{
