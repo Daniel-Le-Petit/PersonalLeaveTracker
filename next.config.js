@@ -10,8 +10,6 @@ const nextConfig = {
   
   // Optimisations pour mobile
   experimental: {
-    // Optimiser le rendu sur mobile
-    optimizeCss: true,
     // Améliorer les performances de chargement
     optimizePackageImports: ['lucide-react'],
   },
