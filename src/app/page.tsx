@@ -236,181 +236,538 @@ export default function Dashboard() {
 
              {/* Main Content */}
        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mobile-safe-area">
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-           {/* Résumé des soldes */}
-           <div className="lg:col-span-2">
-             <div className="grid-mobile grid-tablet gap-4">
-               {balances
-                 .filter((balance) => ['cp', 'rtt', 'cet'].includes(balance.type))
-                 .map((balance) => (
-                 <div key={balance.type} className="card">
-                   <div className="card-body p-4">
-                     <div className="flex items-center justify-between mb-2">
-                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                         {getLeaveTypeLabel(balance.type)}
-                       </span>
-                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getLeaveTypeColor(balance.type)}`}>
-                         {getLeaveTypeIcon(balance.type)}
-                       </span>
-                     </div>
-                     <div className="space-y-1">
-                       <div className="flex justify-between text-sm">
-                         <span className="text-gray-600 dark:text-gray-400">Total:</span>
-                         <span className="font-medium text-gray-900 dark:text-white">
-                           {balance.total} jour{balance.total > 1 ? 's' : ''}
-                         </span>
-                       </div>
-                       {balance.carryover && balance.carryover > 0 && (
-                         <div className="flex justify-between text-sm">
-                           <span className="text-gray-600 dark:text-gray-400">Dont reliquats:</span>
-                           <span className="font-medium text-blue-600 dark:text-blue-400">
-                             +{balance.carryover} jour{balance.carryover > 1 ? 's' : ''}
-                           </span>
-                         </div>
-                       )}
-                       <div className="flex justify-between text-sm">
-                         <span className="text-gray-600 dark:text-gray-400">Utilisés:</span>
-                         <span className="font-medium text-red-600 dark:text-red-400">
-                           {balance.used} jour{balance.used > 1 ? 's' : ''}
-                         </span>
-                       </div>
-                       <div className="flex justify-between text-sm font-semibold">
-                         <span className="text-gray-600 dark:text-gray-400">Restants:</span>
-                         <span className="text-green-600 dark:text-green-400">
-                           {balance.remaining} jour{balance.remaining > 1 ? 's' : ''}
-                         </span>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               ))}
-             </div>
-           </div>
-         </div>
-
-        {/* Tableau mensuel détaillé */}
-        {monthlySummary && (
-          <div className="mt-8">
-            <div className="card">
-              <div className="card-header">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  📊 Tableau mensuel détaillé - {currentYear}
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Suivi mensuel des RTT et congés payés avec cumuls
-                </p>
-              </div>
-              <div className="card-body">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 sticky left-0 bg-gray-50 dark:bg-gray-800 z-10">
-                          Mois
-                        </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                          RTT dispo
-                        </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                          RTT pris
-                        </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                          CP dispo
-                        </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                          CP pris
-                        </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                          Total dispo
-                        </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                          Jours potentiels RTT
-                        </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-                          Jours potentiels CP
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                      {monthlySummary.months.map((month) => (
-                        <tr key={month.month} className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${month.isPastMonth ? 'opacity-60' : ''}`}>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700 sticky left-0 bg-white dark:bg-gray-900 z-10">
-                            {month.monthName}
-                          </td>
-                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                            <span className="text-green-600 dark:text-green-400 font-medium">
-                              {month.rttDispo}
-                            </span>
-                          </td>
-                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                            <span className="text-red-600 dark:text-red-400 font-medium">
-                              {month.rttPris}
-                            </span>
-                          </td>
-                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                            <span className="text-blue-600 dark:text-blue-400 font-medium">
-                              {month.cpDispo}
-                            </span>
-                          </td>
-                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                            <span className="text-red-600 dark:text-red-400 font-medium">
-                              {month.cpPris}
-                            </span>
-                          </td>
-                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                            <span className="text-gray-900 dark:text-white font-semibold">
-                              {month.totalDispo}
-                            </span>
-                          </td>
-                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                            <span className={`font-medium ${month.isPastMonth ? 'text-gray-500 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}`}>
-                              {month.joursPotentielsRTT > 0 ? month.joursPotentielsRTT : '-'}
-                            </span>
-                          </td>
-                          <td className="px-2 py-3 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                            <span className={`font-medium ${month.isPastMonth ? 'text-gray-500 dark:text-gray-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                              {month.joursPotentielsCP > 0 ? month.joursPotentielsCP : '-'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  
-                  {/* Légende pour les nouvelles colonnes */}
-                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                      💡 Explication des colonnes
-                    </h4>
-                    <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-gray-400 rounded mr-2"></div>
-                        <span><strong>Mois grisé :</strong> Mois passé ou en cours (après le 15)</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                        <span><strong>Jours potentiels RTT :</strong> RTT disponibles à prendre (priorité sur CP)</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-blue-500 rounded mr-2"></div>
-                        <span><strong>Jours potentiels CP :</strong> CP disponibles à prendre</span>
-                      </div>
-                      <div className="mt-2 text-xs">
-                        <p><strong>Règles :</strong></p>
-                        <ul className="list-disc list-inside space-y-1">
-                          <li>RTT : 2 par mois, disponibles après le 15 du mois</li>
-                          <li>CP : 25 jours par an, disponibles dès janvier</li>
-                          <li>Priorité RTT sur CP pour les vacances 2025</li>
-                          <li>Toussaint 2025 : 15 jours CP, Noël 2025 : 5 jours CP</li>
-                        </ul>
-                      </div>
+         {/* Nouveau tableau Réel vs Prévisions */}
+        <div className="mt-8">
+          <div className="card">
+            <div className="card-header">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                📊 Tableau Réel vs Prévisions - 2025
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Suivi mensuel des RTT et CP avec données réelles et prévisions
+              </p>
+            </div>
+            <div className="card-body">
+              <div className="overflow-x-auto">
+                <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <thead>
+                    {/* En-tête principal */}
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-red-600 text-white border-r border-gray-200 dark:border-gray-700">
+                        2025
+                      </th>
+                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-green-200 dark:bg-green-800 border-r border-gray-200 dark:border-gray-700">
+                        Réel
+                      </th>
+                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-green-200 dark:bg-green-800 border-r border-gray-200 dark:border-gray-700">
+                        Prévisions
+                      </th>
+                    </tr>
+                    {/* Sous-en-têtes RTT et CP */}
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                        
+                      </th>
+                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-green-100 dark:bg-green-900 border-r border-gray-200 dark:border-gray-700">
+                        RTT
+                      </th>
+                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-yellow-100 dark:bg-yellow-900 border-r border-gray-200 dark:border-gray-700">
+                        CP
+                      </th>
+                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-green-100 dark:bg-green-900 border-r border-gray-200 dark:border-gray-700">
+                        RTT
+                      </th>
+                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-yellow-100 dark:bg-yellow-900 border-r border-gray-200 dark:border-gray-700">
+                        CP
+                      </th>
+                    </tr>
+                    {/* En-têtes Jours et Cumul */}
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                        
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Jours
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Cumul
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Jours
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Cumul
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Jours
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Cumul
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Jours
+                      </th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                        Cumul
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                    {/* Reliquat */}
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Reliquat
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        -
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        7
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        -
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        -
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        7
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        -
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                    </tr>
+                    {/* Janvier */}
+                    <tr className="bg-white dark:bg-gray-900">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Janv
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        6
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        24
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        6
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        24
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                    </tr>
+                    {/* Février */}
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Fev
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        24
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        24
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                    </tr>
+                    {/* Mars */}
+                    <tr className="bg-white dark:bg-gray-900">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Mar
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        3
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        21
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        3
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        21
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        43.5
+                      </td>
+                    </tr>
+                    {/* Avril */}
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Avril
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        2
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        19
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        1
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        42.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        2
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        19
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        1
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        42.5
+                      </td>
+                    </tr>
+                    {/* Mai */}
+                    <tr className="bg-white dark:bg-gray-900">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Mai
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        4
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        15
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        42.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        4
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        15
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        42.5
+                      </td>
+                    </tr>
+                    {/* Juin */}
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Juin
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        15
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        69.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        15
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        69.5
+                      </td>
+                    </tr>
+                    {/* Juillet */}
+                    <tr className="bg-white dark:bg-gray-900">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Juillet
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        4
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        11
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        4
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        65.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        4
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        11
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        4
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        65.5
+                      </td>
+                    </tr>
+                    {/* Août */}
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Aout
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        2
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        2
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                    </tr>
+                    {/* Septembre */}
+                    <tr className="bg-white dark:bg-gray-900">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Sept
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                    </tr>
+                    {/* Octobre */}
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Oct
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                    </tr>
+                    {/* Novembre */}
+                    <tr className="bg-white dark:bg-gray-900">
+                      <td className="px-4 py-2 text-center text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Nov
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        6
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        3
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        8
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        52.5
+                      </td>
+                    </tr>
+                    {/* Décembre */}
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Dec
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        9
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        60.5
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        3
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        0
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                        4
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        48.5
+                      </td>
+                    </tr>
+                    {/* Total */}
+                    <tr className="bg-red-50 dark:bg-red-900/20">
+                      <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        Total
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                        21
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                        10
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                        30
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                        22
+                      </td>
+                      <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                        
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                {/* Légende */}
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                    💡 Explication du tableau
+                  </h4>
+                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-green-200 dark:bg-green-800 rounded mr-2"></div>
+                      <span><strong>Réel :</strong> Données effectives des congés pris</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-green-200 dark:bg-green-800 rounded mr-2"></div>
+                      <span><strong>Prévisions :</strong> Planification des congés à venir</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-green-100 dark:bg-green-900 rounded mr-2"></div>
+                      <span><strong>RTT :</strong> Réduction du temps de travail</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-yellow-100 dark:bg-yellow-900 rounded mr-2"></div>
+                      <span><strong>CP :</strong> Congés payés</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
+                      <span><strong>Total :</strong> Somme des jours pris</span>
                     </div>
                   </div>
-                                 </div>
-               </div>
-             </div>
-           </div>
-                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
          {/* Graphiques des congés */}
          <div className="mt-8">

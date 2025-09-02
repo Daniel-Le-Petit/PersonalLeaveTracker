@@ -1,6 +1,5 @@
 'use client'
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { LeaveEntry } from '../types'
 
 interface LeaveChartsProps {
@@ -84,28 +83,6 @@ export default function LeaveCharts({ leaves, currentYear }: LeaveChartsProps) {
 
   const monthlyData = prepareMonthlyData()
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900 dark:text-white">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {entry.value} jours
-            </p>
-          ))}
-        </div>
-      )
-    }
-    return null
-  }
-
-  const COLORS = {
-    rtt: ['#ef4444', '#22c55e'], // Rouge pour pris, Vert pour restants
-    cp: ['#3b82f6', '#22c55e'],  // Bleu pour pris, Vert pour restants
-    cet: ['#8b5cf6', '#22c55e']  // Violet pour pris, Vert pour restants
-  }
-
   return (
     <div className="space-y-8">
       <div className="text-center mb-6">
@@ -127,114 +104,60 @@ export default function LeaveCharts({ leaves, currentYear }: LeaveChartsProps) {
               </h3>
             </div>
             <div className="card-body p-4">
-              {/* Graphique RTT */}
+              {/* RTT */}
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
                   RTT
                 </h4>
-                <ResponsiveContainer width="100%" height={120}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Pris', value: monthData.rtt.pris },
-                        { name: 'Restants', value: monthData.rtt.restants }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={20}
-                      outerRadius={50}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {[
-                        { name: 'Pris', value: monthData.rtt.pris },
-                        { name: 'Restants', value: monthData.rtt.restants }
-                      ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS.rtt[index]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="text-center text-xs text-gray-600 dark:text-gray-400">
-                  <div className="flex justify-between">
-                    <span>Pris: {monthData.rtt.pris}</span>
-                    <span>Restants: {monthData.rtt.restants}</span>
-                  </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Pris:</span>
+                  <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                    {monthData.rtt.pris}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Restants:</span>
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    {monthData.rtt.restants}
+                  </span>
                 </div>
               </div>
 
-              {/* Graphique CP */}
+              {/* CP */}
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
                   CP
                 </h4>
-                <ResponsiveContainer width="100%" height={120}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Pris', value: monthData.cp.pris },
-                        { name: 'Restants', value: monthData.cp.restants }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={20}
-                      outerRadius={50}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {[
-                        { name: 'Pris', value: monthData.cp.pris },
-                        { name: 'Restants', value: monthData.cp.restants }
-                      ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS.cp[index]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="text-center text-xs text-gray-600 dark:text-gray-400">
-                  <div className="flex justify-between">
-                    <span>Pris: {monthData.cp.pris}</span>
-                    <span>Restants: {monthData.cp.restants}</span>
-                  </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Pris:</span>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    {monthData.cp.pris}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Restants:</span>
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    {monthData.cp.restants}
+                  </span>
                 </div>
               </div>
 
-              {/* Graphique CET */}
+              {/* CET */}
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
                   CET
                 </h4>
-                <ResponsiveContainer width="100%" height={120}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Pris', value: monthData.cet.pris },
-                        { name: 'Restants', value: monthData.cet.restants }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={20}
-                      outerRadius={50}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {[
-                        { name: 'Pris', value: monthData.cet.pris },
-                        { name: 'Restants', value: monthData.cet.restants }
-                      ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS.cet[index]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="text-center text-xs text-gray-600 dark:text-gray-400">
-                  <div className="flex justify-between">
-                    <span>Pris: {monthData.cet.pris}</span>
-                    <span>Restants: {monthData.cet.restants}</span>
-                  </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Pris:</span>
+                  <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                    {monthData.cet.pris}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Restants:</span>
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    {monthData.cet.restants}
+                  </span>
                 </div>
               </div>
             </div>
