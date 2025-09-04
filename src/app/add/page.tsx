@@ -15,7 +15,8 @@ export default function AddLeavePage() {
     endDate: '',
     notes: '',
     isHalfDay: false,
-    halfDayType: 'morning' as 'morning' | 'afternoon'
+    halfDayType: 'morning' as 'morning' | 'afternoon',
+    isForecast: false
   })
   const [workingDays, setWorkingDays] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -120,6 +121,7 @@ export default function AddLeavePage() {
         notes: formData.notes.trim(),
         isHalfDay: formData.isHalfDay,
         halfDayType: formData.halfDayType,
+        isForecast: formData.isForecast,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -136,7 +138,8 @@ export default function AddLeavePage() {
         endDate: '',
         notes: '',
         isHalfDay: false,
-        halfDayType: 'morning'
+        halfDayType: 'morning',
+        isForecast: false
       })
       setWorkingDays(0)
     } catch (error) {
@@ -151,7 +154,7 @@ export default function AddLeavePage() {
     { value: 'cp', label: 'CP - Congés payés' },
     { value: 'rtt', label: 'RTT - Réduction du temps de travail' },
     { value: 'cet', label: 'CET - Compte épargne temps' },
-            { value: 'other', label: 'Autre' }
+    
   ]
 
   return (
@@ -213,8 +216,7 @@ export default function AddLeavePage() {
                               ? 'bg-green-50 border-green-300 hover:bg-green-100' + (formData.type === type.value ? ' bg-green-100 border-green-500' : '')
                                                              : type.value === 'cet'
                                ? 'bg-purple-50 border-purple-300 hover:bg-purple-100' + (formData.type === type.value ? ' bg-purple-100 border-purple-500' : '')
-                              : type.value === 'other'
-                              ? 'bg-orange-50 border-orange-300 hover:bg-orange-100' + (formData.type === type.value ? ' bg-orange-100 border-orange-500' : '')
+
                               : 'bg-gray-50 border-gray-300 hover:bg-gray-100' + (formData.type === type.value ? ' bg-gray-100 border-gray-500' : '')
                           }`}
                         >
@@ -223,20 +225,20 @@ export default function AddLeavePage() {
                               type.value === 'cp' ? 'text-blue-600' 
                               : type.value === 'rtt' ? 'text-green-600'
                                                              : type.value === 'cet' ? 'text-purple-600'
-                              : type.value === 'other' ? 'text-orange-600'
+
                               : 'text-gray-600'
                             }`}>
                               {type.value === 'cp' ? '🏖️' 
                                : type.value === 'rtt' ? '📅'
                                                                : type.value === 'cet' ? '🏥'
-                               : type.value === 'other' ? '📝'
+
                                : '📋'}
                             </div>
                             <div className={`font-medium text-sm ${
                               type.value === 'cp' ? 'text-blue-700' 
                               : type.value === 'rtt' ? 'text-green-700'
                                                              : type.value === 'cet' ? 'text-purple-700'
-                              : type.value === 'other' ? 'text-orange-700'
+ 
                               : 'text-gray-700'
                             }`}>
                               {type.label}
@@ -328,6 +330,23 @@ export default function AddLeavePage() {
                     )}
                   </div>
 
+                  {/* Mode prévision/réel */}
+                  <div className="form-group">
+                    <label htmlFor="isForecast" className="form-label">
+                      Mode
+                    </label>
+                    <select
+                      id="isForecast"
+                      value={formData.isForecast}
+                      onChange={(e) => setFormData({ ...formData, isForecast: e.target.checked })}
+                      className="form-select"
+                      title="Sélectionner le mode du congé"
+                    >
+                      <option value={false}>Réel (congé effectivement pris)</option>
+                      <option value={true}>Prévision (congé planifié)</option>
+                    </select>
+                  </div>
+
                   {/* Notes */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -379,20 +398,20 @@ export default function AddLeavePage() {
                           formData.type === 'cp' ? 'text-blue-600' 
                           : formData.type === 'rtt' ? 'text-green-600'
                                                      : formData.type === 'cet' ? 'text-purple-600'
-                          : formData.type === 'other' ? 'text-orange-600'
+
                           : 'text-gray-600'
                         }`}>
                           {formData.type === 'cp' ? '🏖️' 
                            : formData.type === 'rtt' ? '📅'
                            : formData.type === 'cet' ? '🏥'
-                           : formData.type === 'other' ? '📝'
+
                            : '📋'}
                         </span>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                           formData.type === 'cp' ? 'bg-blue-100 text-blue-800 border border-blue-200' 
                           : formData.type === 'rtt' ? 'bg-green-100 text-green-800 border border-green-200'
                                                      : formData.type === 'cet' ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                          : formData.type === 'other' ? 'bg-orange-100 text-orange-800 border border-orange-200'
+
                           : 'bg-gray-100 text-gray-800 border border-gray-200'
                         }`}>
                           {leaveTypes.find(t => t.value === formData.type)?.label.split(' - ')[0]}

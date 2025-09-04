@@ -1,6 +1,6 @@
 // Types pour l'application de gestion des congés
 
-export type LeaveType = 'cp' | 'rtt' | 'cet' | 'sick' | 'unpaid' | 'training' | 'other';
+export type LeaveType = 'cp' | 'rtt' | 'cet' | 'sick';
 
 export interface LeaveEntry {
   id: string;
@@ -11,6 +11,7 @@ export interface LeaveEntry {
   notes?: string;
   isHalfDay?: boolean;
   halfDayType?: 'morning' | 'afternoon';
+  isForecast: boolean; // true = prévision, false = congé réel
   createdAt: string;
   updatedAt: string;
 }

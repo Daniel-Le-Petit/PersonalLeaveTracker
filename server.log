@@ -1,0 +1,34 @@
+nohup: ignoring input
+
+> personal-leave-tracker@1.0.0 dev
+> next dev -p 3001
+
+  ▲ Next.js 14.2.32
+  - Local:        http://localhost:3001
+
+ ✓ Starting...
+ ✓ Ready in 36.1s
+ ○ Compiling / ...
+ ✓ Compiled / in 33.8s (1690 modules)
+ GET / 200 in 37911ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 33.2s (1670 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 30153ms
+ GET / 200 in 371ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 266ms
+ GET / 200 in 146ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 190ms
+ ○ Compiling /add ...
+ ✓ Compiled /add in 1443ms (1679 modules)
+ ○ Compiling /history ...
+ ✓ Compiled /history in 926ms (1697 modules)
+ ○ Compiling /carryover ...
+ ✓ Compiled /carryover in 1184ms (1705 modules)
+ ○ Compiling /settings ...
+ ✓ Compiled /settings in 1699ms (1717 modules)
+ GET / 200 in 229ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1719ms (1715 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 2604ms
+ GET / 200 in 248ms
+[?25h

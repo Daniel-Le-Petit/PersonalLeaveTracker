@@ -143,7 +143,7 @@ export default function CarryoverPage() {
     { value: 'cp', label: 'CP - Congés payés' },
     { value: 'rtt', label: 'RTT - Réduction du temps de travail' },
     { value: 'cet', label: 'CET - Compte épargne temps' },
-            { value: 'other', label: 'Autre' }
+    
   ]
 
   if (isLoading) {
@@ -208,7 +208,7 @@ export default function CarryoverPage() {
                          type.value === 'cp' ? 'bg-blue-100 text-blue-800' 
                          : type.value === 'rtt' ? 'bg-green-100 text-green-800'
                          : type.value === 'cet' ? 'bg-purple-100 text-purple-800'
-                         : type.value === 'other' ? 'bg-orange-100 text-orange-800'
+                 
                          : 'bg-gray-100 text-gray-800'
                        }`}>
                         {total} jour{total > 1 ? 's' : ''}
@@ -257,8 +257,7 @@ export default function CarryoverPage() {
                                 ? 'bg-green-50 border-green-300 hover:bg-green-100' + (formData.type === type.value ? ' bg-green-100 border-green-500' : '')
                                                                : type.value === 'cet'
                                ? 'bg-purple-50 border-purple-300 hover:bg-purple-100' + (formData.type === type.value ? ' bg-purple-100 border-purple-500' : '')
-                                : type.value === 'other'
-                                ? 'bg-orange-50 border-orange-300 hover:bg-orange-100' + (formData.type === type.value ? ' bg-orange-100 border-orange-500' : '')
+
                                 : 'bg-gray-50 border-gray-300 hover:bg-gray-100' + (formData.type === type.value ? ' bg-gray-100 border-gray-500' : '')
                             }`}
                           >
@@ -267,20 +266,20 @@ export default function CarryoverPage() {
                                  type.value === 'cp' ? 'text-blue-600' 
                                  : type.value === 'rtt' ? 'text-green-600'
                                  : type.value === 'cet' ? 'text-purple-600'
-                                 : type.value === 'other' ? 'text-orange-600'
+
                                  : 'text-gray-600'
                                }`}>
                                  {type.value === 'cp' ? '🏖️' 
                                   : type.value === 'rtt' ? '📅'
                                   : type.value === 'cet' ? '🏥'
-                                  : type.value === 'other' ? '📝'
+
                                   : '📋'}
                                </div>
                                <div className={`font-medium text-sm ${
                                  type.value === 'cp' ? 'text-blue-700' 
                                  : type.value === 'rtt' ? 'text-green-700'
                                  : type.value === 'cet' ? 'text-purple-700'
-                                 : type.value === 'other' ? 'text-orange-700'
+
                                  : 'text-gray-700'
                                }`}>
                                 {type.label}
@@ -400,7 +399,7 @@ export default function CarryoverPage() {
                                          typeInfo?.value === 'cp' ? 'bg-blue-100 text-blue-800' 
                                          : typeInfo?.value === 'rtt' ? 'bg-green-100 text-green-800'
                                          : typeInfo?.value === 'cet' ? 'bg-purple-100 text-purple-800'
-                                         : typeInfo?.value === 'other' ? 'bg-orange-100 text-orange-800'
+
                                          : 'bg-gray-100 text-gray-800'
                                        }`}>
                                         {typeInfo?.label.split(' - ')[0]}

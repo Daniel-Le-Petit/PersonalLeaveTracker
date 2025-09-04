@@ -29,11 +29,8 @@ export default function SettingsPage() {
           publicHolidays: [],
           quotas: [
             { type: 'cp', yearlyQuota: 25 },
-            { type: 'rtt', yearlyQuota: 10 },
-            { type: 'sick', yearlyQuota: 0 },
-            { type: 'unpaid', yearlyQuota: 0 },
-            { type: 'training', yearlyQuota: 0 },
-            { type: 'other', yearlyQuota: 0 },
+                          { type: 'rtt', yearlyQuota: 10 },
+              { type: 'sick', yearlyQuota: 0 }
           ],
           darkMode: false,
           notifications: true,

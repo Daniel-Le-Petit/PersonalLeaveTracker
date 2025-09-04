@@ -91,9 +91,7 @@ export default function HistoryPage() {
       cp: 'CP - Congés payés',
       rtt: 'RTT - Réduction du temps de travail',
       sick: 'Maladie',
-      unpaid: 'Sans solde',
-      training: 'Formation',
-      other: 'Autre'
+      
     }
     return types[type as keyof typeof types] || type
   }
@@ -103,11 +101,9 @@ export default function HistoryPage() {
       cp: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
       rtt: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
       sick: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-      unpaid: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-      training: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-      other: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+      
     }
-    return colors[type as keyof typeof colors] || colors.other
+          return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
   }
 
   const getYears = () => {
@@ -229,27 +225,27 @@ export default function HistoryPage() {
             <div className="overflow-x-auto">
               <table className="table">
                 <thead className="table-header">
-                  <tr>
-                    <th className="table-header-cell">Type</th>
-                    <th className="table-header-cell">Période</th>
-                    <th className="table-header-cell">Jours</th>
-                    <th className="table-header-cell">Notes</th>
-                    <th className="table-header-cell">Actions</th>
+                  <tr className="bg-gray-100 dark:bg-gray-800">
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                      Date
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                      Type
+                    </th>
+                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                      Jours
+                    </th>
+                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                      Mode
+                    </th>
+                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="table-body">
                   {filteredLeaves.map((leave) => (
                     <tr key={leave.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="table-cell">
-                        <span className={`badge ${getLeaveTypeColor(leave.type)}`}>
-                          {leave.type.toUpperCase()}
-                        </span>
-                        {leave.isHalfDay && (
-                          <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                            ({leave.halfDayType === 'morning' ? 'Matin' : 'Après-midi'})
-                          </span>
-                        )}
-                      </td>
                       <td className="table-cell">
                         <div className="text-sm">
                           <div className="font-medium text-gray-900 dark:text-white">
@@ -261,6 +257,16 @@ export default function HistoryPage() {
                         </div>
                       </td>
                       <td className="table-cell">
+                        <span className={`badge ${getLeaveTypeColor(leave.type)}`}>
+                          {leave.type.toUpperCase()}
+                        </span>
+                        {leave.isHalfDay && (
+                          <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                            ({leave.halfDayType === 'morning' ? 'Matin' : 'Après-midi'})
+                          </span>
+                        )}
+                      </td>
+                      <td className="table-cell">
                         <span className="font-semibold text-gray-900 dark:text-white">
                           {leave.workingDays}
                         </span>
@@ -269,9 +275,9 @@ export default function HistoryPage() {
                         </span>
                       </td>
                       <td className="table-cell">
-                        <div className="max-w-xs truncate">
-                          {leave.notes || '-'}
-                        </div>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {leave.isPredicted ? 'Prévisionnel' : 'Réel'}
+                        </span>
                       </td>
                       <td className="table-cell">
                         <div className="flex items-center space-x-2">

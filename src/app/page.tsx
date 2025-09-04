@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } from '../types'
-import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummary } from '../utils/leaveUtils'
+import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummarySeparated } from '../utils/leaveUtils'
 import { leaveStorage } from '../utils/storage'
-import LeaveCharts from '../components/LeaveCharts'
+import CumulativeCharts from '../components/CumulativeCharts'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentYear] = useState(new Date().getFullYear())
   const [monthlySummary, setMonthlySummary] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
+  const [monthlySummarySeparated, setMonthlySummarySeparated] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -74,16 +75,24 @@ export default function Dashboard() {
       setHolidays(holidaysData)
       setCarryovers(carryoversData)
 
-      // Calculer le tableau mensuel détaillé
-      if (settingsData && settingsData.quotas) {
-        const monthlyData = calculateMonthlyLeaveSummary(
-          leavesData,
-          settingsData.quotas,
-          carryoversData,
-          currentYear
-        )
-        setMonthlySummary(monthlyData)
-      }
+             // Calculer les données séparées (réel vs prévision)
+       if (settingsData && settingsData.quotas) {
+         try {
+           console.log('📈 Calcul des données mensuelles séparées...')
+           const monthlyDataSeparated = calculateMonthlyLeaveSummarySeparated(
+             leavesData,
+             settingsData.quotas,
+             carryoversData,
+             currentYear
+           )
+           setMonthlySummarySeparated(monthlyDataSeparated)
+           console.log('✅ Données mensuelles calculées')
+         } catch (error) {
+           console.error('❌ Erreur calcul données mensuelles:', error)
+         }
+       } else {
+         console.log('⚠️ Pas de paramètres ou quotas manquants')
+       }
 
       // Calculer les soldes avec les reliquats
       if (settingsData && settingsData.quotas) {
@@ -174,7 +183,7 @@ export default function Dashboard() {
                 Gérez vos congés et suivez vos soldes
               </p>
             </div>
-                         <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
                <button
                  onClick={handleExport}
                  className="btn-secondary"
@@ -189,6 +198,40 @@ export default function Dashboard() {
                  <Upload className="w-4 h-4 mr-2" />
                  Importer
                </button>
+               <button
+                onClick={async () => {
+                  console.log('🔍 Diagnostic et nettoyage forcé...')
+                  try {
+                    // Forcer le nettoyage des paramètres
+                    const currentSettings = await leaveStorage.getSettings()
+                    if (currentSettings && currentSettings.quotas) {
+                      console.log('🧹 Nettoyage forcé des paramètres...')
+                      const validTypes = ['cp', 'rtt', 'cet'] // Seulement 3 types
+                      const cleanedQuotas = currentSettings.quotas.filter(quota => validTypes.includes(quota.type))
+                      
+                      // Ajouter le type CET s'il manque
+                      if (!cleanedQuotas.find(q => q.type === 'cet')) {
+                        cleanedQuotas.push({ type: 'cet', yearlyQuota: 5 })
+                      }
+                      
+                      currentSettings.quotas = cleanedQuotas
+                      await leaveStorage.saveSettings(currentSettings)
+                      console.log('✅ Nettoyage forcé terminé')
+                      
+                      // Recharger les données
+                      await loadData()
+                      toast.success('Paramètres nettoyés et rechargés')
+                    }
+                  } catch (error) {
+                    console.error('❌ Erreur nettoyage forcé:', error)
+                    toast.error('Erreur nettoyage')
+                  }
+                }}
+                className="btn-warning"
+                style={{ backgroundColor: '#fbbf24', color: '#92400e' }}
+              >
+                🧹 Nettoyer (FORCÉ)
+              </button>
                {/* Menu burger pour mobile uniquement */}
                <button
                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -241,7 +284,7 @@ export default function Dashboard() {
           <div className="card">
             <div className="card-header">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                📊 Tableau Réel vs Prévisions - 2025
+                📊 Tableau Réel vs Prévisions - {currentYear}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                   Suivi mensuel des RTT et CP avec données réelles et prévisions
@@ -254,12 +297,12 @@ export default function Dashboard() {
                     {/* En-tête principal */}
                     <tr>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-red-600 text-white border-r border-gray-200 dark:border-gray-700">
-                        2025
+                        {currentYear}
                       </th>
-                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-green-200 dark:bg-green-800 border-r border-gray-200 dark:border-gray-700">
+                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-200 dark:bg-blue-800 border-r border-gray-200 dark:border-gray-700">
                         Réel
                       </th>
-                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-green-200 dark:bg-green-800 border-r border-gray-200 dark:border-gray-700">
+                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-purple-200 dark:bg-purple-800 border-r border-gray-200 dark:border-gray-700">
                         Prévisions
                       </th>
                     </tr>
@@ -268,16 +311,16 @@ export default function Dashboard() {
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                         
                       </th>
-                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-green-100 dark:bg-green-900 border-r border-gray-200 dark:border-gray-700">
+                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
                         RTT
                       </th>
                       <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-yellow-100 dark:bg-yellow-900 border-r border-gray-200 dark:border-gray-700">
                         CP
                       </th>
-                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-green-100 dark:bg-green-900 border-r border-gray-200 dark:border-gray-700">
+                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-purple-100 dark:bg-purple-900 border-r border-gray-200 dark:border-gray-700">
                         RTT
                       </th>
-                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-yellow-100 dark:bg-yellow-900 border-r border-gray-200 dark:border-gray-700">
+                      <th colSpan={2} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-orange-100 dark:bg-orange-900 border-r border-gray-200 dark:border-gray-700">
                         CP
                       </th>
                     </tr>
@@ -286,29 +329,29 @@ export default function Dashboard() {
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                         
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-800 border-r border-gray-200 dark:border-gray-700">
                         Jours
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-800 border-r border-gray-200 dark:border-gray-700">
+                        Solde restant
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-yellow-50 dark:bg-yellow-800 border-r border-gray-200 dark:border-gray-700">
                         Jours
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-yellow-50 dark:bg-yellow-800 border-r border-gray-200 dark:border-gray-700">
+                        Solde restant
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-purple-50 dark:bg-purple-800 border-r border-gray-200 dark:border-gray-700">
                         Jours
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-purple-50 dark:bg-purple-800 border-r border-gray-200 dark:border-gray-700">
+                        Solde restant
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-orange-50 dark:bg-orange-800 border-r border-gray-200 dark:border-gray-700">
                         Jours
                       </th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 bg-orange-50 dark:bg-orange-800 border-r border-gray-200 dark:border-gray-700">
+                        Solde restant
                       </th>
                     </tr>
                   </thead>
@@ -322,27 +365,64 @@ export default function Dashboard() {
                         -
                       </td>
                       <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                        7
+                        {carryovers.filter(c => c.type === 'rtt').reduce((sum, c) => sum + c.days, 0)}
                       </td>
                       <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
                         -
                       </td>
                       <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                        43.5
+                        {carryovers.filter(c => c.type === 'cp').reduce((sum, c) => sum + c.days, 0)}
                       </td>
                       <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
                         -
                       </td>
                       <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                        7
+                        {carryovers.filter(c => c.type === 'rtt').reduce((sum, c) => sum + c.days, 0)}
                       </td>
                       <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
                         -
                       </td>
                       <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                        43.5
+                        {carryovers.filter(c => c.type === 'cp').reduce((sum, c) => sum + c.days, 0)}
                       </td>
                     </tr>
+                    
+                    {/* Données dynamiques par mois */}
+                    {monthlySummarySeparated?.months.map((monthData, index) => (
+                      <tr key={monthData.month} className={index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}>
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                          {monthData.monthName.substring(0, 3)}
+                        </td>
+                        {/* RTT Réel */}
+                        <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                          {monthData.rtt.real.taken > 0 ? monthData.rtt.real.taken : ''}
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                          {monthData.rtt.real.remaining}
+                        </td>
+                        {/* CP Réel */}
+                        <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                          {monthData.cp.real.taken > 0 ? monthData.cp.real.taken : ''}
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                          {monthData.cp.real.remaining}
+                        </td>
+                        {/* RTT Prévision */}
+                        <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                          {monthData.rtt.forecast.taken > 0 ? monthData.rtt.forecast.taken : ''}
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                          {monthData.rtt.forecast.remaining}
+                        </td>
+                        {/* CP Prévision */}
+                        <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
+                          {monthData.cp.forecast.taken > 0 ? monthData.cp.forecast.taken : ''}
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                          {monthData.cp.forecast.remaining}
+                        </td>
+                      </tr>
+                    ))}
                     {/* Janvier */}
                     <tr className="bg-white dark:bg-gray-900">
                       <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
@@ -742,22 +822,22 @@ export default function Dashboard() {
                     💡 Explication du tableau
                   </h4>
                   <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-green-200 dark:bg-green-800 rounded mr-2"></div>
-                      <span><strong>Réel :</strong> Données effectives des congés pris</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-green-200 dark:bg-green-800 rounded mr-2"></div>
-                      <span><strong>Prévisions :</strong> Planification des congés à venir</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-green-100 dark:bg-green-900 rounded mr-2"></div>
-                      <span><strong>RTT :</strong> Réduction du temps de travail</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-yellow-100 dark:bg-yellow-900 rounded mr-2"></div>
-                      <span><strong>CP :</strong> Congés payés</span>
-                    </div>
+                                         <div className="flex items-center">
+                       <div className="w-4 h-4 bg-blue-200 dark:bg-blue-800 rounded mr-2"></div>
+                       <span><strong>Réel :</strong> Données effectives des congés pris</span>
+                     </div>
+                     <div className="flex items-center">
+                       <div className="w-4 h-4 bg-purple-200 dark:bg-purple-800 rounded mr-2"></div>
+                       <span><strong>Prévisions :</strong> Planification des congés à venir</span>
+                     </div>
+                     <div className="flex items-center">
+                       <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded mr-2"></div>
+                       <span><strong>RTT :</strong> Réduction du temps de travail</span>
+                     </div>
+                     <div className="flex items-center">
+                       <div className="w-4 h-4 bg-yellow-100 dark:bg-yellow-900 rounded mr-2"></div>
+                       <span><strong>CP :</strong> Congés payés</span>
+                     </div>
                     <div className="flex items-center">
                       <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
                       <span><strong>Total :</strong> Somme des jours pris</span>
@@ -765,15 +845,33 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+                     </div>
+       </div>
+     </div>
 
-         {/* Graphiques des congés */}
-         <div className="mt-8">
-           <LeaveCharts leaves={leaves} currentYear={currentYear} />
+     {/* Graphiques cumulés des congés */}
+     <div className="mt-8">
+       <div className="card">
+         <div className="card-header">
+           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+             📈 Graphiques cumulés des congés - {currentYear}
+           </h2>
+           <p className="text-sm text-gray-600 dark:text-gray-400">
+             Évolution mensuelle des congés pris et restants par type
+           </p>
          </div>
-       </main>
+         <div className="card-body">
+           <CumulativeCharts 
+             leaves={leaves} 
+             carryovers={carryovers} 
+             currentYear={currentYear} 
+             settings={settings}
+           />
+         </div>
+       </div>
+     </div>
+
+        </main>
 
        {/* Menu mobile des actions rapides */}
        {isMobileMenuOpen && (

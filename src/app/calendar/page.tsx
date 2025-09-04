@@ -34,11 +34,9 @@ export default function CalendarPage() {
       cp: 'bg-blue-500',
       rtt: 'bg-green-500',
       sick: 'bg-orange-500',
-      unpaid: 'bg-red-500',
-      training: 'bg-purple-500',
-      other: 'bg-gray-500'
+      
     }
-    return colors[type as keyof typeof colors] || colors.other
+    return colors[type as keyof typeof colors] || 'bg-gray-500'
   }
 
   const getLeaveTypeLabel = (type: string) => {
@@ -46,9 +44,7 @@ export default function CalendarPage() {
       cp: 'CP',
       rtt: 'RTT',
       sick: 'Maladie',
-      unpaid: 'Sans solde',
-      training: 'Formation',
-      other: 'Autre'
+      
     }
     return types[type as keyof typeof types] || type
   }
@@ -232,9 +228,7 @@ export default function CalendarPage() {
                 { type: 'cp', label: 'CP - Congés payés' },
                 { type: 'rtt', label: 'RTT - Réduction du temps de travail' },
                 { type: 'sick', label: 'Maladie' },
-                { type: 'unpaid', label: 'Sans solde' },
-                { type: 'training', label: 'Formation' },
-                { type: 'other', label: 'Autre' }
+                
               ].map((item) => (
                 <div key={item.type} className="flex items-center space-x-2">
                   <div className={`w-4 h-4 rounded ${getLeaveTypeColor(item.type)}`}></div>

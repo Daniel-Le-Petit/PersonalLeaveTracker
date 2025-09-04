@@ -6,7 +6,7 @@ const nextConfig = {
     unoptimized: true,
   },
   // Configuration pour le déploiement statique
-  assetPrefix: process.env.NODE_ENV === 'production' ? './' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/' : '',
   
   // Optimisations pour mobile
   experimental: {

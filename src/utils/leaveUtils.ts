@@ -8,9 +8,6 @@ export const LEAVE_TYPES = {
   rtt: { label: 'RTT', color: 'leave-rtt', icon: '📅' },
   cet: { label: 'CET', color: 'leave-cet', icon: '🏥' },
   sick: { label: 'Maladie', color: 'leave-sick', icon: '🏥' },
-  unpaid: { label: 'Sans solde', color: 'leave-unpaid', icon: '⚠️' },
-  training: { label: 'Formation', color: 'leave-training', icon: '📚' },
-  other: { label: 'Autre', color: 'leave-other', icon: '📋' },
 } as const;
 
 // Jours fériés français 2024
@@ -158,7 +155,7 @@ export function calculateAvailableCarryover(
   year: number = new Date().getFullYear()
 ): Record<LeaveType, number> {
   const available: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, sick: 0, unpaid: 0, training: 0, other: 0
+    cp: 0, rtt: 0, cet: 0, sick: 0
   };
 
   carryovers.forEach(carryover => {
@@ -178,10 +175,10 @@ export function generateCarryoverSummary(carryovers: CarryoverLeave[]): {
 } {
   const byYear: Record<number, CarryoverLeave[]> = {};
   const byType: Record<LeaveType, CarryoverLeave[]> = {
-    cp: [], rtt: [], cet: [], sick: [], unpaid: [], training: [], other: []
+    cp: [], rtt: [], cet: [], sick: []
   };
   const totalByType: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, sick: 0, unpaid: 0, training: 0, other: 0
+    cp: 0, rtt: 0, cet: 0, sick: 0
   };
 
   carryovers.forEach(carryover => {
@@ -327,38 +324,28 @@ export function calculateCurrentAvailableRTT(
   return { totalAvailable, details };
 }
 
-/**
- * Calcule le tableau détaillé des RTT et congés par mois avec cumuls
- */
-export function calculateMonthlyLeaveSummary(
+// Nouvelle fonction pour calculer les données séparées par type (réel vs prévision)
+export function calculateMonthlyLeaveSummarySeparated(
   leaves: LeaveEntry[],
   quotas: { type: LeaveType; yearlyQuota: number }[],
   carryovers: CarryoverLeave[] = [],
-  year: number = new Date().getFullYear(),
-  currentDate: Date = new Date()
+  year: number = new Date().getFullYear()
 ): {
   months: Array<{
     month: number;
     monthName: string;
-    rttDispo: number;
-    rttPris: number;
-    cpDispo: number;
-    cpPris: number;
-    totalDispo: number;
-    rttCumulDispo: number;
-    cpCumulDispo: number;
-    totalCumulDispo: number;
-    rttCumulPris: number;
-    cpCumulPris: number;
-    totalCumulPris: number;
-    joursPotentielsRTT: number;
-    joursPotentielsCP: number;
-    isPastMonth: boolean;
+    rtt: {
+      real: { taken: number; cumul: number; remaining: number };
+      forecast: { taken: number; cumul: number; remaining: number };
+    };
+    cp: {
+      real: { taken: number; cumul: number; remaining: number };
+      forecast: { taken: number; cumul: number; remaining: number };
+    };
   }>;
   yearlyTotals: {
-    rtt: { available: number; taken: number; remaining: number };
-    cp: { available: number; taken: number; remaining: number };
-    total: { available: number; taken: number; remaining: number };
+    rtt: { real: number; forecast: number; total: number };
+    cp: { real: number; forecast: number; total: number };
   };
 } {
   const months = [];
@@ -367,165 +354,131 @@ export function calculateMonthlyLeaveSummary(
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  // Trouver les quotas pour RTT et CP
-  const rttQuota = quotas.find(q => q.type === 'rtt')?.yearlyQuota || 0;
-  const cpQuota = quotas.find(q => q.type === 'cp')?.yearlyQuota || 0;
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1; // 1-12
+  const currentYear = currentDate.getFullYear();
 
-  // Calculer les reliquats
-  const rttCarryover = carryovers
-    .filter(c => c.type === 'rtt')
-    .reduce((sum, c) => sum + c.days, 0);
-  const cpCarryover = carryovers
-    .filter(c => c.type === 'cp')
-    .reduce((sum, c) => sum + c.days, 0);
+  // Récupérer les quotas
+  const rttQuota = quotas.find(q => q.type === 'rtt')?.yearlyQuota || 23;
+  const cpQuota = quotas.find(q => q.type === 'cp')?.yearlyQuota || 25;
+  const cetQuota = quotas.find(q => q.type === 'cet')?.yearlyQuota || 5;
+  const totalCPCETQuota = cpQuota + cetQuota;
 
-  let rttCumulDispo = rttCarryover;
-  let cpCumulDispo = cpCarryover;
-  let rttCumulPris = 0;
-  let cpCumulPris = 0;
+  // Récupérer les reliquats
+  const rttCarryover = carryovers.find(c => c.type === 'rtt')?.days || 0;
+  const cpCarryover = carryovers.find(c => c.type === 'cp')?.days || 0;
+  const cetCarryover = carryovers.find(c => c.type === 'cet')?.days || 0;
+  const totalCPCETCarryover = cpCarryover + cetCarryover;
 
-  // Vacances prévues 2025
-  const vacances2025 = {
-    toussaint: { mois: 11, jours: 15 },
-    noel: { mois: 12, jours: 5 } // 1 semaine = 5 jours ouvrés
-  };
+  let rttCumulReal = 0;
+  let rttCumulForecast = 0;
+  let cpCumulReal = 0;
+  let cpCumulForecast = 0;
 
   for (let month = 1; month <= 12; month++) {
-    // Vérifier si le mois est passé
-    const isPastMonth = month < currentDate.getMonth() + 1 || 
-                       (month === currentDate.getMonth() + 1 && currentDate.getDate() > 15);
-
-    // RTT : 2 par mois
-    const rttDispo = 2;
-    rttCumulDispo += rttDispo;
-
-    // CP : disponibles dès janvier
-    const cpDispo = month === 1 ? cpQuota : 0;
-    if (month === 1) {
-      cpCumulDispo = cpCarryover + cpQuota;
-    }
-
-    // Calculer ce qui a été pris ce mois
+    // Filtrer les congés pour ce mois et cette année
     const monthLeaves = leaves.filter(leave => {
       const leaveDate = new Date(leave.startDate);
       return leaveDate.getFullYear() === year && leaveDate.getMonth() === month - 1;
     });
 
-    const rttPris = monthLeaves
-      .filter(leave => leave.type === 'rtt')
+    // Séparer les congés réels et les prévisions
+    const rttReal = monthLeaves
+      .filter(leave => leave.type === 'rtt' && !leave.isForecast)
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
-    const cpPris = monthLeaves
-      .filter(leave => leave.type === 'cp')
+    const cpReal = monthLeaves
+      .filter(leave => leave.type === 'cp' && !leave.isForecast)
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
-    rttCumulPris += rttPris;
-    cpCumulPris += cpPris;
+    // Pour les prévisions, vérifier s'il y a une correspondance avec la réalité
+    let rttForecast = 0;
+    let cpForecast = 0;
 
-    // Calculer les jours potentiels à prendre
-    let joursPotentielsRTT = 0;
-    let joursPotentielsCP = 0;
-
-    if (isPastMonth) {
-      // Pour les mois passés : afficher ce qui reste à prendre
-      joursPotentielsRTT = Math.max(0, rttCumulDispo - rttCumulPris);
-      joursPotentielsCP = Math.max(0, cpCumulDispo - cpCumulPris);
-    } else {
-      // Pour les mois futurs : afficher ce qui sera disponible
-      if (month === currentDate.getMonth() + 1) {
-        // Mois en cours : RTT disponibles après le 15
-        if (currentDate.getDate() > 15) {
-          joursPotentielsRTT = rttDispo;
-        } else {
-          joursPotentielsRTT = 0; // Pas encore disponible
+    const monthForecasts = monthLeaves.filter(leave => leave.isForecast);
+    
+    for (const forecast of monthForecasts) {
+      if (forecast.type === 'rtt') {
+        // Vérifier s'il y a une correspondance avec un congé réel
+        const hasRealCorrespondence = monthLeaves.some(realLeave => 
+          !realLeave.isForecast && 
+          realLeave.type === 'rtt' &&
+          isSamePeriod(forecast, realLeave)
+        );
+        
+        // Si pas de correspondance, masquer la prévision (ne pas l'afficher)
+        if (!hasRealCorrespondence) {
+          rttForecast += forecast.workingDays;
         }
-      } else {
-        // Mois futurs : RTT disponibles
-        joursPotentielsRTT = rttDispo;
       }
       
-      // CP disponibles pour les mois futurs
-      if (month === 1) {
-        joursPotentielsCP = cpQuota;
-      } else {
-        joursPotentielsCP = 0; // CP déjà disponibles en janvier
-      }
-    }
-
-    // Ajuster pour les vacances 2025
-    if (year === 2025) {
-      if (month === vacances2025.toussaint.mois) {
-        // Toussaint : priorité aux CP
-        if (joursPotentielsCP > 0) {
-          joursPotentielsCP = Math.min(joursPotentielsCP, vacances2025.toussaint.jours);
-          joursPotentielsRTT = 0; // Pas de RTT pendant les vacances
-        }
-      } else if (month === vacances2025.noel.mois) {
-        // Noël : priorité aux CP
-        if (joursPotentielsCP > 0) {
-          joursPotentielsCP = Math.min(joursPotentielsCP, vacances2025.noel.jours);
-          joursPotentielsRTT = 0; // Pas de RTT pendant les vacances
+      if (forecast.type === 'cp') {
+        // Vérifier s'il y a une correspondance avec un congé réel
+        const hasRealCorrespondence = monthLeaves.some(realLeave => 
+          !realLeave.isForecast && 
+          realLeave.type === 'cp' &&
+          isSamePeriod(forecast, realLeave)
+        );
+        
+        // Si pas de correspondance, masquer la prévision (ne pas l'afficher)
+        if (!hasRealCorrespondence) {
+          cpForecast += forecast.workingDays;
         }
       }
     }
 
-    const totalDispo = rttDispo + cpDispo;
-    const totalCumulDispo = rttCumulDispo + cpCumulDispo;
-    const totalCumulPris = rttCumulPris + cpCumulPris;
+    // Calculer les cumuls
+    rttCumulReal += rttReal;
+    rttCumulForecast += rttForecast;
+    cpCumulReal += cpReal;
+    cpCumulForecast += cpForecast;
+
+    // Calculer les soldes restants (cumuls inversés)
+    const rttRemainingReal = Math.max(0, rttQuota + rttCarryover - rttCumulReal);
+    const rttRemainingForecast = Math.max(0, rttQuota + rttCarryover - rttCumulReal - rttCumulForecast);
+    const cpRemainingReal = Math.max(0, totalCPCETQuota + totalCPCETCarryover - cpCumulReal);
+    const cpRemainingForecast = Math.max(0, totalCPCETQuota + totalCPCETCarryover - cpCumulReal - cpCumulForecast);
 
     months.push({
       month,
       monthName: monthNames[month - 1],
-      rttDispo,
-      rttPris,
-      cpDispo,
-      cpPris,
-      totalDispo,
-      rttCumulDispo,
-      cpCumulDispo,
-      totalCumulDispo,
-      rttCumulPris,
-      cpCumulPris,
-      totalCumulPris,
-      joursPotentielsRTT,
-      joursPotentielsCP,
-      isPastMonth
+      rtt: {
+        real: { taken: rttReal, cumul: rttCumulReal, remaining: rttRemainingReal },
+        forecast: { taken: rttForecast, cumul: rttCumulForecast, remaining: rttRemainingForecast }
+      },
+      cp: {
+        real: { taken: cpReal, cumul: cpCumulReal, remaining: cpRemainingReal },
+        forecast: { taken: cpForecast, cumul: cpCumulForecast, remaining: cpRemainingForecast }
+      }
     });
   }
 
-  // Calculer les totaux annuels
-  const yearlyTotals = {
-    rtt: {
-      available: 24, // 2 RTT par mois * 12 mois
-      taken: leaves
-        .filter(leave => leave.type === 'rtt' && new Date(leave.startDate).getFullYear() === year)
-        .reduce((sum, leave) => sum + leave.workingDays, 0),
-      remaining: 24 - leaves
-        .filter(leave => leave.type === 'rtt' && new Date(leave.startDate).getFullYear() === year)
-        .reduce((sum, leave) => sum + leave.workingDays, 0)
-    },
-    cp: {
-      available: cpQuota,
-      taken: leaves
-        .filter(leave => leave.type === 'cp' && new Date(leave.startDate).getFullYear() === year)
-        .reduce((sum, leave) => sum + leave.workingDays, 0),
-      remaining: cpQuota - leaves
-        .filter(leave => leave.type === 'cp' && new Date(leave.startDate).getFullYear() === year)
-        .reduce((sum, leave) => sum + leave.workingDays, 0)
-    },
-    total: {
-      available: 24 + cpQuota,
-      taken: leaves
-        .filter(leave => ['rtt', 'cp'].includes(leave.type) && new Date(leave.startDate).getFullYear() === year)
-        .reduce((sum, leave) => sum + leave.workingDays, 0),
-      remaining: (24 + cpQuota) - leaves
-        .filter(leave => ['rtt', 'cp'].includes(leave.type) && new Date(leave.startDate).getFullYear() === year)
-        .reduce((sum, leave) => sum + leave.workingDays, 0)
+  return {
+    months,
+    yearlyTotals: {
+      rtt: { real: rttCumulReal, forecast: rttCumulForecast, total: rttCumulReal + rttCumulForecast },
+      cp: { real: cpCumulReal, forecast: cpCumulForecast, total: cpCumulReal + cpCumulForecast }
     }
   };
-
-  return { months, yearlyTotals };
 }
+
+// Fonction utilitaire pour vérifier si deux congés correspondent à la même période
+function isSamePeriod(forecast: LeaveEntry, real: LeaveEntry): boolean {
+  // Si c'est un seul jour, vérifier la date exacte
+  if (forecast.workingDays === 1 && real.workingDays === 1) {
+    return forecast.startDate === real.startDate;
+  }
+  
+  // Si c'est une période, vérifier si les dates se chevauchent
+  const forecastStart = new Date(forecast.startDate);
+  const forecastEnd = new Date(forecast.endDate);
+  const realStart = new Date(real.startDate);
+  const realEnd = new Date(real.endDate);
+  
+  // Vérifier si les périodes se chevauchent
+  return forecastStart <= realEnd && realStart <= forecastEnd;
+}
+
 
 /**
  * Génère les données du calendrier pour un mois donné
@@ -663,7 +616,7 @@ export function calculateLeaveStats(leaves: LeaveEntry[], year: number): {
   const totalDays = yearLeaves.reduce((total, leave) => total + leave.workingDays, 0);
   
   const byType: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, sick: 0, unpaid: 0, training: 0, other: 0
+    cp: 0, rtt: 0, cet: 0, sick: 0
   };
   
   const byMonth: Record<string, number> = {};

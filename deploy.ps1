@@ -1,8 +1,7 @@
 # git.ps1
-# .\deploy.ps1 "feat: depot actif"
-# C:\Users\AIFinesHerbes\AIFB\frontend-m
+param([string]$message = "update")
 
-$Env:PATH += ";C:\Program Files\Git\cmd"
+$Env:PATH += ';C:\Program Files\Git\cmd'
 
 $logFile = ".\git.log"
 "=== Git script lancé à $(Get-Date) ===" | Out-File $logFile
@@ -24,7 +23,11 @@ try {
     git add . | Out-File $logFile -Append
 
     "`n== Commit avec message ==" | Out-File $logFile -Append
-    git commit -m "feat: $args" | Out-File $logFile -Append
+    if (-not (git diff --cached --quiet)) {
+        git commit -m "$message" | Out-File $logFile -Append
+    } else {
+        "Aucun changement à commit." | Out-File $logFile -Append
+    }
 
     "`n== Push vers GitHub ==" | Out-File $logFile -Append
     git push origin main | Out-File $logFile -Append

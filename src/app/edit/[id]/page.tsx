@@ -151,7 +151,7 @@ export default function EditLeavePage() {
     { value: 'cp', label: 'CP - Congés payés', color: 'bg-blue-100 text-blue-800' },
     { value: 'rtt', label: 'RTT - Réduction du temps de travail', color: 'bg-green-100 text-green-800' },
     { value: 'cet', label: 'CET - Compte épargne temps', color: 'bg-purple-100 text-purple-800' },
-    { value: 'other', label: 'Autre', color: 'bg-gray-100 text-gray-800' }
+    
   ]
 
   if (isLoading) {
