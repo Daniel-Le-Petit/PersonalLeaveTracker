@@ -383,49 +383,25 @@ export function calculateMonthlyLeaveSummarySeparated(
     });
 
     // Séparer les congés réels et les prévisions
+    // Si le mois est passé, les prévisions deviennent réelles
+    const isMonthPassed = year < currentYear || (year === currentYear && month < currentMonth);
+    
     const rttReal = monthLeaves
-      .filter(leave => leave.type === 'rtt' && !leave.isForecast)
+      .filter(leave => leave.type === 'rtt' && (!leave.isForecast || isMonthPassed))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     const cpReal = monthLeaves
-      .filter(leave => leave.type === 'cp' && !leave.isForecast)
+      .filter(leave => leave.type === 'cp' && (!leave.isForecast || isMonthPassed))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
-    // Pour les prévisions, vérifier s'il y a une correspondance avec la réalité
-    let rttForecast = 0;
-    let cpForecast = 0;
+    // Pour les prévisions, ne compter que celles des mois futurs
+    const rttForecast = monthLeaves
+      .filter(leave => leave.type === 'rtt' && leave.isForecast && !isMonthPassed)
+      .reduce((sum, leave) => sum + leave.workingDays, 0);
 
-    const monthForecasts = monthLeaves.filter(leave => leave.isForecast);
-    
-    for (const forecast of monthForecasts) {
-      if (forecast.type === 'rtt') {
-        // Vérifier s'il y a une correspondance avec un congé réel
-        const hasRealCorrespondence = monthLeaves.some(realLeave => 
-          !realLeave.isForecast && 
-          realLeave.type === 'rtt' &&
-          isSamePeriod(forecast, realLeave)
-        );
-        
-        // Si pas de correspondance, masquer la prévision (ne pas l'afficher)
-        if (!hasRealCorrespondence) {
-          rttForecast += forecast.workingDays;
-        }
-      }
-      
-      if (forecast.type === 'cp') {
-        // Vérifier s'il y a une correspondance avec un congé réel
-        const hasRealCorrespondence = monthLeaves.some(realLeave => 
-          !realLeave.isForecast && 
-          realLeave.type === 'cp' &&
-          isSamePeriod(forecast, realLeave)
-        );
-        
-        // Si pas de correspondance, masquer la prévision (ne pas l'afficher)
-        if (!hasRealCorrespondence) {
-          cpForecast += forecast.workingDays;
-        }
-      }
-    }
+    const cpForecast = monthLeaves
+      .filter(leave => leave.type === 'cp' && leave.isForecast && !isMonthPassed)
+      .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     // Calculer les cumuls
     rttCumulReal += rttReal;

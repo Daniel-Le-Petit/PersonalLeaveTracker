@@ -1,6 +1,7 @@
 'use client'
 
 import { LeaveEntry, CarryoverLeave } from '../types'
+import { calculateMonthlyLeaveSummarySeparated } from '../utils/leaveUtils'
 
 interface CumulativeChartsProps {
   leaves: LeaveEntry[]
@@ -10,143 +11,50 @@ interface CumulativeChartsProps {
 }
 
 export default function CumulativeCharts({ leaves, carryovers, currentYear, settings }: CumulativeChartsProps) {
-  const months = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-  ]
+  // Utiliser les données déjà calculées par calculateMonthlyLeaveSummarySeparated
+  const monthlyData = calculateMonthlyLeaveSummarySeparated(
+    leaves,
+    settings?.quotas || [],
+    carryovers,
+    currentYear
+  )
 
-  // Calculer les données cumulées pour RTT
-  const calculateRTTData = () => {
-    const monthlyData = months.map((month, monthIndex) => {
-      const monthNumber = monthIndex + 1
-      
-      // Filtrer les RTT pour ce mois et l'année
-      const monthLeaves = leaves.filter(leave => {
-        const leaveDate = new Date(leave.startDate)
-        return leave.type === 'rtt' && 
-               leaveDate.getFullYear() === currentYear && 
-               leaveDate.getMonth() === monthIndex
-      })
+  // Transformer les données pour les graphiques
+  const rttData = monthlyData.months.map(monthData => ({
+    month: monthData.monthName.substring(0, 3),
+    cumulativeTaken: monthData.rtt.real.cumul + monthData.rtt.forecast.cumul,
+    cumulativeRemaining: monthData.rtt.real.remaining + monthData.rtt.forecast.remaining
+  }))
 
-      // Calculer le total des jours pour ce mois
-      const monthTotal = monthLeaves.reduce((sum, leave) => sum + leave.workingDays, 0)
+  const cpCetData = monthlyData.months.map(monthData => ({
+    month: monthData.monthName.substring(0, 3),
+    cumulativeTaken: monthData.cp.real.cumul + monthData.cp.forecast.cumul,
+    cumulativeRemaining: monthData.cp.real.remaining + monthData.cp.forecast.remaining
+  }))
 
-      // Calculer le cumul jusqu'à ce mois
-      const cumulativeTaken = leaves
-        .filter(leave => {
-          const leaveDate = new Date(leave.startDate)
-          return leave.type === 'rtt' && 
-                 leaveDate.getFullYear() === currentYear && 
-                 leaveDate.getMonth() <= monthIndex
-        })
-        .reduce((sum, leave) => sum + leave.workingDays, 0)
+  // Calculer la valeur maximale pour l'échelle
+  const allValues = [...rttData, ...cpCetData].flatMap(d => [d.cumulativeTaken, d.cumulativeRemaining])
+  const maxValue = Math.max(...allValues, 1)
+  const safeMaxValue = isNaN(maxValue) || maxValue === 0 ? 1 : maxValue
 
-      // Calculer le cumul restant (quota - cumul pris + reliquat)
-      let quota = 0
-      if (settings && settings.quotas) {
-        const quotaEntry = settings.quotas.find((q: any) => q.type === 'rtt')
-        quota = quotaEntry ? quotaEntry.quota : 10
-      } else {
-        quota = 10 // Valeur par défaut pour RTT
-      }
-      const carryover = carryovers.find(c => c.type === 'rtt')?.days || 0
-      const cumulativeRemaining = Math.max(0, quota + carryover - cumulativeTaken)
-
-      return {
-        month,
-        monthTotal,
-        cumulativeTaken,
-        cumulativeRemaining
-      }
-    })
-
-    return monthlyData
-  }
-
-  // Calculer les données cumulées pour CP + CET combinés
-  const calculateCPCETData = () => {
-    const monthlyData = months.map((month, monthIndex) => {
-      const monthNumber = monthIndex + 1
-      
-      // Filtrer les CP et CET pour ce mois et l'année
-      const monthLeaves = leaves.filter(leave => {
-        const leaveDate = new Date(leave.startDate)
-        return (leave.type === 'cp' || leave.type === 'cet') && 
-               leaveDate.getFullYear() === currentYear && 
-               leaveDate.getMonth() === monthIndex
-      })
-
-      // Calculer le total des jours pour ce mois
-      const monthTotal = monthLeaves.reduce((sum, leave) => sum + leave.workingDays, 0)
-
-      // Calculer le cumul jusqu'à ce mois
-      const cumulativeTaken = leaves
-        .filter(leave => {
-          const leaveDate = new Date(leave.startDate)
-          return (leave.type === 'cp' || leave.type === 'cet') && 
-                 leaveDate.getFullYear() === currentYear && 
-                 leaveDate.getMonth() <= monthIndex
-        })
-        .reduce((sum, leave) => sum + leave.workingDays, 0)
-
-      // Calculer le cumul restant (quota CP + quota CET - cumul pris + reliquats)
-      let quotaCP = 0
-      let quotaCET = 0
-      if (settings && settings.quotas) {
-        const quotaCPEntry = settings.quotas.find((q: any) => q.type === 'cp')
-        const quotaCETEntry = settings.quotas.find((q: any) => q.type === 'cet')
-        quotaCP = quotaCPEntry ? quotaCPEntry.quota : 25
-        quotaCET = quotaCETEntry ? quotaCETEntry.quota : 0
-      } else {
-        quotaCP = 25 // Valeur par défaut pour CP
-        quotaCET = 0 // Valeur par défaut pour CET
-      }
-      
-      const carryoverCP = carryovers.find(c => c.type === 'cp')?.days || 0
-      const carryoverCET = carryovers.find(c => c.type === 'cet')?.days || 0
-      const totalQuota = quotaCP + quotaCET
-      const totalCarryover = carryoverCP + carryoverCET
-      const cumulativeRemaining = Math.max(0, totalQuota + totalCarryover - cumulativeTaken)
-
-      return {
-        month,
-        monthTotal,
-        cumulativeTaken,
-        cumulativeRemaining
-      }
-    })
-
-    return monthlyData
-  }
-
-  const rttData = calculateRTTData()
-  const cpCetData = calculateCPCETData()
+  const chartHeight = 200
+  const barWidth = 20
 
   const renderChart = (data: any[], title: string, colorTaken: string, colorRemaining: string) => {
-    const maxValue = Math.max(
-      ...data.map(d => Math.max(d.cumulativeTaken || 0, d.cumulativeRemaining || 0))
-    )
-    
-    // Éviter les valeurs NaN ou 0
-    const safeMaxValue = isNaN(maxValue) || maxValue === 0 ? 1 : maxValue
-    const chartHeight = 200
-    const barWidth = 30
-    const barSpacing = 10
-
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {title}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+          📊 {title}
         </h3>
-        <div className="relative" style={{ height: chartHeight }}>
-          {/* Axe Y */}
-          <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500">
-            {[0, Math.ceil(safeMaxValue / 4), Math.ceil(safeMaxValue / 2), Math.ceil(safeMaxValue * 3 / 4), safeMaxValue].map((value, i) => (
-              <div key={i} className="flex items-center">
-                <span className="w-8 text-right">{value}</span>
-                <div className="w-2 h-px bg-gray-300 ml-2"></div>
-              </div>
-            ))}
+        
+        {/* Axe Y */}
+        <div className="flex">
+          <div className="w-12 flex flex-col justify-between text-xs text-gray-600 dark:text-gray-400" style={{ height: chartHeight }}>
+            <div>{Math.ceil(safeMaxValue)}</div>
+            <div>{Math.ceil(safeMaxValue * 0.75)}</div>
+            <div>{Math.ceil(safeMaxValue * 0.5)}</div>
+            <div>{Math.ceil(safeMaxValue * 0.25)}</div>
+            <div>0</div>
           </div>
 
           {/* Graphique */}
@@ -179,7 +87,7 @@ export default function CumulativeCharts({ leaves, carryovers, currentYear, sett
                   
                   {/* Label du mois */}
                   <div className="text-xs text-gray-600 dark:text-gray-400 text-center w-12 -rotate-45 origin-top-left">
-                    {monthData.month.substring(0, 3)}
+                    {monthData.month}
                   </div>
                 </div>
               )
@@ -203,8 +111,11 @@ export default function CumulativeCharts({ leaves, carryovers, currentYear, sett
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-12">
+      {/* Graphique RTT - Complètement séparé */}
       {renderChart(rttData, 'RTT cumulés pris et restants', 'bg-red-500', 'bg-green-500')}
+      
+      {/* Graphique CP + CET - Complètement séparé */}
       {renderChart(cpCetData, 'CP + CET cumulés pris et restants', 'bg-blue-500', 'bg-yellow-500')}
     </div>
   )
