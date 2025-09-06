@@ -16,6 +16,7 @@ export default function HistoryPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedType, setSelectedType] = useState('all')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
+  const [selectedMode, setSelectedMode] = useState('all')
 
   const router = useRouter()
 
@@ -25,7 +26,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     filterLeaves()
-  }, [leaves, searchTerm, selectedType, selectedYear])
+  }, [leaves, searchTerm, selectedType, selectedYear, selectedMode])
 
   const loadLeaves = async () => {
     try {
@@ -52,6 +53,15 @@ export default function HistoryPage() {
     // Filtre par type
     if (selectedType !== 'all') {
       filtered = filtered.filter(leave => leave.type === selectedType)
+    }
+
+    // Filtre par mode (Réel/Prévisions)
+    if (selectedMode !== 'all') {
+      if (selectedMode === 'real') {
+        filtered = filtered.filter(leave => !leave.isForecast)
+      } else if (selectedMode === 'forecast') {
+        filtered = filtered.filter(leave => leave.isForecast)
+      }
     }
 
     // Filtre par recherche
@@ -155,7 +165,7 @@ export default function HistoryPage() {
       {/* Filtres */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Recherche */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -174,6 +184,7 @@ export default function HistoryPage() {
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
                 className="select"
+                title="Sélectionner une année"
               >
                 <option value="all">Toutes les années</option>
                 {getYears().map(year => (
@@ -190,6 +201,7 @@ export default function HistoryPage() {
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="select"
+                title="Sélectionner un type de congé"
               >
                 <option value="all">Tous les types</option>
                 {getTypes().map(type => (
@@ -200,6 +212,20 @@ export default function HistoryPage() {
               </select>
             </div>
 
+            {/* Filtre par mode */}
+            <div>
+              <select
+                value={selectedMode}
+                onChange={(e) => setSelectedMode(e.target.value)}
+                className="select"
+                title="Sélectionner un mode (Réel/Prévisions)"
+              >
+                <option value="all">Tous les modes</option>
+                <option value="real">Réel</option>
+                <option value="forecast">Prévisions</option>
+              </select>
+            </div>
+
             {/* Bouton de réinitialisation */}
             <div>
               <button
@@ -207,6 +233,7 @@ export default function HistoryPage() {
                   setSearchTerm('')
                   setSelectedType('all')
                   setSelectedYear(new Date().getFullYear().toString())
+                  setSelectedMode('all')
                 }}
                 className="btn-secondary w-full"
               >
@@ -275,8 +302,8 @@ export default function HistoryPage() {
                         </span>
                       </td>
                       <td className="table-cell">
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          {leave.isPredicted ? 'Prévisionnel' : 'Réel'}
+                        <span className={`badge ${leave.isForecast ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'}`}>
+                          {leave.isForecast ? 'Prévision' : 'Réel'}
                         </span>
                       </td>
                       <td className="table-cell">

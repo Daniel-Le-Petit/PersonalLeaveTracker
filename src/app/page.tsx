@@ -521,6 +521,22 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="card-body">
+              <div className="text-center p-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  📈 Graphiques cumulés des congés - {currentYear}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Évolution mensuelle des congés pris et restants par type
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <p className="text-blue-800 dark:text-blue-200">
+                    Les graphiques sont en cours de chargement...
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-300 mt-2">
+                    Congés chargés: {leaves.length} | Paramètres: {settings ? 'Oui' : 'Non'}
+                  </p>
+                </div>
+              </div>
               <CumulativeCharts 
                 leaves={leaves}
                 carryovers={carryovers}

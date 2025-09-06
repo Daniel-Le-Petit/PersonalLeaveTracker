@@ -2,6 +2,5 @@
   "/page": "app/page.js",
   "/add/page": "app/add/page.js",
   "/edit/[id]/page": "app/edit/[id]/page.js",
-  "/carryover/page": "app/carryover/page.js",
   "/history/page": "app/history/page.js"
 }

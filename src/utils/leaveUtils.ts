@@ -233,20 +233,11 @@ export function canTakeRTTForMonth(
       availableDays: 2
     };
   } else if (targetMonth === currentMonth) {
-    // Pour le mois en cours, on peut prendre les RTT à partir du 15 du mois
-    const currentDay = currentDate.getDate();
-    if (currentDay >= 15) {
-      return {
-        canTake: true,
-        availableDays: 2
-      };
-    } else {
-      return {
-        canTake: false,
-        reason: `Les RTT de ce mois seront disponibles à partir du 15`,
-        availableDays: 0
-      };
-    }
+    // Pour le mois en cours, on peut prendre les RTT dès le début du mois
+    return {
+      canTake: true,
+      availableDays: 2
+    };
   } else {
     // Mois futur
     return {
@@ -385,7 +376,9 @@ export function calculateMonthlyLeaveSummarySeparated(
     // Séparer les congés réels et les prévisions
     // Si le mois est passé, les prévisions deviennent réelles
     const isMonthPassed = year < currentYear || (year === currentYear && month < currentMonth);
+    const isCurrentMonth = year === currentYear && month === currentMonth;
     
+    // Congés réels : tous les congés non marqués comme prévision OU les prévisions des mois passés
     const rttReal = monthLeaves
       .filter(leave => leave.type === 'rtt' && (!leave.isForecast || isMonthPassed))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
@@ -394,13 +387,14 @@ export function calculateMonthlyLeaveSummarySeparated(
       .filter(leave => leave.type === 'cp' && (!leave.isForecast || isMonthPassed))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
-    // Pour les prévisions, ne compter que celles des mois futurs
+    // Pour les prévisions, compter les congés marqués comme prévision des mois futurs
+    // ET les congés non marqués comme prévision des mois futurs (pour simulation)
     const rttForecast = monthLeaves
-      .filter(leave => leave.type === 'rtt' && leave.isForecast && !isMonthPassed)
+      .filter(leave => leave.type === 'rtt' && (leave.isForecast || (!isMonthPassed && !isCurrentMonth)))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     const cpForecast = monthLeaves
-      .filter(leave => leave.type === 'cp' && leave.isForecast && !isMonthPassed)
+      .filter(leave => leave.type === 'cp' && (leave.isForecast || (!isMonthPassed && !isCurrentMonth)))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     // Calculer les cumuls
