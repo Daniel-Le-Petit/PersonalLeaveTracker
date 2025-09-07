@@ -337,13 +337,13 @@ export default function AddLeavePage() {
                     </label>
                     <select
                       id="isForecast"
-                      value={formData.isForecast}
-                      onChange={(e) => setFormData({ ...formData, isForecast: e.target.checked })}
+                      value={formData.isForecast ? 'true' : 'false'}
+                      onChange={(e) => setFormData({ ...formData, isForecast: e.target.value === 'true' })}
                       className="form-select"
                       title="Sélectionner le mode du congé"
                     >
-                      <option value={false}>Réel (congé effectivement pris)</option>
-                      <option value={true}>Prévision (congé planifié)</option>
+                      <option value="false">Réel (congé effectivement pris)</option>
+                      <option value="true">Prévision (congé planifié)</option>
                     </select>
                   </div>
 
