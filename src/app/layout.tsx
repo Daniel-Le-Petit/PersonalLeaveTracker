@@ -33,8 +33,7 @@ export default function RootLayout({
             quotas: [
               { type: 'cp', yearlyQuota: 25 },
               { type: 'rtt', yearlyQuota: 10 },
-              { type: 'sick', yearlyQuota: 0 },
-
+              { type: 'sick', yearlyQuota: 0 }
             ],
             darkMode: false,
             notifications: true,
@@ -52,8 +51,7 @@ export default function RootLayout({
           quotas: [
             { type: 'cp', yearlyQuota: 25 },
             { type: 'rtt', yearlyQuota: 10 },
-            { type: 'sick', yearlyQuota: 0 },
-
+            { type: 'sick', yearlyQuota: 0 }
           ],
           darkMode: false,
           notifications: true,

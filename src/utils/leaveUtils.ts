@@ -239,11 +239,11 @@ export function canTakeRTTForMonth(
       availableDays: 2
     };
   } else {
-    // Mois futur
+    // Mois futur - possible en prévision
     return {
-      canTake: false,
-      reason: `Les RTT de ce mois ne sont pas encore disponibles`,
-      availableDays: 0
+      canTake: true,
+      availableDays: 2,
+      reason: `RTT disponible en prévision pour ${targetYear}`
     };
   }
 }
@@ -274,9 +274,8 @@ export function calculateAvailableRTTForPeriod(
       canTake: validation.canTake
     });
     
-    if (validation.canTake) {
-      totalAvailable += validation.availableDays;
-    }
+    // Pour les prévisions, on compte tous les mois (passés, présents et futurs)
+    totalAvailable += validation.availableDays;
     
     // Passer au mois suivant
     current.setMonth(current.getMonth() + 1);
@@ -296,7 +295,7 @@ export function calculateCurrentAvailableRTT(
   const details: Array<{ month: number; available: number; canTake: boolean; reason?: string }> = [];
   let totalAvailable = 0;
   
-  // Parcourir tous les mois de l'année jusqu'au mois actuel
+  // Parcourir tous les mois de l'année (y compris les mois futurs en prévision)
   for (let month = 1; month <= 12; month++) {
     const validation = canTakeRTTForMonth(month, year, currentDate);
     
@@ -307,9 +306,8 @@ export function calculateCurrentAvailableRTT(
       reason: validation.reason
     });
     
-    if (validation.canTake) {
-      totalAvailable += validation.availableDays;
-    }
+    // Pour les prévisions, on compte tous les mois (passés, présents et futurs)
+    totalAvailable += validation.availableDays;
   }
   
   return { totalAvailable, details };
@@ -361,6 +359,20 @@ export function calculateMonthlyLeaveSummarySeparated(
   const cetCarryover = carryovers.find(c => c.type === 'cet')?.days || 0;
   const totalCPCETCarryover = cpCarryover + cetCarryover;
 
+  // Ajouter la ligne des reliquats au début
+  months.push({
+    month: 0,
+    monthName: 'Reliquats',
+    rtt: {
+      real: { taken: 0, cumul: 0, remaining: rttCarryover },
+      forecast: { taken: 0, cumul: 0, remaining: rttCarryover }
+    },
+    cp: {
+      real: { taken: 0, cumul: 0, remaining: totalCPCETCarryover },
+      forecast: { taken: 0, cumul: 0, remaining: totalCPCETCarryover }
+    }
+  });
+
   let rttCumulReal = 0;
   let rttCumulForecast = 0;
   let cpCumulReal = 0;
@@ -404,6 +416,7 @@ export function calculateMonthlyLeaveSummarySeparated(
     cpCumulForecast += cpForecast;
 
     // Calculer les soldes restants (cumuls inversés)
+    // Les reliquats sont déjà inclus dans les quotas totaux
     const rttRemainingReal = Math.max(0, rttQuota + rttCarryover - rttCumulReal);
     const rttRemainingForecast = Math.max(0, rttQuota + rttCarryover - rttCumulReal - rttCumulForecast);
     const cpRemainingReal = Math.max(0, totalCPCETQuota + totalCPCETCarryover - cpCumulReal);
