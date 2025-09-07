@@ -1,0 +1,5 @@
+[33mee78b79[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix: Corriger port pour Render - utiliser variable PORT et recréer deploy.ps1
+[33mb9547fb[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m update
+[33m89402a6[m Fix: Corriger erreur TypeScript dans add/page.tsx - conversion boolean vers string pour select isForecast
+[33ma4bd8b8[m update
+[33m897f2d4[m update
