@@ -1,5 +1,7 @@
-# git.ps1
-param([string]$message = "update")
+# Script de déploiement pour leave-tracker
+param(
+    [string]$message = "update"
+)
 
 $Env:PATH += ';C:\Program Files\Git\cmd'
 
