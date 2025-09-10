@@ -1,4 +1,65 @@
-// ... existing code ...
+// Types de base pour les congés
+export type LeaveType = 'cp' | 'rtt' | 'cet' | 'prevision' | 'reel' | 'pipe' | 'sick';
+
+export interface LeaveEntry {
+  id: string;
+  type: LeaveType;
+  startDate: string; // ISO date string
+  endDate: string; // ISO date string
+  workingDays: number;
+  notes?: string;
+  isHalfDay?: boolean;
+  halfDayType?: 'morning' | 'afternoon';
+  isForecast?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicHoliday {
+  id: string;
+  date: string; // ISO date string
+  name: string;
+  year: number;
+  country?: string;
+}
+
+export interface AppSettings {
+  id: string;
+  rttQuota: number;
+  cpQuota: number;
+  cetQuota: number;
+  year: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeaveBalance {
+  type: LeaveType;
+  taken: number;
+  used: number; // Alias pour taken
+  remaining: number;
+  total: number;
+  year: number;
+}
+
+export interface CarryoverLeave {
+  id: string;
+  type: LeaveType;
+  year: number;
+  days: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CalendarDay {
+  date: Date;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isWeekend: boolean;
+  isHoliday: boolean;
+  leaves: LeaveEntry[];
+}
 
 // Types pour la validation des feuilles de paie
 export interface PayrollData {
@@ -67,7 +128,7 @@ export interface PayrollValidation {
   // Validation des dates CP
   cpPrisMoisPrecedent: {
     saisies: string[];
-    calculees: string[];
+    calculees: number;
     manquantes: string[];
     enTrop: string[];
     status: 'valid' | 'warning' | 'error';

@@ -7,35 +7,58 @@ export const LEAVE_TYPES = {
   cp: { label: 'Congés Payés', color: 'leave-cp', icon: '🏖️' },
   rtt: { label: 'RTT', color: 'leave-rtt', icon: '📅' },
   cet: { label: 'CET', color: 'leave-cet', icon: '🏥' },
+  pipe: { label: 'PIPE', color: 'leave-pipe', icon: '🔧' },
+  prevision: { label: 'Prévision', color: 'leave-prevision', icon: '📊' },
+  reel: { label: 'Réel', color: 'leave-reel', icon: '✅' },
   sick: { label: 'Maladie', color: 'leave-sick', icon: '🏥' },
 } as const;
 
+// Types de congés qui comptent dans les statistiques principales (exclut PIPE)
+export const LEAVE_TYPES_FOR_STATS: LeaveType[] = ['cp', 'rtt', 'cet', 'prevision', 'reel'];
+
+// Types de congés qui comptent dans les quotas (exclut PIPE, prevision, reel)
+export const LEAVE_TYPES_FOR_QUOTAS: LeaveType[] = ['cp', 'rtt', 'cet'];
+
+/**
+ * Vérifie si un type de congé doit être inclus dans les statistiques principales
+ */
+export function isLeaveTypeForStats(type: LeaveType): boolean {
+  return LEAVE_TYPES_FOR_STATS.includes(type);
+}
+
+/**
+ * Vérifie si un type de congé doit être inclus dans les quotas
+ */
+export function isLeaveTypeForQuotas(type: LeaveType): boolean {
+  return LEAVE_TYPES_FOR_QUOTAS.includes(type);
+}
+
 // Jours fériés français 2024
 export const FRENCH_HOLIDAYS_2024: PublicHoliday[] = [
-  { id: '1', date: '2024-01-01', name: 'Jour de l\'an', country: 'FR' },
-  { id: '2', date: '2024-05-01', name: 'Fête du travail', country: 'FR' },
-  { id: '3', date: '2024-05-08', name: 'Victoire 1945', country: 'FR' },
-  { id: '4', date: '2024-05-09', name: 'Ascension', country: 'FR' },
-  { id: '5', date: '2024-05-20', name: 'Lundi de Pentecôte', country: 'FR' },
-  { id: '6', date: '2024-07-14', name: 'Fête nationale', country: 'FR' },
-  { id: '7', date: '2024-08-15', name: 'Assomption', country: 'FR' },
-  { id: '8', date: '2024-11-01', name: 'Toussaint', country: 'FR' },
-  { id: '9', date: '2024-11-11', name: 'Armistice', country: 'FR' },
-  { id: '10', date: '2024-12-25', name: 'Noël', country: 'FR' },
+  { id: '1', date: '2024-01-01', name: 'Jour de l\'an', year: 2024, country: 'FR' },
+  { id: '2', date: '2024-05-01', name: 'Fête du travail', year: 2024, country: 'FR' },
+  { id: '3', date: '2024-05-08', name: 'Victoire 1945', year: 2024, country: 'FR' },
+  { id: '4', date: '2024-05-09', name: 'Ascension', year: 2024, country: 'FR' },
+  { id: '5', date: '2024-05-20', name: 'Lundi de Pentecôte', year: 2024, country: 'FR' },
+  { id: '6', date: '2024-07-14', name: 'Fête nationale', year: 2024, country: 'FR' },
+  { id: '7', date: '2024-08-15', name: 'Assomption', year: 2024, country: 'FR' },
+  { id: '8', date: '2024-11-01', name: 'Toussaint', year: 2024, country: 'FR' },
+  { id: '9', date: '2024-11-11', name: 'Armistice', year: 2024, country: 'FR' },
+  { id: '10', date: '2024-12-25', name: 'Noël', year: 2024, country: 'FR' },
 ];
 
 // Jours fériés français 2025
 export const FRENCH_HOLIDAYS_2025: PublicHoliday[] = [
-  { id: '1', date: '2025-01-01', name: 'Jour de l\'an', country: 'FR' },
-  { id: '2', date: '2025-05-01', name: 'Fête du travail', country: 'FR' },
-  { id: '3', date: '2025-05-08', name: 'Victoire 1945', country: 'FR' },
-  { id: '4', date: '2025-05-29', name: 'Ascension', country: 'FR' },
-  { id: '5', date: '2025-06-09', name: 'Lundi de Pentecôte', country: 'FR' },
-  { id: '6', date: '2025-07-14', name: 'Fête nationale', country: 'FR' },
-  { id: '7', date: '2025-08-15', name: 'Assomption', country: 'FR' },
-  { id: '8', date: '2025-11-01', name: 'Toussaint', country: 'FR' },
-  { id: '9', date: '2025-11-11', name: 'Armistice', country: 'FR' },
-  { id: '10', date: '2025-12-25', name: 'Noël', country: 'FR' },
+  { id: '1', date: '2025-01-01', name: 'Jour de l\'an', year: 2025, country: 'FR' },
+  { id: '2', date: '2025-05-01', name: 'Fête du travail', year: 2025, country: 'FR' },
+  { id: '3', date: '2025-05-08', name: 'Victoire 1945', year: 2025, country: 'FR' },
+  { id: '4', date: '2025-05-29', name: 'Ascension', year: 2025, country: 'FR' },
+  { id: '5', date: '2025-06-09', name: 'Lundi de Pentecôte', year: 2025, country: 'FR' },
+  { id: '6', date: '2025-07-14', name: 'Fête nationale', year: 2025, country: 'FR' },
+  { id: '7', date: '2025-08-15', name: 'Assomption', year: 2025, country: 'FR' },
+  { id: '8', date: '2025-11-01', name: 'Toussaint', year: 2025, country: 'FR' },
+  { id: '9', date: '2025-11-11', name: 'Armistice', year: 2025, country: 'FR' },
+  { id: '10', date: '2025-12-25', name: 'Noël', year: 2025, country: 'FR' },
 ];
 
 /**
@@ -138,9 +161,10 @@ export function calculateLeaveBalances(
     balances.push({
       type: quota.type,
       total: totalWithCarryover,
-      used,
+      taken: used,
+      used: used, // Alias pour taken
       remaining,
-      carryover: carryoverDays,
+      year
     });
   });
 
@@ -155,7 +179,7 @@ export function calculateAvailableCarryover(
   year: number = new Date().getFullYear()
 ): Record<LeaveType, number> {
   const available: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, sick: 0
+    cp: 0, rtt: 0, cet: 0, pipe: 0, prevision: 0, reel: 0, sick: 0
   };
 
   carryovers.forEach(carryover => {
@@ -175,10 +199,10 @@ export function generateCarryoverSummary(carryovers: CarryoverLeave[]): {
 } {
   const byYear: Record<number, CarryoverLeave[]> = {};
   const byType: Record<LeaveType, CarryoverLeave[]> = {
-    cp: [], rtt: [], cet: [], sick: []
+    cp: [], rtt: [], cet: [], pipe: [], prevision: [], reel: [], sick: []
   };
   const totalByType: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, sick: 0
+    cp: 0, rtt: 0, cet: 0, pipe: 0, prevision: 0, reel: 0, sick: 0
   };
 
   carryovers.forEach(carryover => {
@@ -495,12 +519,12 @@ export function generateCalendarDays(
     });
 
     days.push({
-      date: dateStr,
-      isLeave: !!leave,
-      leaveType: leave?.type,
+      date: currentDate,
+      isCurrentMonth: currentDate.getMonth() === month,
+      isToday: isSameDay(currentDate, new Date()),
       isWeekend: isWeekend(currentDate),
       isHoliday: !!holiday,
-      holidayName: holiday?.name,
+      leaves: leave ? [leave] : [],
     });
 
     currentDate = addDays(currentDate, 1);
@@ -596,10 +620,13 @@ export function calculateLeaveStats(leaves: LeaveEntry[], year: number): {
     new Date(leave.startDate).getFullYear() === year
   );
 
-  const totalDays = yearLeaves.reduce((total, leave) => total + leave.workingDays, 0);
+  // Calculer le total des jours en excluant PIPE
+  const totalDays = yearLeaves
+    .filter(leave => isLeaveTypeForStats(leave.type))
+    .reduce((total, leave) => total + leave.workingDays, 0);
   
   const byType: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, sick: 0
+    cp: 0, rtt: 0, cet: 0, pipe: 0, prevision: 0, reel: 0, sick: 0
   };
   
   const byMonth: Record<string, number> = {};
@@ -607,9 +634,12 @@ export function calculateLeaveStats(leaves: LeaveEntry[], year: number): {
   yearLeaves.forEach(leave => {
     byType[leave.type] += leave.workingDays;
     
-    const leaveStart = new Date(leave.startDate);
-    const month = format(leaveStart, 'yyyy-MM');
-    byMonth[month] = (byMonth[month] || 0) + leave.workingDays;
+    // Inclure dans les statistiques mensuelles seulement si c'est un type de congé valide
+    if (isLeaveTypeForStats(leave.type)) {
+      const leaveStart = new Date(leave.startDate);
+      const month = format(leaveStart, 'yyyy-MM');
+      byMonth[month] = (byMonth[month] || 0) + leave.workingDays;
+    }
   });
 
   return { totalDays, byType, byMonth };

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Save, Trash2, Edit3 } from 'lucide-react';
+import DateInputWithHelpers from './DateInputWithHelpers';
+import { LEAVE_TYPES } from '../utils/leaveUtils';
 
 interface LeaveFormModalProps {
   isOpen: boolean;
@@ -74,11 +76,12 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
     }
   }, [leave, selectedDate]);
 
-  const leaveTypes = [
-    { value: 'rtt', label: 'RTT', color: 'bg-red-500', description: 'Récupération du Temps de Travail' },
-    { value: 'cp', label: 'CP', color: 'bg-blue-500', description: 'Congés Payés' },
-    { value: 'cet', label: 'CET', color: 'bg-green-500', description: 'Compte Epargne Temps' }
-  ];
+  const leaveTypes = Object.entries(LEAVE_TYPES).map(([key, config]) => ({
+    value: key,
+    label: config.label,
+    color: `bg-${config.color.replace('leave-', '')}-500`,
+    description: config.label
+  }));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -203,6 +206,7 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
           <button
             onClick={onClose}
             className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Fermer"
           >
             <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
@@ -241,41 +245,27 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
 
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Date de début
-              </label>
-              <input
-                type="text"
-                value={formData.startDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                placeholder="DD/MM/YYYY"
-                className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
-                  errors.startDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-              />
-              {errors.startDate && (
-                <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>
-              )}
-            </div>
+            <DateInputWithHelpers
+              value={formData.startDate}
+              onChange={(value) => setFormData(prev => ({ ...prev, startDate: value }))}
+              label="Date de début"
+              placeholder="DD/MM/YYYY"
+              className={errors.startDate ? 'border-red-500' : ''}
+            />
+            {errors.startDate && (
+              <p className="text-red-500 text-xs mt-1 col-span-2">{errors.startDate}</p>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Date de fin
-              </label>
-              <input
-                type="text"
-                value={formData.endDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                placeholder="DD/MM/YYYY"
-                className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
-                  errors.endDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-              />
-              {errors.endDate && (
-                <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>
-              )}
-            </div>
+            <DateInputWithHelpers
+              value={formData.endDate}
+              onChange={(value) => setFormData(prev => ({ ...prev, endDate: value }))}
+              label="Date de fin"
+              placeholder="DD/MM/YYYY"
+              className={errors.endDate ? 'border-red-500' : ''}
+            />
+            {errors.endDate && (
+              <p className="text-red-500 text-xs mt-1 col-span-2">{errors.endDate}</p>
+            )}
           </div>
 
           {/* Jours ouvrés */}
@@ -289,6 +279,8 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
                 min="1"
                 value={formData.workingDays}
                 onChange={(e) => setFormData(prev => ({ ...prev, workingDays: Number(e.target.value) }))}
+                placeholder="Nombre de jours"
+                title="Nombre de jours ouvrés"
                 className={`flex-1 px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                   errors.workingDays ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
