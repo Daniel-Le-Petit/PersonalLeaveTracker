@@ -10,6 +10,7 @@ interface LeaveFormModalProps {
   onDelete?: (id: string) => void;
   leave?: any;
   selectedDate?: Date;
+  holidays?: any[];
 }
 
 const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
@@ -18,7 +19,8 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
   onSave,
   onDelete,
   leave,
-  selectedDate
+  selectedDate,
+  holidays = []
 }) => {
   const [formData, setFormData] = useState({
     type: 'cp',
@@ -31,18 +33,39 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Fonction pour convertir YYYY-MM-DD vers DD/MM/YYYY
+  const formatDateForDisplay = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Fonction pour convertir DD/MM/YYYY vers YYYY-MM-DD
+  const parseDateFromDisplay = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return dateStr;
+  };
+
   useEffect(() => {
     if (leave) {
       setFormData({
         type: leave.type || 'cp',
-        startDate: leave.startDate || '',
-        endDate: leave.endDate || '',
+        startDate: formatDateForDisplay(leave.startDate || ''),
+        endDate: formatDateForDisplay(leave.endDate || ''),
         workingDays: leave.workingDays || 1,
         isForecast: leave.isForecast || false,
         description: leave.description || ''
       });
     } else if (selectedDate) {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = formatDateForDisplay(selectedDate.toISOString().split('T')[0]);
       setFormData(prev => ({
         ...prev,
         startDate: dateStr,
@@ -62,11 +85,26 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
 
     if (!formData.startDate) {
       newErrors.startDate = 'Date de début requise';
+    } else {
+      // Valider le format DD/MM/YYYY
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+      if (!dateRegex.test(formData.startDate)) {
+        newErrors.startDate = 'Format invalide (DD/MM/YYYY)';
+      }
     }
+
     if (!formData.endDate) {
       newErrors.endDate = 'Date de fin requise';
+    } else {
+      // Valider le format DD/MM/YYYY
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+      if (!dateRegex.test(formData.endDate)) {
+        newErrors.endDate = 'Format invalide (DD/MM/YYYY)';
+      }
     }
-    if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
+
+    if (formData.startDate && formData.endDate && 
+        new Date(parseDateFromDisplay(formData.startDate)) > new Date(parseDateFromDisplay(formData.endDate))) {
       newErrors.endDate = 'La date de fin doit être après la date de début';
     }
     if (formData.workingDays < 1) {
@@ -84,6 +122,8 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
     const leaveData = {
       ...formData,
       id: leave?.id || Date.now().toString(),
+      startDate: parseDateFromDisplay(formData.startDate),
+      endDate: parseDateFromDisplay(formData.endDate),
       workingDays: Number(formData.workingDays)
     };
 
@@ -100,16 +140,31 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
 
   const calculateWorkingDays = () => {
     if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
+      const start = new Date(parseDateFromDisplay(formData.startDate));
+      const end = new Date(parseDateFromDisplay(formData.endDate));
       let days = 0;
       let current = new Date(start);
 
+      // S'assurer que holidays est un tableau
+      const holidaysArray = Array.isArray(holidays) ? holidays : [];
+
       while (current <= end) {
         const dayOfWeek = current.getDay();
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Exclure week-ends
+        const currentDateStr = current.toISOString().split('T')[0];
+        
+        // Vérifier si c'est un jour ouvré (pas week-end et pas jour férié)
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const isHoliday = holidaysArray.some(holiday => {
+          if (!holiday || !holiday.date) return false;
+          const holidayDate = new Date(holiday.date).toISOString().split('T')[0];
+          return holidayDate === currentDateStr;
+        });
+        
+        // Seuls les jours ouvrés (lundi à vendredi, non fériés) sont comptés
+        if (!isWeekend && !isHoliday) {
           days++;
         }
+        
         current.setDate(current.getDate() + 1);
       }
 
@@ -119,7 +174,7 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
 
   useEffect(() => {
     calculateWorkingDays();
-  }, [formData.startDate, formData.endDate]);
+  }, [formData.startDate, formData.endDate, holidays]);
 
   if (!isOpen) return null;
 
@@ -191,9 +246,10 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
                 Date de début
               </label>
               <input
-                type="date"
+                type="text"
                 value={formData.startDate}
                 onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                placeholder="DD/MM/YYYY"
                 className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                   errors.startDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
@@ -208,9 +264,10 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
                 Date de fin
               </label>
               <input
-                type="date"
+                type="text"
                 value={formData.endDate}
                 onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                placeholder="DD/MM/YYYY"
                 className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                   errors.endDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
@@ -240,11 +297,19 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
                 type="button"
                 onClick={calculateWorkingDays}
                 className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                title="Recalculer automatiquement"
+                title="Recalculer automatiquement (exclut WE et jours fériés)"
               >
                 <Clock className="h-4 w-4" />
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Calcul automatique exclut les week-ends et jours fériés
+            </p>
+            {formData.startDate && formData.endDate && (
+              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                💡 Période: {formData.startDate} au {formData.endDate} = {formData.workingDays} jour(s) ouvré(s)
+              </div>
+            )}
             {errors.workingDays && (
               <p className="text-red-500 text-xs mt-1">{errors.workingDays}</p>
             )}

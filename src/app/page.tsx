@@ -12,6 +12,7 @@ import DashboardHeader from '../components/DashboardHeader'
 import LeaveCalendar from '../components/LeaveCalendar'
 import LeaveAnalytics from '../components/LeaveAnalytics'
 import ThemeToggle from '../components/ThemeToggle'
+import PayrollValidation from '../components/PayrollValidation'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -177,26 +178,114 @@ export default function Dashboard() {
   }
 
   // Gestion des congés
-  const handleLeaveAdd = (leave: any) => {
-    const newLeave = {
-      ...leave,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-    setLeaves(prev => [...prev, newLeave]);
-    toast.success('Congé ajouté avec succès !');
+  const handleLeaveAdd = async (leave: any) => {
+    try {
+      const newLeave = {
+        ...leave,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+      const updatedLeaves = [...leaves, newLeave];
+      setLeaves(updatedLeaves);
+      
+      // Sauvegarder dans le stockage
+      await leaveStorage.saveLeaves(updatedLeaves);
+      
+      // Recharger les données pour s'assurer de la synchronisation
+      await loadData();
+      
+      toast.success('Congé ajouté avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du congé:', error);
+      toast.error('Erreur lors de l\'ajout du congé');
+    }
   };
 
-  const handleLeaveUpdate = (updatedLeave: any) => {
-    setLeaves(prev => prev.map(leave => 
-      leave.id === updatedLeave.id ? updatedLeave : leave
-    ));
-    toast.success('Congé modifié avec succès !');
+  const handleLeaveUpdate = async (updatedLeave: any) => {
+    try {
+      const updatedLeaves = leaves.map(leave => 
+        leave.id === updatedLeave.id ? updatedLeave : leave
+      );
+      setLeaves(updatedLeaves);
+      
+      // Sauvegarder dans le stockage
+      await leaveStorage.saveLeaves(updatedLeaves);
+      
+      // Recharger les données pour s'assurer de la synchronisation
+      await loadData();
+      
+      toast.success('Congé modifié avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la modification du congé:', error);
+      toast.error('Erreur lors de la modification du congé');
+    }
   };
 
-  const handleLeaveDelete = (id: string) => {
-    setLeaves(prev => prev.filter(leave => leave.id !== id));
-    toast.success('Congé supprimé avec succès !');
+  const handleLeaveDelete = async (id: string) => {
+    try {
+      const updatedLeaves = leaves.filter(leave => leave.id !== id);
+      setLeaves(updatedLeaves);
+      
+      // Sauvegarder dans le stockage
+      await leaveStorage.saveLeaves(updatedLeaves);
+      
+      // Recharger les données pour s'assurer de la synchronisation
+      await loadData();
+      
+      toast.success('Congé supprimé avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la suppression du congé:', error);
+      toast.error('Erreur lors de la suppression du congé');
+    }
+  };
+
+  // Fonction pour corriger les jours ouvrés des congés existants
+  const correctWorkingDays = async () => {
+    try {
+      const correctedLeaves = leaves.map(leave => {
+        const start = new Date(leave.startDate);
+        const end = new Date(leave.endDate);
+        let workingDays = 0;
+        let current = new Date(start);
+
+        // S'assurer que holidays est un tableau
+        const holidaysArray = Array.isArray(holidays) ? holidays : [];
+
+        while (current <= end) {
+          const dayOfWeek = current.getDay();
+          const currentDateStr = current.toISOString().split('T')[0];
+          
+          // Vérifier si c'est un jour ouvré (pas week-end et pas jour férié)
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+          const isHoliday = holidaysArray.some(holiday => {
+            if (!holiday || !holiday.date) return false;
+            const holidayDate = new Date(holiday.date).toISOString().split('T')[0];
+            return holidayDate === currentDateStr;
+          });
+          
+          // Seuls les jours ouvrés (lundi à vendredi, non fériés) sont comptés
+          if (!isWeekend && !isHoliday) {
+            workingDays++;
+          }
+          
+          current.setDate(current.getDate() + 1);
+        }
+
+        return {
+          ...leave,
+          workingDays: workingDays
+        };
+      });
+
+      setLeaves(correctedLeaves);
+      await leaveStorage.saveLeaves(correctedLeaves);
+      await loadData();
+      
+      toast.success('Jours ouvrés corrigés avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la correction des jours ouvrés:', error);
+      toast.error('Erreur lors de la correction des jours ouvrés');
+    }
   };
 
   const stats = calculateLeaveStats(leaves, currentYear);
@@ -253,7 +342,14 @@ export default function Dashboard() {
               onImport={handleImport}
               className="flex-1"
             />
-            <div className="ml-4">
+            <div className="ml-4 flex items-center space-x-2">
+              <button
+                onClick={correctWorkingDays}
+                className="px-3 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                title="Corriger les jours ouvrés (exclure WE et jours fériés)"
+              >
+                🔧 Corriger
+              </button>
               <ThemeToggle />
             </div>
           </div>
@@ -287,7 +383,7 @@ export default function Dashboard() {
                     className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                     title="Année actuelle"
                   >
-                    {new Date().getFullYear()}
+                    {currentYear}
               </button>
               <button
                     onClick={goToNextYear}
@@ -423,9 +519,21 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Validation Feuilles de Paie */}
+        <div className="mt-8 animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
+          <PayrollValidation 
+            leaves={leaves} 
+            currentYear={currentYear}
+            onDataUpdate={() => {
+              // Recharger les données si nécessaire
+              console.log('Données de feuille de paie mises à jour')
+            }}
+          />
+        </div>
+
         {/* Calendrier et Analytics */}
         <div className="mt-8 space-y-8">
-          <div className="animate-slide-in-right">
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
             <LeaveCalendar 
               leaves={leaves} 
               currentYear={currentYear} 
@@ -435,7 +543,7 @@ export default function Dashboard() {
               onLeaveDelete={handleLeaveDelete}
             />
           </div>
-          <div className="animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.3s' }}>
             <LeaveAnalytics leaves={leaves} currentYear={currentYear} holidays={holidays} />
           </div>
         </div>
@@ -466,7 +574,7 @@ export default function Dashboard() {
                     className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                     title="Année actuelle"
                   >
-                    {new Date().getFullYear()}
+                    {currentYear}
                   </button>
                   <button
                     onClick={goToNextYear}

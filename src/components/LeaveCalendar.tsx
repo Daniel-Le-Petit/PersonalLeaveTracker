@@ -159,6 +159,7 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
     console.log('Congés chargés pour le calendrier:', leaves);
     console.log('Année courante:', currentYear);
     console.log('Mois courant:', currentMonth);
+    console.log('Jours fériés:', holidaysArray);
     
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
@@ -168,12 +169,22 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
       const isToday = date.toDateString() === today.toDateString();
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       
+      // Debug pour les week-ends
+      if (isWeekend && isCurrentMonth) {
+        console.log(`Week-end détecté: ${date.toDateString()}, jour: ${date.getDay()}`);
+      }
+      
       // Vérifier si c'est un jour férié
       const holiday = holidaysArray.find(h => 
         new Date(h.date).toDateString() === date.toDateString()
       );
       
-      // Vérifier si c'est un jour de congé
+      // Debug pour les jours fériés
+      if (holiday && isCurrentMonth) {
+        console.log(`Jour férié détecté: ${date.toDateString()}, ${holiday.name}`);
+      }
+      
+      // Vérifier si c'est un jour de congé (seulement sur les jours ouvrés)
       const leave = leaves.find(l => {
         const startDate = new Date(l.startDate);
         const endDate = new Date(l.endDate);
@@ -183,18 +194,15 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
         const normalizedStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
         const normalizedEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
         
-        // Debug spécifique pour le 4 septembre
-        if (date.getDate() === 4 && date.getMonth() === 8) { // 4 septembre (mois 8 = septembre)
-          console.log('Debug 4 septembre:', {
-            currentDate: currentDate.toISOString(),
-            leave: l,
-            startDate: normalizedStart.toISOString(),
-            endDate: normalizedEnd.toISOString(),
-            isMatch: currentDate >= normalizedStart && currentDate <= normalizedEnd
-          });
+        // Vérifier si la date est dans la période du congé
+        const isInPeriod = currentDate >= normalizedStart && currentDate <= normalizedEnd;
+        
+        // Ne montrer le congé que sur les jours ouvrés (pas les week-ends ni jours fériés)
+        if (isInPeriod && !isWeekend && !holiday) {
+          return true;
         }
         
-        return currentDate >= normalizedStart && currentDate <= normalizedEnd;
+        return false;
       });
 
       // Suggestions pour ce jour
@@ -221,6 +229,24 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
+
+  // Calculer les jours pris pour le mois courant
+  const currentMonthStats = useMemo(() => {
+    const monthLeaves = leaves.filter(leave => {
+      const leaveDate = new Date(leave.startDate);
+      return leaveDate.getFullYear() === currentYear && leaveDate.getMonth() === currentMonth;
+    });
+
+    const rttDays = monthLeaves
+      .filter(leave => leave.type === 'rtt')
+      .reduce((sum, leave) => sum + leave.workingDays, 0);
+
+    const cpDays = monthLeaves
+      .filter(leave => leave.type === 'cp')
+      .reduce((sum, leave) => sum + leave.workingDays, 0);
+
+    return { rttDays, cpDays };
+  }, [leaves, currentYear, currentMonth]);
 
   const goToPreviousMonth = () => {
     setCurrentMonth(prev => prev === 0 ? 11 : prev - 1);
@@ -298,6 +324,9 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Timeline et suggestions intelligentes
               </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                💡 Les congés ne s'affichent que sur les jours ouvrés (exclut WE et jours fériés)
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -336,9 +365,17 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {monthNames[currentMonth]} {currentYear}
-              </h2>
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                  (RTT={currentMonthStats.rttDays})
+                </span>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {monthNames[currentMonth]} {currentYear}
+                </h2>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                  (CP={currentMonthStats.cpDays})
+                </span>
+              </div>
               <button
                 onClick={goToNextMonth}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -364,10 +401,9 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
                   className={`
                     min-h-[80px] p-1 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer
                     transition-all duration-200 hover:shadow-md hover:scale-105
-                    ${day.isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}
                     ${day.isToday ? 'ring-2 ring-blue-500' : ''}
-                    ${day.isWeekend ? 'bg-gray-100 dark:bg-gray-800' : ''}
-                    ${day.isHoliday ? 'bg-red-50 dark:bg-red-900/20' : ''}
+                    ${day.isWeekend || day.isHoliday ? 'bg-gray-100 dark:bg-gray-800' : ''}
+                    ${!day.isWeekend && !day.isHoliday ? (day.isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800') : ''}
                     ${day.leave ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}
                   `}
                 >
@@ -397,6 +433,7 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
                       <Plus className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   )}
+                  
                   
                   {day.suggestions && day.suggestions.length > 0 && (
                     <div className="space-y-1">
@@ -587,14 +624,15 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
       </div>
 
       {/* Modal de saisie */}
-      <LeaveFormModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSave={handleSaveLeave}
-        onDelete={handleDeleteLeave}
-        leave={selectedLeave}
-        selectedDate={selectedDate}
-      />
+        <LeaveFormModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSave={handleSaveLeave}
+          onDelete={handleDeleteLeave}
+          leave={selectedLeave}
+          selectedDate={selectedDate}
+          holidays={holidays}
+        />
     </div>
   );
 };
