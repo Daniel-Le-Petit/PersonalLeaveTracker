@@ -204,30 +204,30 @@ export default function Dashboard() {
           <div className="card">
             <div className="card-header">
               <div className="flex justify-between items-center">
-                <div>
+            <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                     📈 Graphiques cumulés des congés - {currentYear}
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Évolution mensuelle des congés pris et restants par type
-                  </p>
-                </div>
+              </p>
+            </div>
                 <div className="flex items-center space-x-2">
-                  <button
+              <button
                     onClick={goToPreviousYear}
                     className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     title="Année précédente"
                   >
                     ←
-                  </button>
-                  <button
+              </button>
+              <button
                     onClick={goToCurrentYear}
                     className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                     title="Année actuelle"
                   >
                     {new Date().getFullYear()}
-                  </button>
-                  <button
+              </button>
+              <button
                     onClick={goToNextYear}
                     className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     title="Année suivante"
