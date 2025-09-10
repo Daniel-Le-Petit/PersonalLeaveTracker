@@ -2,13 +2,16 @@
 
 import { BarChart3, Calendar, Clock, Download, Plus, Settings, Upload, Package, Menu } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } from '../types'
 import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummarySeparated } from '../utils/leaveUtils'
 import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
 import DashboardHeader from '../components/DashboardHeader'
+import LeaveCalendar from '../components/LeaveCalendar'
+import LeaveAnalytics from '../components/LeaveAnalytics'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -173,12 +176,64 @@ export default function Dashboard() {
     }
   }
 
+  // Gestion des congés
+  const handleLeaveAdd = (leave: any) => {
+    const newLeave = {
+      ...leave,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    };
+    setLeaves(prev => [...prev, newLeave]);
+    toast.success('Congé ajouté avec succès !');
+  };
+
+  const handleLeaveUpdate = (updatedLeave: any) => {
+    setLeaves(prev => prev.map(leave => 
+      leave.id === updatedLeave.id ? updatedLeave : leave
+    ));
+    toast.success('Congé modifié avec succès !');
+  };
+
+  const handleLeaveDelete = (id: string) => {
+    setLeaves(prev => prev.filter(leave => leave.id !== id));
+    toast.success('Congé supprimé avec succès !');
+  };
+
   const stats = calculateLeaveStats(leaves, currentYear);
   const recentLeaves = leaves
     .filter(leave => new Date(leave.startDate).getFullYear() === currentYear)
     .filter(leave => ['cp', 'rtt', 'cet'].includes(leave.type))
     .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
     .slice(0, 5);
+
+  // Calcul des congés planifiés (prévisions)
+  const plannedStats = useMemo(() => {
+    const currentDate = new Date();
+    const futureLeaves = leaves.filter(leave => 
+      new Date(leave.startDate).getFullYear() === currentYear && 
+      new Date(leave.startDate) > currentDate &&
+      leave.isForecast
+    );
+
+    const plannedRtt = futureLeaves
+      .filter(leave => leave.type === 'rtt')
+      .reduce((sum, leave) => sum + leave.workingDays, 0);
+
+    const plannedCp = futureLeaves
+      .filter(leave => leave.type === 'cp')
+      .reduce((sum, leave) => sum + leave.workingDays, 0);
+
+    const plannedCet = futureLeaves
+      .filter(leave => leave.type === 'cet')
+      .reduce((sum, leave) => sum + leave.workingDays, 0);
+
+    return {
+      rtt: plannedRtt,
+      cp: plannedCp,
+      cet: plannedCet,
+      total: plannedRtt + plannedCp + plannedCet
+    };
+  }, [leaves, currentYear]);
 
   if (isLoading) {
     return (
@@ -191,16 +246,23 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Nouveau Header moderne */}
-      <DashboardHeader 
-        onExport={handleExport}
-        onImport={handleImport}
-        className="sticky top-0 z-40"
-      />
+        <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4">
+            <DashboardHeader
+              onExport={handleExport}
+              onImport={handleImport}
+              className="flex-1"
+            />
+            <div className="ml-4">
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mobile-safe-area">
         {/* Graphiques cumulés */}
-        <div className="mt-8">
+        <div className="mt-8 animate-fade-in-up">
           <div className="card">
             <div className="card-header">
               <div className="flex justify-between items-center">
@@ -254,6 +316,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="w-full h-8 rounded-lg overflow-hidden flex">
+                        {/* RTT Pris (rouge) */}
                         <div 
                           className="bg-red-500 flex items-center justify-center text-white text-sm font-semibold"
                           style={{ 
@@ -270,17 +333,27 @@ export default function Dashboard() {
                             ).reduce((sum, leave) => sum + leave.workingDays, 0)
                           }
                         </div>
+                        {/* RTT Planifié (vert foncé) */}
                         <div 
-                          className="bg-green-500 flex items-center justify-center text-white text-sm font-semibold"
+                          className="bg-green-600 flex items-center justify-center text-white text-sm font-semibold"
+                          style={{ 
+                            width: `${(plannedStats.rtt / 29) * 100}%` 
+                          }}
+                        >
+                          {plannedStats.rtt > 0 && `${plannedStats.rtt} (P)`}
+                        </div>
+                        {/* RTT Restants non planifiés (vert clair) */}
+                        <div 
+                          className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
                           style={{ 
                             width: `${((29 - leaves.filter(leave => 
                               new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)) / 29) * 100}%` 
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0) - plannedStats.rtt) / 29) * 100}%` 
                           }}
                         >
                           {29 - leaves.filter(leave => 
                             new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0)}
+                          ).reduce((sum, leave) => sum + leave.workingDays, 0) - plannedStats.rtt}
                         </div>
                       </div>
                     </div>
@@ -300,6 +373,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="w-full h-8 rounded-lg overflow-hidden flex">
+                        {/* CP/CET Pris (bleu) */}
                         <div 
                           className="bg-blue-500 flex items-center justify-center text-white text-sm font-semibold"
                           style={{ 
@@ -318,17 +392,27 @@ export default function Dashboard() {
                             ).reduce((sum, leave) => sum + leave.workingDays, 0)} CET`
                           }
                         </div>
+                        {/* CP/CET Planifié (vert foncé) */}
                         <div 
-                          className="bg-green-500 flex items-center justify-center text-white text-sm font-semibold"
+                          className="bg-green-600 flex items-center justify-center text-white text-sm font-semibold"
+                          style={{ 
+                            width: `${((plannedStats.cp + plannedStats.cet) / 72.5) * 100}%` 
+                          }}
+                        >
+                          {plannedStats.cp + plannedStats.cet > 0 && `${plannedStats.cp + plannedStats.cet} (P)`}
+                        </div>
+                        {/* CP/CET Restants non planifiés (vert clair) */}
+                        <div 
+                          className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
                           style={{ 
                             width: `${((72.5 - leaves.filter(leave => 
                               new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)) / 72.5) * 100}%` 
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0) - (plannedStats.cp + plannedStats.cet)) / 72.5) * 100}%` 
                           }}
                         >
                           {72.5 - leaves.filter(leave => 
                             new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0)}
+                          ).reduce((sum, leave) => sum + leave.workingDays, 0) - (plannedStats.cp + plannedStats.cet)}
                         </div>
                       </div>
                     </div>
@@ -336,6 +420,23 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Calendrier et Analytics */}
+        <div className="mt-8 space-y-8">
+          <div className="animate-slide-in-right">
+            <LeaveCalendar 
+              leaves={leaves} 
+              currentYear={currentYear} 
+              holidays={holidays}
+              onLeaveAdd={handleLeaveAdd}
+              onLeaveUpdate={handleLeaveUpdate}
+              onLeaveDelete={handleLeaveDelete}
+            />
+          </div>
+          <div className="animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+            <LeaveAnalytics leaves={leaves} currentYear={currentYear} holidays={holidays} />
           </div>
         </div>
 
