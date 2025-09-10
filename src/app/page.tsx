@@ -8,6 +8,7 @@ import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } 
 import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummarySeparated } from '../utils/leaveUtils'
 import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
+import DashboardHeader from '../components/DashboardHeader'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -189,110 +190,155 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                📅 Gestionnaire de Congés
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Suivi et gestion de vos congés
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/add"
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                title="Ajouter un congé"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Ajouter
-              </Link>
-              <Link
-                href="/history"
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                title="Voir l'historique"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                Historique
-              </Link>
-              <Link
-                href="/carryover"
-                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                title="Gérer les reliquats"
-              >
-                <Package className="w-4 h-4 mr-2" />
-                Reliquats
-              </Link>
-              <button
-                onClick={handleExport}
-                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                title="Exporter les données"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Exporter
-              </button>
-              <button
-                onClick={handleImport}
-                className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                title="Importer des données"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Importer
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    // Forcer le nettoyage des paramètres
-                    const currentSettings = await leaveStorage.getSettings()
-                    if (currentSettings && currentSettings.quotas) {
-                      console.log('🧹 Nettoyage forcé des paramètres...')
-                      const validTypes = ['cp', 'rtt', 'cet'] // Seulement 3 types
-                      const cleanedQuotas = currentSettings.quotas.filter(quota => validTypes.includes(quota.type))
-                      
-                      // Ajouter le type CET s'il manque
-                      const hasCet = cleanedQuotas.some(quota => quota.type === 'cet')
-                      if (!hasCet) {
-                        cleanedQuotas.push({ type: 'cet', yearlyQuota: 5 })
-                      }
-                      
-                      const updatedSettings = {
-                        ...currentSettings,
-                        quotas: cleanedQuotas
-                      }
-                      
-                      await leaveStorage.saveSettings(updatedSettings)
-                      console.log('✅ Paramètres nettoyés:', updatedSettings)
-                      toast.success('Paramètres nettoyés !')
-                      await loadData()
-                    }
-                  } catch (error) {
-                    console.error('Erreur lors du nettoyage:', error)
-                    toast.error('Erreur lors du nettoyage')
-                  }
-                }}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                title="Nettoyer les paramètres (FORCÉ)"
-              >
-                🧹 Nettoyer (FORCÉ)
-              </button>
-              <Link
-                href="/settings"
-                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                title="Paramètres"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Paramètres
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Nouveau Header moderne */}
+      <DashboardHeader 
+        onExport={handleExport}
+        onImport={handleImport}
+        className="sticky top-0 z-40"
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mobile-safe-area">
+        {/* Graphiques cumulés */}
+        <div className="mt-8">
+          <div className="card">
+            <div className="card-header">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    📈 Graphiques cumulés des congés - {currentYear}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Évolution mensuelle des congés pris et restants par type
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={goToPreviousYear}
+                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    title="Année précédente"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={goToCurrentYear}
+                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                    title="Année actuelle"
+                  >
+                    {new Date().getFullYear()}
+                  </button>
+                  <button
+                    onClick={goToNextYear}
+                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    title="Année suivante"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="card-body">
+              
+              {/* Graphiques simples */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Graphique RTT */}
+                <div className="card">
+                  <div className="card-body p-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                          RTT Pris
+                        </span>
+                        <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                          RTT Restants
+                        </span>
+                      </div>
+                      <div className="w-full h-8 rounded-lg overflow-hidden flex">
+                        <div 
+                          className="bg-red-500 flex items-center justify-center text-white text-sm font-semibold"
+                          style={{ 
+                            width: `${(leaves.filter(leave => 
+                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0) / 29) * 100}%` 
+                          }}
+                        >
+                          {leaves.filter(leave => 
+                            new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                          ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
+                            leaves.filter(leave => 
+                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0)
+                          }
+                        </div>
+                        <div 
+                          className="bg-green-500 flex items-center justify-center text-white text-sm font-semibold"
+                          style={{ 
+                            width: `${((29 - leaves.filter(leave => 
+                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0)) / 29) * 100}%` 
+                          }}
+                        >
+                          {29 - leaves.filter(leave => 
+                            new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                          ).reduce((sum, leave) => sum + leave.workingDays, 0)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Graphique CP/CET */}
+                <div className="card">
+                  <div className="card-body p-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                          CP/CET Pris
+                        </span>
+                        <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                          CP/CET Restants
+                        </span>
+                      </div>
+                      <div className="w-full h-8 rounded-lg overflow-hidden flex">
+                        <div 
+                          className="bg-blue-500 flex items-center justify-center text-white text-sm font-semibold"
+                          style={{ 
+                            width: `${(leaves.filter(leave => 
+                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0) / 72.5) * 100}%` 
+                          }}
+                        >
+                          {leaves.filter(leave => 
+                            new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                          ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
+                            `${leaves.filter(leave => 
+                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'cp'
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} CP ${leaves.filter(leave => 
+                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'cet'
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} CET`
+                          }
+                        </div>
+                        <div 
+                          className="bg-green-500 flex items-center justify-center text-white text-sm font-semibold"
+                          style={{ 
+                            width: `${((72.5 - leaves.filter(leave => 
+                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                            ).reduce((sum, leave) => sum + leave.workingDays, 0)) / 72.5) * 100}%` 
+                          }}
+                        >
+                          {72.5 - leaves.filter(leave => 
+                            new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                          ).reduce((sum, leave) => sum + leave.workingDays, 0)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Nouveau tableau Réel vs Prévisions */}
         <div className="mt-8">
           <div className="card">
@@ -349,7 +395,7 @@ export default function Dashboard() {
                     </tr>
                     {/* En-tête des colonnes */}
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 sticky left-0 z-10">
                         Mois
                       </th>
                       <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
@@ -381,7 +427,7 @@ export default function Dashboard() {
                   <tbody>
                     {monthlySummarySeparated?.months.map((monthData, index) => (
                       <tr key={index} className={monthData.month === 0 ? 'bg-orange-50 dark:bg-orange-900/20 border-t-2 border-orange-300 dark:border-orange-600' : (index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800')}>
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700 sticky left-0 z-10 bg-inherit">
                           {monthData.monthName}
                         </td>
                         {/* RTT Réel */}
@@ -474,217 +520,6 @@ export default function Dashboard() {
                     <div className="flex items-center">
                       <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
                       <span><strong>Total :</strong> Somme des jours pris</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Graphiques cumulés */}
-        <div className="mt-8">
-          <div className="card">
-            <div className="card-header">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    📈 Graphiques cumulés des congés - {currentYear}
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Évolution mensuelle des congés pris et restants par type
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={goToPreviousYear}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    title="Année précédente"
-                  >
-                    ←
-                  </button>
-                  <button
-                    onClick={goToCurrentYear}
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    title="Année actuelle"
-                  >
-                    {new Date().getFullYear()}
-                  </button>
-                  <button
-                    onClick={goToNextYear}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    title="Année suivante"
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="card-body">
-              <div className="text-center p-8">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  📈 Graphiques cumulés des congés - {currentYear}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Évolution mensuelle des congés pris et restants par type
-                </p>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6">
-                  <p className="text-blue-800 dark:text-blue-200">
-                    Diagnostic: Congés chargés: {leaves.length} | Paramètres: {settings ? 'Oui' : 'Non'}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Graphiques simples */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Graphique RTT */}
-                <div className="card">
-                  <div className="card-header">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center">
-                      📊 RTT - Pris vs Restants
-                    </h3>
-                  </div>
-                  <div className="card-body p-6">
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">RTT Pris</span>
-                          <span className="text-sm font-bold text-red-600 dark:text-red-400">
-                            {leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
-                          <div 
-                            className="bg-red-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-                            style={{ 
-                              width: `${Math.min(100, (leaves.filter(leave => 
-                                new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                              ).reduce((sum, leave) => sum + leave.workingDays, 0) / 29) * 100)}%` 
-                            }}
-                          >
-                            {leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
-                              leaves.filter(leave => 
-                                new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                              ).reduce((sum, leave) => sum + leave.workingDays, 0)
-                            }
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">RTT Restants</span>
-                          <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                            {29 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
-                          <div 
-                            className="bg-green-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-                            style={{ 
-                              width: `${Math.min(100, ((29 - leaves.filter(leave => 
-                                new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                              ).reduce((sum, leave) => sum + leave.workingDays, 0)) / 29) * 100)}%` 
-                            }}
-                          >
-                            {29 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total RTT</span>
-                          <span className="text-sm font-bold text-gray-900 dark:text-white">29 jours</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Graphique CP/CET */}
-                <div className="card">
-                  <div className="card-header">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center">
-                      📊 CP/CET - Pris vs Restants
-                    </h3>
-                  </div>
-                  <div className="card-body p-6">
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">CP/CET Pris</span>
-                          <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                            {leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
-                          <div 
-                            className="bg-blue-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-                            style={{ 
-                              width: `${Math.min(100, (leaves.filter(leave => 
-                                new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                              ).reduce((sum, leave) => sum + leave.workingDays, 0) / 72.5) * 100)}%` 
-                            }}
-                          >
-                            {leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
-                              leaves.filter(leave => 
-                                new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                              ).reduce((sum, leave) => sum + leave.workingDays, 0)
-                            }
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">CP/CET Restants</span>
-                          <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                            {72.5 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
-                          <div 
-                            className="bg-green-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-                            style={{ 
-                              width: `${Math.min(100, ((72.5 - leaves.filter(leave => 
-                                new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                              ).reduce((sum, leave) => sum + leave.workingDays, 0)) / 72.5) * 100)}%` 
-                            }}
-                          >
-                            {72.5 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div className="flex justify-between">
-                          <span>CP: {leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'cp'
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours pris</span>
-                          <span>CET: {leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'cet'
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours pris</span>
-                        </div>
-                      </div>
-                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total CP/CET</span>
-                          <span className="text-sm font-bold text-gray-900 dark:text-white">72.5 jours</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
