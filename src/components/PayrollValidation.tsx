@@ -273,14 +273,16 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
   return (
     <div className="card">
       <div className="card-header">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              📋 Validation Feuilles de Paie - {currentYear}
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Vérification des données de congés avec les feuilles de paie - 📅 Mois: {monthNames[selectedMonth - 1]}
-            </p>
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                📋 Validation Feuilles de Paie - {currentYear}
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Vérification des données de congés avec les feuilles de paie - 📅 Mois: {monthNames[selectedMonth - 1]}
+              </p>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             {/* Navigation par mois */}

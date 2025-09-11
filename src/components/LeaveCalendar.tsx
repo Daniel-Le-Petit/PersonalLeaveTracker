@@ -314,14 +314,14 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
   return (
     <div className="card">
       <div className="card-header">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col space-y-2">
           <div className="flex items-center space-x-3">
-            <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Calendrier des Congés
+            <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                📅 Calendrier des Congés
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Timeline et suggestions intelligentes - 💡 Les congés ne s'affichent que sur les jours ouvrés (exclut WE et jours fériés)
               </p>
             </div>

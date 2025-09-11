@@ -434,15 +434,17 @@ export default function Dashboard() {
         <div className="mt-8 animate-fade-in-up">
           <div className="card">
             <div className="card-header">
-              <div className="flex justify-between items-center">
-            <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    📈 Graphiques cumulés des congés - {currentYear}
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Évolution mensuelle des congés pris et restants par type
-              </p>
-            </div>
+              <div className="flex flex-col space-y-2">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                      📈 Graphiques cumulés des congés - {currentYear}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Évolution mensuelle des congés pris et restants par type
+                    </p>
+                  </div>
+                </div>
                 <div className="flex items-center space-x-2">
               <button
                     onClick={goToPreviousYear}

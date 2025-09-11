@@ -184,15 +184,17 @@ const LeaveAnalytics: React.FC<LeaveAnalyticsProps> = ({ leaves, currentYear, ho
   return (
     <div className="card">
       <div className="card-header">
-        <div className="flex items-center space-x-3">
-          <BarChart3 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Analytics & Prévisions
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Tendances et projections des congés
-            </p>
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center space-x-3">
+            <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                📊 Analytics & Prévisions
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Tendances et projections des congés
+              </p>
+            </div>
           </div>
         </div>
       </div>
