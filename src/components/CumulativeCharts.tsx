@@ -20,10 +20,10 @@ export default function CumulativeCharts({ leaves, carryovers, currentYear, sett
   const cpQuota = settings?.quotas?.find(q => q.type === 'cp')?.yearlyQuota || 25
   const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5
 
-  // Récupérer les reliquats
-  const rttCarryover = carryovers.find(c => c.type === 'rtt')?.days || 0
-  const cpCarryover = carryovers.find(c => c.type === 'cp')?.days || 0
-  const cetCarryover = carryovers.find(c => c.type === 'cet')?.days || 0
+  // Récupérer les reliquats de l'année précédente
+  const rttCarryover = carryovers.find(c => c.type === 'rtt' && c.year === currentYear - 1)?.days || 0
+  const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === currentYear - 1)?.days || 0
+  const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === currentYear - 1)?.days || 0
 
   // Calculer les totaux disponibles
   const totalRTT = rttQuota + rttCarryover

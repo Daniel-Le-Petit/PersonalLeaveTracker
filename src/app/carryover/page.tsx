@@ -39,8 +39,8 @@ export default function CarryoverPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (formData.days <= 0) {
-      toast.error('Le nombre de jours doit être supérieur à 0')
+    if (formData.days < 0) {
+      toast.error('Le nombre de jours doit être supérieur ou égal à 0')
       return
     }
 
@@ -312,17 +312,17 @@ export default function CarryoverPage() {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Nombre de jours *
                       </label>
-                                             <input
-                         type="number"
-                         value={formData.days}
-                         onChange={(e) => setFormData({ ...formData, days: parseFloat(e.target.value) })}
-                         className="input"
-                         required
-                         min="0.5"
-                         max="365"
-                         step="0.5"
-                         aria-label="Nombre de jours"
-                       />
+                      <input
+                        type="number"
+                        value={formData.days}
+                        onChange={(e) => setFormData({ ...formData, days: parseFloat(e.target.value) })}
+                        className="input"
+                        required
+                        min="0"
+                        max="365"
+                        step="0.5"
+                        aria-label="Nombre de jours"
+                      />
                     </div>
 
                     {/* Description */}

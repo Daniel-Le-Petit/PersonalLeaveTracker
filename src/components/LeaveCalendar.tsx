@@ -557,45 +557,7 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
           </div>
         )}
 
-        {/* Debug des données */}
-        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-          <div className="flex items-start space-x-2">
-            <div className="flex-shrink-0">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
-            </div>
-            <div className="text-sm text-yellow-800 dark:text-yellow-200">
-              <p className="font-medium mb-1">🔍 Debug - Congés chargés :</p>
-              <div className="text-xs space-y-1">
-                <p>Total congés: {leaves.length}</p>
-                <p>Année: {currentYear}</p>
-                <p>Mois: {currentMonth + 1}</p>
-                {leaves.filter(l => new Date(l.startDate).getMonth() === currentMonth).map((leave, idx) => (
-                  <p key={idx}>
-                    {leave.type} - {new Date(leave.startDate).toLocaleDateString('fr-FR')} à {new Date(leave.endDate).toLocaleDateString('fr-FR')}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Instructions d'utilisation */}
-        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="flex items-start space-x-2">
-            <div className="flex-shrink-0">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-            </div>
-            <div className="text-sm text-blue-800 dark:text-blue-200">
-              <p className="font-medium mb-1">💡 Comment utiliser le calendrier :</p>
-              <ul className="space-y-1 text-xs">
-                <li>• <strong>Cliquez sur un jour vide</strong> pour ajouter un congé</li>
-                <li>• <strong>Cliquez sur un congé existant</strong> pour le modifier ou le supprimer</li>
-                <li>• <strong>(P)</strong> = Prévision (pas encore pris)</li>
-                <li>• <strong>Suggestions colorées</strong> = Meilleures périodes pour prendre des congés</li>
-              </ul>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Modal de saisie */}

@@ -147,9 +147,9 @@ export function calculateLeaveBalances(
 
     const used = yearLeaves.reduce((total, leave) => total + leave.workingDays, 0);
     
-    // Calculer les reliquats pour ce type de congé
+    // Calculer les reliquats pour ce type de congé (seulement de l'année précédente)
     const carryoverDays = carryovers
-      .filter(carryover => carryover.type === quota.type)
+      .filter(carryover => carryover.type === quota.type && carryover.year === year - 1)
       .reduce((total, carryover) => total + carryover.days, 0);
     
     // Le total inclut le quota annuel + les reliquats
@@ -181,7 +181,10 @@ export function calculateAvailableCarryover(
   };
 
   carryovers.forEach(carryover => {
-    available[carryover.type] += carryover.days;
+    // Seuls les reliquats de l'année précédente sont disponibles pour l'année courante
+    if (carryover.year === year - 1) {
+      available[carryover.type] += carryover.days;
+    }
   });
 
   return available;
@@ -418,7 +421,7 @@ export function calculateMonthlyLeaveSummarySeparated(
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     const cpReal = monthLeaves
-      .filter(leave => leave.type === 'cp' && (!leave.isForecast || isMonthPassed))
+      .filter(leave => (leave.type === 'cp' || leave.type === 'cet') && (!leave.isForecast || isMonthPassed))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     // Pour les prévisions, compter les congés marqués comme prévision des mois futurs
@@ -428,7 +431,7 @@ export function calculateMonthlyLeaveSummarySeparated(
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     const cpForecast = monthLeaves
-      .filter(leave => leave.type === 'cp' && (leave.isForecast || (!isMonthPassed && !isCurrentMonth)))
+      .filter(leave => (leave.type === 'cp' || leave.type === 'cet') && (leave.isForecast || (!isMonthPassed && !isCurrentMonth)))
       .reduce((sum, leave) => sum + leave.workingDays, 0);
 
     // Calculer les cumuls

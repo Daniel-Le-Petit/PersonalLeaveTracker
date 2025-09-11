@@ -6,14 +6,13 @@ import { useEffect, useState, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } from '../types'
 import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummarySeparated } from '../utils/leaveUtils'
+import CalculationTooltip from '../components/CalculationTooltip'
 import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
 import DashboardHeader from '../components/DashboardHeader'
 import LeaveCalendar from '../components/LeaveCalendar'
-import LeaveAnalytics from '../components/LeaveAnalytics'
 import ThemeToggle from '../components/ThemeToggle'
 import PayrollValidation from '../components/PayrollValidation'
-import CalculationTooltip from '../components/CalculationTooltip'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -216,7 +215,7 @@ export default function Dashboard() {
           localStorage.setItem(`payroll-data-${currentYear}`, JSON.stringify(data.payrollData))
           
           // Recharger les données
-          await loadData()
+      await loadData()
           
           toast.success('Toutes les données importées avec succès')
         } else if (data.leaves) {
@@ -233,8 +232,8 @@ export default function Dashboard() {
         } else {
           toast.error('Format de fichier non reconnu')
         }
-      } catch (error) {
-        console.error('Erreur lors de l\'import:', error)
+    } catch (error) {
+      console.error('Erreur lors de l\'import:', error)
         toast.error('Erreur lors de l\'import')
       }
     }
@@ -365,7 +364,7 @@ export default function Dashboard() {
   // Fonctions pour générer les explications de calcul
   const getRttCumulativeCalculation = (monthData: any, monthIndex: number) => {
     const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
-    const carryoverRtt = carryovers.find(c => c.type === 'rtt')?.days || 0;
+    const carryoverRtt = carryovers.find(c => c.type === 'rtt' && c.year === currentYear - 1)?.days || 0;
     const totalRtt = rttQuota + carryoverRtt;
     
     // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
@@ -383,8 +382,8 @@ export default function Dashboard() {
     const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
     const totalCPCETQuota = cpQuota + cetQuota;
     
-    const cpCarryover = carryovers.find(c => c.type === 'cp')?.days || 0;
-    const cetCarryover = carryovers.find(c => c.type === 'cet')?.days || 0;
+    const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === currentYear - 1)?.days || 0;
+    const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === currentYear - 1)?.days || 0;
     const totalCPCETCarryover = cpCarryover + cetCarryover;
     
     const totalCp = totalCPCETQuota + totalCPCETCarryover;
@@ -401,7 +400,7 @@ export default function Dashboard() {
 
   const getRttForecastCumulativeCalculation = (monthData: any, monthIndex: number) => {
     const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
-    const carryoverRtt = carryovers.find(c => c.type === 'rtt')?.days || 0;
+    const carryoverRtt = carryovers.find(c => c.type === 'rtt' && c.year === currentYear - 1)?.days || 0;
     const totalRtt = rttQuota + carryoverRtt;
     
     // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
@@ -423,8 +422,8 @@ export default function Dashboard() {
     const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
     const totalCPCETQuota = cpQuota + cetQuota;
     
-    const cpCarryover = carryovers.find(c => c.type === 'cp')?.days || 0;
-    const cetCarryover = carryovers.find(c => c.type === 'cet')?.days || 0;
+    const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === currentYear - 1)?.days || 0;
+    const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === currentYear - 1)?.days || 0;
     const totalCPCETCarryover = cpCarryover + cetCarryover;
     
     const totalCp = totalCPCETQuota + totalCPCETCarryover;
@@ -520,13 +519,13 @@ export default function Dashboard() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                      📈 Graphiques cumulés des congés - {currentYear}
-                    </h2>
+                    📈 Graphiques cumulés des congés - {currentYear}
+                  </h2>
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Évolution mensuelle des congés pris et restants par type
-                    </p>
+                    Évolution mensuelle des congés pris et restants par type
+              </p>
                   </div>
-                </div>
+            </div>
                 <div className="flex items-center space-x-2">
               <button
                     onClick={goToPreviousYear}
@@ -558,138 +557,191 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Graphique RTT */}
                 <div className="card">
+                  <div className="card-header">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center">
+                      📊 RTT - {currentYear}
+                    </h3>
+                  </div>
                   <div className="card-body p-6">
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold text-red-600 dark:text-red-400">
-                          RTT Pris
-                        </span>
-                        <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                          RTT Restants
-                        </span>
-                      </div>
+                      
+                      {/* Calculer les valeurs RTT */}
+                      {(() => {
+                        const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
+                        const rttCarryover = carryovers.find(c => c.type === 'rtt' && c.year === currentYear - 1)?.days || 0;
+                        const totalRTT = rttQuota + rttCarryover;
+                        const rttPris = leaves.filter(leave => 
+                          new Date(leave.startDate).getFullYear() === currentYear && 
+                          leave.type === 'rtt' && 
+                          !leave.isForecast
+                        ).reduce((sum, leave) => sum + leave.workingDays, 0);
+                        const rttPlanifie = plannedStats.rtt;
+                        const rttRestants = totalRTT - rttPris - rttPlanifie;
+                        
+                        return (
+                          <>
                       <div className="w-full h-8 rounded-lg overflow-hidden flex">
-                        {/* RTT Pris (rouge) - Seulement les congés réels, pas les prévisions */}
+                        {/* RTT Pris (rouge) */}
                         <div 
                           className="bg-red-500 flex items-center justify-center text-white text-sm font-semibold"
-                          style={{ 
-                            width: `${(leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && 
-                              leave.type === 'rtt' && 
-                              !leave.isForecast
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0) / 29) * 100}%` 
-                          }}
-                        >
-                          {leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && 
-                            leave.type === 'rtt' && 
-                            !leave.isForecast
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
-                            leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && 
-                              leave.type === 'rtt' && 
-                              !leave.isForecast
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)
-                          }
+                                style={{ width: `${(rttPris / totalRTT) * 100}%` }}
+                              >
+                                {rttPris > 0 && rttPris}
                         </div>
                         {/* RTT Planifié (vert foncé) */}
                         <div 
                           className="bg-green-600 flex items-center justify-center text-white text-sm font-semibold"
-                          style={{ 
-                            width: `${(plannedStats.rtt / 29) * 100}%` 
-                          }}
+                                style={{ width: `${(rttPlanifie / totalRTT) * 100}%` }}
                         >
-                          {plannedStats.rtt > 0 && plannedStats.rtt}
+                                {rttPlanifie > 0 && rttPlanifie}
                         </div>
-                        {/* RTT Restants non planifiés (vert clair) */}
+                              {/* RTT Restants (vert clair) */}
                         <div 
                           className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
-                          style={{ 
-                            width: `${((29 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && 
-                              leave.type === 'rtt' && 
-                              !leave.isForecast
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0) - plannedStats.rtt) / 29) * 100}%` 
-                          }}
-                        >
-                          {29 - leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && 
-                            leave.type === 'rtt' && 
-                            !leave.isForecast
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0) - plannedStats.rtt}
+                                style={{ width: `${(rttRestants / totalRTT) * 100}%` }}
+                              >
+                                {rttRestants}
                         </div>
                       </div>
+                            
+                            {/* Explications */}
+                            <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                              <div className="space-y-3">
+                                <div className="border-l-4 border-blue-500 pl-3">
+                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Quota initial au 01/01/{currentYear}</div>
+                                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    <span className="font-bold text-blue-600 dark:text-blue-400">{totalRTT} jours</span> = 
+                                    <span className="font-bold text-green-600 dark:text-green-400"> {rttQuota} jours</span> (Quota {currentYear}) + 
+                                    <span className="font-bold text-orange-600 dark:text-orange-400"> {rttCarryover} jours</span> (Reliquat {currentYear - 1})
+                                  </div>
+                                </div>
+                                
+                                <div className="border-l-4 border-red-500 pl-3">
+                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Consommation au 11/09/{currentYear}</div>
+                                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    <span className="font-bold text-red-600 dark:text-red-400">{rttPris} jours</span> pris • 
+                                    <span className="font-bold text-green-600 dark:text-green-400"> {rttPlanifie} jours</span> planifiés • 
+                                    <span className="font-bold text-purple-600 dark:text-purple-400"> {Math.max(0, totalRTT - rttPris - rttPlanifie)} jours</span> à planifier
+                                  </div>
+                                </div>
+                                
+                                <div className="border-l-4 border-blue-500 pl-3 bg-blue-50 dark:bg-blue-900/20 rounded p-2">
+                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Solde disponible</div>
+                                  <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                    {rttPlanifie + Math.max(0, totalRTT - rttPris - rttPlanifie)} jours restants
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    Échéance: 31/12/{currentYear} (deadline 28/02/{currentYear + 1})
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
 
                 {/* Graphique CP/CET */}
                 <div className="card">
+                  <div className="card-header">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center">
+                      📊 CP/CET - {currentYear}
+                    </h3>
+                  </div>
                   <div className="card-body p-6">
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                          CP/CET Pris
-                        </span>
-                        <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                          CP/CET Restants
-                        </span>
-                      </div>
+                      
+                      {/* Calculer les valeurs CP/CET */}
+                      {(() => {
+                        const cpQuota = settings?.quotas?.find(q => q.type === 'cp')?.yearlyQuota || 25;
+                        const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
+                        const totalCPCETQuota = cpQuota + cetQuota;
+                        
+                        const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === currentYear - 1)?.days || 0;
+                        const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === currentYear - 1)?.days || 0;
+                        const totalCPCETCarryover = cpCarryover + cetCarryover;
+                        
+                        const totalCPCET = totalCPCETQuota + totalCPCETCarryover;
+                        
+                        const cpPris = leaves.filter(leave => 
+                          new Date(leave.startDate).getFullYear() === currentYear && 
+                          leave.type === 'cp' && 
+                          !leave.isForecast
+                        ).reduce((sum, leave) => sum + leave.workingDays, 0);
+                        
+                        const cetPris = leaves.filter(leave => 
+                          new Date(leave.startDate).getFullYear() === currentYear && 
+                          leave.type === 'cet' && 
+                          !leave.isForecast
+                        ).reduce((sum, leave) => sum + leave.workingDays, 0);
+                        
+                        const totalPris = cpPris + cetPris;
+                        const totalPlanifie = plannedStats.cp + plannedStats.cet;
+                        const totalRestants = totalCPCET - totalPris - totalPlanifie;
+                        
+                        return (
+                          <>
                       <div className="w-full h-8 rounded-lg overflow-hidden flex">
-                        {/* CP/CET Pris (bleu) - Seulement les congés réels, pas les prévisions */}
+                        {/* CP/CET Pris (bleu) */}
                         <div 
                           className="bg-blue-500 flex items-center justify-center text-white text-sm font-semibold"
-                          style={{ 
-                            width: `${(leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && 
-                              (leave.type === 'cp' || leave.type === 'cet') && 
-                              !leave.isForecast
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0) / 72.5) * 100}%` 
-                          }}
-                        >
-                          {leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && 
-                            (leave.type === 'cp' || leave.type === 'cet') && 
-                            !leave.isForecast
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
-                            `${leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && 
-                              leave.type === 'cp' && 
-                              !leave.isForecast
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} CP ${leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && 
-                              leave.type === 'cet' && 
-                              !leave.isForecast
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0)} CET`
-                          }
+                                style={{ width: `${(totalPris / totalCPCET) * 100}%` }}
+                              >
+                                {totalPris > 0 && totalPris}
                         </div>
                         {/* CP/CET Planifié (vert foncé) */}
                         <div 
                           className="bg-green-600 flex items-center justify-center text-white text-sm font-semibold"
-                          style={{ 
-                            width: `${((plannedStats.cp + plannedStats.cet) / 72.5) * 100}%` 
-                          }}
+                                style={{ width: `${(totalPlanifie / totalCPCET) * 100}%` }}
                         >
-                          {plannedStats.cp + plannedStats.cet > 0 && plannedStats.cp + plannedStats.cet}
+                                {totalPlanifie > 0 && totalPlanifie}
                         </div>
-                        {/* CP/CET Restants non planifiés (vert clair) */}
+                              {/* CP/CET Restants (vert clair) */}
                         <div 
                           className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
-                          style={{ 
-                            width: `${((72.5 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && 
-                              (leave.type === 'cp' || leave.type === 'cet') && 
-                              !leave.isForecast
-                            ).reduce((sum, leave) => sum + leave.workingDays, 0) - (plannedStats.cp + plannedStats.cet)) / 72.5) * 100}%` 
-                          }}
-                        >
-                          {72.5 - leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && 
-                            (leave.type === 'cp' || leave.type === 'cet') && 
-                            !leave.isForecast
-                          ).reduce((sum, leave) => sum + leave.workingDays, 0) - (plannedStats.cp + plannedStats.cet)}
+                                style={{ width: `${(totalRestants / totalCPCET) * 100}%` }}
+                              >
+                                {totalRestants}
                         </div>
                       </div>
+                            
+                            {/* Explications */}
+                            <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                              <div className="space-y-3">
+                                <div className="border-l-4 border-blue-500 pl-3">
+                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Quota initial au 31/05/{currentYear}</div>
+                                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    <span className="font-bold text-blue-600 dark:text-blue-400">{totalCPCET} jours</span> = 
+                                    <span className="font-bold text-green-600 dark:text-green-400"> {totalCPCETQuota} jours</span> (Quota CP: {cpQuota} + CET: {cetQuota}) + 
+                                    <span className="font-bold text-orange-600 dark:text-orange-400"> {totalCPCETCarryover} jours</span> (Reliquats)
+                    </div>
+                  </div>
+                                
+                                <div className="border-l-4 border-red-500 pl-3">
+                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Consommation au 11/09/{currentYear}</div>
+                                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    <span className="font-bold text-red-600 dark:text-red-400">{totalPris} jours</span> pris • 
+                                    <span className="font-bold text-green-600 dark:text-green-400"> {totalPlanifie} jours</span> planifiés • 
+                                    <span className="font-bold text-purple-600 dark:text-purple-400"> {Math.max(0, totalCPCET - totalPris - totalPlanifie)} jours</span> à planifier
+                </div>
+              </div>
+                                
+                                <div className="border-l-4 border-blue-500 pl-3 bg-blue-50 dark:bg-blue-900/20 rounded p-2">
+                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Solde disponible</div>
+                                  <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                    {totalPlanifie + Math.max(0, totalCPCET - totalPris - totalPlanifie)} jours restants
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    Échéance: 31/05/{currentYear + 1}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -721,9 +773,6 @@ export default function Dashboard() {
               onLeaveUpdate={handleLeaveUpdate}
               onLeaveDelete={handleLeaveDelete}
             />
-          </div>
-          <div className="animate-slide-in-right" style={{ animationDelay: '0.3s' }}>
-            <LeaveAnalytics leaves={leaves} currentYear={currentYear} holidays={holidays} />
           </div>
         </div>
 
@@ -828,7 +877,7 @@ export default function Dashboard() {
                             calculation={getRttCumulativeCalculation(monthData, index)}
                           >
                             <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                              {monthData.rtt.real.remaining}
+                          {monthData.rtt.real.remaining}
                             </span>
                           </CalculationTooltip>
                         </td>
@@ -842,7 +891,7 @@ export default function Dashboard() {
                             calculation={getCpCumulativeCalculation(monthData, index)}
                           >
                             <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                              {monthData.cp.real.remaining}
+                          {monthData.cp.real.remaining}
                             </span>
                           </CalculationTooltip>
                         </td>
@@ -856,7 +905,7 @@ export default function Dashboard() {
                             calculation={getRttForecastCumulativeCalculation(monthData, index)}
                           >
                             <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                              {monthData.rtt.forecast.remaining}
+                          {monthData.rtt.forecast.remaining}
                             </span>
                           </CalculationTooltip>
                         </td>
@@ -870,7 +919,7 @@ export default function Dashboard() {
                             calculation={getCpForecastCumulativeCalculation(monthData, index)}
                           >
                             <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                              {monthData.cp.forecast.remaining}
+                          {monthData.cp.forecast.remaining}
                             </span>
                           </CalculationTooltip>
                         </td>
@@ -943,6 +992,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
       </main>
 
       {/* Menu mobile des actions rapides */}
