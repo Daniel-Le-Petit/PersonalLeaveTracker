@@ -152,29 +152,95 @@ export default function Dashboard() {
     }
   }
 
+  // Fonction Export unifiée (congés + feuilles de paie)
   const handleExport = async () => {
     try {
-      await leaveStorage.exportDataWithUserChoice()
-      toast.success('Export réussi - Choisissez où sauvegarder le fichier')
+      const currentYear = new Date().getFullYear()
+      
+      // Récupérer les données des congés
+      const leavesData = await leaveStorage.exportData()
+      const leaves = JSON.parse(leavesData)
+      
+      // Récupérer les données des feuilles de paie
+      const stored = localStorage.getItem(`payroll-data-${currentYear}`)
+      const payrollData = stored ? JSON.parse(stored) : []
+      
+      // Créer un fichier unifié
+      const unifiedData = {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        year: currentYear,
+        leaves: leaves,
+        payrollData: payrollData,
+        settings: {
+          // Ajouter d'autres paramètres si nécessaire
+        }
+      }
+      
+      const blob = new Blob([JSON.stringify(unifiedData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `leave-tracker-export-${currentYear}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      
+      toast.success('Toutes les données exportées avec succès')
     } catch (error) {
       console.error('Erreur lors de l\'export:', error)
       toast.error('Erreur lors de l\'export')
     }
   }
 
-  const handleImport = async () => {
-    try {
-      await leaveStorage.importDataWithFileSelection()
-      await loadData()
-      toast.success('Données importées avec succès')
-    } catch (error) {
-      console.error('Erreur lors de l\'import:', error)
-      if (error instanceof Error && error.message === 'Import annulé') {
-        toast('Import annulé')
-      } else {
+  // Fonction Import unifiée (congés + feuilles de paie)
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string
+        const data = JSON.parse(content)
+        
+        // Vérifier si c'est un fichier unifié
+        if (data.leaves && data.payrollData) {
+          // Importer les congés
+          await leaveStorage.importData(JSON.stringify(data.leaves))
+          
+          // Importer les feuilles de paie
+          const currentYear = new Date().getFullYear()
+          localStorage.setItem(`payroll-data-${currentYear}`, JSON.stringify(data.payrollData))
+          
+          // Recharger les données
+          await loadData()
+          
+          toast.success('Toutes les données importées avec succès')
+        } else if (data.leaves) {
+          // Fichier de congés seulement
+          await leaveStorage.importData(JSON.stringify(data.leaves))
+          await loadData()
+          toast.success('Données de congés importées avec succès')
+        } else if (data.payrollData) {
+          // Fichier de feuilles de paie seulement
+          const currentYear = new Date().getFullYear()
+          localStorage.setItem(`payroll-data-${currentYear}`, JSON.stringify(data.payrollData))
+          window.location.reload()
+          toast.success('Données de feuilles de paie importées avec succès')
+        } else {
+          toast.error('Format de fichier non reconnu')
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'import:', error)
         toast.error('Erreur lors de l\'import')
       }
     }
+    reader.readAsText(file)
+    
+    // Reset input
+    event.target.value = ''
   }
 
   // Gestion des congés
@@ -341,6 +407,13 @@ export default function Dashboard() {
               onExport={handleExport}
               onImport={handleImport}
               className="flex-1"
+            />
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+              id="import-file"
             />
             <div className="ml-4 flex items-center space-x-2">
               <button
