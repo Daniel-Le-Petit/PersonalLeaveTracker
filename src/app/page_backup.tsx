@@ -127,8 +127,8 @@ export default function Dashboard() {
         console.log('Pas de paramètres ou quotas manquants')
         // Créer des soldes par défaut si pas de paramètres
         const defaultBalances: LeaveBalance[] = [
-          { type: 'cp', total: 25, used: 0, remaining: 25 },
-          { type: 'rtt', total: 10, used: 0, remaining: 10 }
+          { type: 'cp', total: 25, taken: 0, used: 0, remaining: 25, year: new Date().getFullYear() },
+          { type: 'rtt', total: 10, taken: 0, used: 0, remaining: 10, year: new Date().getFullYear() }
         ]
         setBalances(defaultBalances)
       }
@@ -138,8 +138,8 @@ export default function Dashboard() {
       
       // En cas d'erreur, afficher des soldes par défaut
       const defaultBalances: LeaveBalance[] = [
-        { type: 'cp', total: 25, used: 0, remaining: 25 },
-        { type: 'rtt', total: 10, used: 0, remaining: 10 }
+        { type: 'cp', total: 25, taken: 0, used: 0, remaining: 25, year: new Date().getFullYear() },
+        { type: 'rtt', total: 10, taken: 0, used: 0, remaining: 10, year: new Date().getFullYear() }
       ]
       setBalances(defaultBalances)
     } finally {

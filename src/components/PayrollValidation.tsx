@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Calendar, CheckCircle, AlertTriangle, XCircle, Plus, Trash2, Edit3 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { PayrollData, PayrollValidation, LeaveEntry } from '../types'
+import { PayrollData, type PayrollValidation, LeaveEntry } from '../types'
 
 interface PayrollValidationProps {
   leaves: LeaveEntry[];
@@ -112,9 +112,9 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
       saisie: data.rttPrisDansMois,
       calculee: expected.rttPrisDansMois,
       difference: data.rttPrisDansMois - expected.rttPrisDansMois,
-      status: Math.abs(data.rttPrisDansMois - expected.rttPrisDansMois) <= 0.5 ? 'valid' : 
-              Math.abs(data.rttPrisDansMois - expected.rttPrisDansMois) <= 1 ? 'warning' : 'error'
-    } as const
+      status: (Math.abs(data.rttPrisDansMois - expected.rttPrisDansMois) <= 0.5 ? 'valid' : 
+              Math.abs(data.rttPrisDansMois - expected.rttPrisDansMois) <= 1 ? 'warning' : 'error') as 'valid' | 'warning' | 'error'
+    }
 
     // Validation CP mois précédent
     const cpPrisValidation = {
@@ -122,9 +122,9 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
       calculees: expected.cpPrisMoisPrecedent,
       manquantes: [],
       enTrop: [],
-      status: Math.abs(expected.cpPrisMoisPrecedent - data.cpPrisMoisPrecedent.length) <= 0.5 ? 'valid' : 
-              Math.abs(expected.cpPrisMoisPrecedent - data.cpPrisMoisPrecedent.length) <= 1 ? 'warning' : 'error'
-    } as const
+      status: (Math.abs(expected.cpPrisMoisPrecedent - data.cpPrisMoisPrecedent.length) <= 0.5 ? 'valid' : 
+              Math.abs(expected.cpPrisMoisPrecedent - data.cpPrisMoisPrecedent.length) <= 1 ? 'warning' : 'error') as 'valid' | 'warning' | 'error'
+    }
 
     // Calcul du score global
     const validations = [rttValidation, cpPrisValidation]

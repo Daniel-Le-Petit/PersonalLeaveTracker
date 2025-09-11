@@ -24,13 +24,20 @@ export interface PublicHoliday {
 }
 
 export interface AppSettings {
-  id: string;
-  rttQuota: number;
-  cpQuota: number;
-  cetQuota: number;
-  year: number;
-  createdAt: string;
-  updatedAt: string;
+  id?: string;
+  firstDayOfWeek: 'monday' | 'sunday';
+  country: string;
+  publicHolidays: PublicHoliday[];
+  quotas: { type: LeaveType; yearlyQuota: number }[];
+  darkMode: boolean;
+  notifications: boolean;
+  // Legacy properties for backward compatibility
+  rttQuota?: number;
+  cpQuota?: number;
+  cetQuota?: number;
+  year?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LeaveBalance {
@@ -47,6 +54,7 @@ export interface CarryoverLeave {
   type: LeaveType;
   year: number;
   days: number;
+  description?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

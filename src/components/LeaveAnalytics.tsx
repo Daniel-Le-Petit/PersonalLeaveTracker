@@ -338,3 +338,4 @@ const LeaveAnalytics: React.FC<LeaveAnalyticsProps> = ({ leaves, currentYear, ho
 };
 
 export default LeaveAnalytics;
+
