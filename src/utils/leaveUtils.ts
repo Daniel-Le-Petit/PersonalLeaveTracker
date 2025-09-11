@@ -8,13 +8,11 @@ export const LEAVE_TYPES = {
   rtt: { label: 'RTT', color: 'leave-rtt', icon: '📅' },
   cet: { label: 'CET', color: 'leave-cet', icon: '🏥' },
   pipe: { label: 'PIPE', color: 'leave-pipe', icon: '🔧' },
-  prevision: { label: 'Prévision', color: 'leave-prevision', icon: '📊' },
-  reel: { label: 'Réel', color: 'leave-reel', icon: '✅' },
   sick: { label: 'Maladie', color: 'leave-sick', icon: '🏥' },
 } as const;
 
 // Types de congés qui comptent dans les statistiques principales (exclut PIPE)
-export const LEAVE_TYPES_FOR_STATS: LeaveType[] = ['cp', 'rtt', 'cet', 'prevision', 'reel'];
+export const LEAVE_TYPES_FOR_STATS: LeaveType[] = ['cp', 'rtt', 'cet'];
 
 // Types de congés qui comptent dans les quotas (exclut PIPE, prevision, reel)
 export const LEAVE_TYPES_FOR_QUOTAS: LeaveType[] = ['cp', 'rtt', 'cet'];
@@ -179,7 +177,7 @@ export function calculateAvailableCarryover(
   year: number = new Date().getFullYear()
 ): Record<LeaveType, number> {
   const available: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, pipe: 0, prevision: 0, reel: 0, sick: 0
+    cp: 0, rtt: 0, cet: 0, pipe: 0, sick: 0
   };
 
   carryovers.forEach(carryover => {
@@ -199,10 +197,10 @@ export function generateCarryoverSummary(carryovers: CarryoverLeave[]): {
 } {
   const byYear: Record<number, CarryoverLeave[]> = {};
   const byType: Record<LeaveType, CarryoverLeave[]> = {
-    cp: [], rtt: [], cet: [], pipe: [], prevision: [], reel: [], sick: []
+    cp: [], rtt: [], cet: [], pipe: [], sick: []
   };
   const totalByType: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, pipe: 0, prevision: 0, reel: 0, sick: 0
+    cp: 0, rtt: 0, cet: 0, pipe: 0, sick: 0
   };
 
   carryovers.forEach(carryover => {
@@ -626,7 +624,7 @@ export function calculateLeaveStats(leaves: LeaveEntry[], year: number): {
     .reduce((total, leave) => total + leave.workingDays, 0);
   
   const byType: Record<LeaveType, number> = {
-    cp: 0, rtt: 0, cet: 0, pipe: 0, prevision: 0, reel: 0, sick: 0
+    cp: 0, rtt: 0, cet: 0, pipe: 0, sick: 0
   };
   
   const byMonth: Record<string, number> = {};

@@ -412,20 +412,26 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="w-full h-8 rounded-lg overflow-hidden flex">
-                        {/* RTT Pris (rouge) */}
+                        {/* RTT Pris (rouge) - Seulement les congés réels, pas les prévisions */}
                         <div 
                           className="bg-red-500 flex items-center justify-center text-white text-sm font-semibold"
                           style={{ 
                             width: `${(leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                              new Date(leave.startDate).getFullYear() === currentYear && 
+                              leave.type === 'rtt' && 
+                              !leave.isForecast
                             ).reduce((sum, leave) => sum + leave.workingDays, 0) / 29) * 100}%` 
                           }}
                         >
                           {leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                            new Date(leave.startDate).getFullYear() === currentYear && 
+                            leave.type === 'rtt' && 
+                            !leave.isForecast
                           ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
                             leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                              new Date(leave.startDate).getFullYear() === currentYear && 
+                              leave.type === 'rtt' && 
+                              !leave.isForecast
                             ).reduce((sum, leave) => sum + leave.workingDays, 0)
                           }
                         </div>
@@ -436,19 +442,23 @@ export default function Dashboard() {
                             width: `${(plannedStats.rtt / 29) * 100}%` 
                           }}
                         >
-                          {plannedStats.rtt > 0 && `${plannedStats.rtt} (P)`}
+                          {plannedStats.rtt > 0 && plannedStats.rtt}
                         </div>
                         {/* RTT Restants non planifiés (vert clair) */}
                         <div 
                           className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
                           style={{ 
                             width: `${((29 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                              new Date(leave.startDate).getFullYear() === currentYear && 
+                              leave.type === 'rtt' && 
+                              !leave.isForecast
                             ).reduce((sum, leave) => sum + leave.workingDays, 0) - plannedStats.rtt) / 29) * 100}%` 
                           }}
                         >
                           {29 - leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                            new Date(leave.startDate).getFullYear() === currentYear && 
+                            leave.type === 'rtt' && 
+                            !leave.isForecast
                           ).reduce((sum, leave) => sum + leave.workingDays, 0) - plannedStats.rtt}
                         </div>
                       </div>
@@ -469,22 +479,30 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="w-full h-8 rounded-lg overflow-hidden flex">
-                        {/* CP/CET Pris (bleu) */}
+                        {/* CP/CET Pris (bleu) - Seulement les congés réels, pas les prévisions */}
                         <div 
                           className="bg-blue-500 flex items-center justify-center text-white text-sm font-semibold"
                           style={{ 
                             width: `${(leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                              new Date(leave.startDate).getFullYear() === currentYear && 
+                              (leave.type === 'cp' || leave.type === 'cet') && 
+                              !leave.isForecast
                             ).reduce((sum, leave) => sum + leave.workingDays, 0) / 72.5) * 100}%` 
                           }}
                         >
                           {leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                            new Date(leave.startDate).getFullYear() === currentYear && 
+                            (leave.type === 'cp' || leave.type === 'cet') && 
+                            !leave.isForecast
                           ).reduce((sum, leave) => sum + leave.workingDays, 0) > 0 && 
                             `${leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'cp'
+                              new Date(leave.startDate).getFullYear() === currentYear && 
+                              leave.type === 'cp' && 
+                              !leave.isForecast
                             ).reduce((sum, leave) => sum + leave.workingDays, 0)} CP ${leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'cet'
+                              new Date(leave.startDate).getFullYear() === currentYear && 
+                              leave.type === 'cet' && 
+                              !leave.isForecast
                             ).reduce((sum, leave) => sum + leave.workingDays, 0)} CET`
                           }
                         </div>
@@ -495,19 +513,23 @@ export default function Dashboard() {
                             width: `${((plannedStats.cp + plannedStats.cet) / 72.5) * 100}%` 
                           }}
                         >
-                          {plannedStats.cp + plannedStats.cet > 0 && `${plannedStats.cp + plannedStats.cet} (P)`}
+                          {plannedStats.cp + plannedStats.cet > 0 && plannedStats.cp + plannedStats.cet}
                         </div>
                         {/* CP/CET Restants non planifiés (vert clair) */}
                         <div 
                           className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
                           style={{ 
                             width: `${((72.5 - leaves.filter(leave => 
-                              new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                              new Date(leave.startDate).getFullYear() === currentYear && 
+                              (leave.type === 'cp' || leave.type === 'cet') && 
+                              !leave.isForecast
                             ).reduce((sum, leave) => sum + leave.workingDays, 0) - (plannedStats.cp + plannedStats.cet)) / 72.5) * 100}%` 
                           }}
                         >
                           {72.5 - leaves.filter(leave => 
-                            new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                            new Date(leave.startDate).getFullYear() === currentYear && 
+                            (leave.type === 'cp' || leave.type === 'cet') && 
+                            !leave.isForecast
                           ).reduce((sum, leave) => sum + leave.workingDays, 0) - (plannedStats.cp + plannedStats.cet)}
                         </div>
                       </div>

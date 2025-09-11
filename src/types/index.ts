@@ -1,5 +1,5 @@
 // Types de base pour les congés
-export type LeaveType = 'cp' | 'rtt' | 'cet' | 'prevision' | 'reel' | 'pipe' | 'sick';
+export type LeaveType = 'cp' | 'rtt' | 'cet' | 'pipe' | 'sick';
 
 export interface LeaveEntry {
   id: string;
