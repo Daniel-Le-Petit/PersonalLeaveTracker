@@ -51,21 +51,43 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
 
   // Jours fériés par défaut
   const holidaysArray = useMemo(() => {
-    if (Array.isArray(holidays) && holidays.length > 0) return holidays;
-    return [
-      { date: '2025-01-01', name: 'Jour de l\'An' },
-      { date: '2025-04-21', name: 'Lundi de Pâques' },
-      { date: '2025-05-01', name: 'Fête du Travail' },
-      { date: '2025-05-08', name: 'Victoire 1945' },
-      { date: '2025-05-29', name: 'Ascension' },
-      { date: '2025-06-09', name: 'Lundi de Pentecôte' },
-      { date: '2025-07-14', name: 'Fête Nationale' },
-      { date: '2025-08-15', name: 'Assomption' },
-      { date: '2025-11-01', name: 'Toussaint' },
-      { date: '2025-11-11', name: 'Armistice' },
-      { date: '2025-12-25', name: 'Noël' }
+    if (Array.isArray(holidays) && holidays.length > 0) {
+      // Filtrer les jours fériés pour l'année courante du calendrier
+      return holidays.filter(h => {
+        const holidayYear = new Date(h.date).getFullYear();
+        return holidayYear === currentYear;
+      });
+    }
+    
+    // Générer les jours fériés pour l'année courante du calendrier
+    const holidaysForYear = [
+      { date: `${currentYear}-01-01`, name: 'Jour de l\'An' },
+      { date: `${currentYear}-05-01`, name: 'Fête du Travail' },
+      { date: `${currentYear}-05-08`, name: 'Victoire 1945' },
+      { date: `${currentYear}-07-14`, name: 'Fête Nationale' },
+      { date: `${currentYear}-08-15`, name: 'Assomption' },
+      { date: `${currentYear}-11-01`, name: 'Toussaint' },
+      { date: `${currentYear}-11-11`, name: 'Armistice' },
+      { date: `${currentYear}-12-25`, name: 'Noël' }
     ];
-  }, [holidays]);
+
+    // Ajouter les fêtes mobiles (approximation simple)
+    if (currentYear === 2025) {
+      holidaysForYear.push(
+        { date: '2025-04-21', name: 'Lundi de Pâques' },
+        { date: '2025-05-29', name: 'Ascension' },
+        { date: '2025-06-09', name: 'Lundi de Pentecôte' }
+      );
+    } else if (currentYear === 2026) {
+      holidaysForYear.push(
+        { date: '2026-04-06', name: 'Lundi de Pâques' },
+        { date: '2026-05-14', name: 'Ascension' },
+        { date: '2026-05-25', name: 'Lundi de Pentecôte' }
+      );
+    }
+
+    return holidaysForYear;
+  }, [holidays, currentYear]);
 
   // Calcul des suggestions intelligentes
   const smartSuggestions = useMemo(() => {
@@ -75,8 +97,9 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
       new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
     ).reduce((sum, leave) => sum + leave.workingDays, 0);
 
-    // Analyser chaque mois pour des suggestions
-    for (let month = currentDate.getMonth(); month < 12; month++) {
+    // Analyser chaque mois pour des suggestions (pour l'année courante)
+    const startMonth = currentYear === currentDate.getFullYear() ? currentDate.getMonth() : 0;
+    for (let month = startMonth; month < 12; month++) {
       const monthStart = new Date(currentYear, month, 1);
       const monthEnd = new Date(currentYear, month + 1, 0);
       const monthHolidays = holidaysArray.filter(h => {
@@ -129,8 +152,8 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
         });
       }
 
-      // Urgence RTT
-      if (month <= 1 && rttRemaining > 0) { // Janvier/Février
+      // Urgence RTT (seulement pour l'année courante)
+      if (currentYear === currentDate.getFullYear() && month <= 1 && rttRemaining > 0) { // Janvier/Février
         suggestions.push({
           date: new Date(currentYear, month, 1),
           type: 'urgent',
@@ -198,7 +221,8 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
         const isInPeriod = currentDate >= normalizedStart && currentDate <= normalizedEnd;
         
         // Ne montrer le congé que sur les jours ouvrés (pas les week-ends ni jours fériés)
-        if (isInPeriod && !isWeekend && !holiday) {
+        // ET seulement si le congé appartient à l'année courante du calendrier
+        if (isInPeriod && !isWeekend && !holiday && startDate.getFullYear() === currentYear) {
           return true;
         }
         
@@ -249,11 +273,25 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
   }, [leaves, currentYear, currentMonth]);
 
   const goToPreviousMonth = () => {
-    setCurrentMonth(prev => prev === 0 ? 11 : prev - 1);
+    setCurrentMonth(prev => {
+      if (prev === 0) {
+        // Si on est en janvier, on passe à décembre de l'année précédente
+        // Mais on reste dans l'année courante du calendrier pour l'instant
+        return 11;
+      }
+      return prev - 1;
+    });
   };
 
   const goToNextMonth = () => {
-    setCurrentMonth(prev => prev === 11 ? 0 : prev + 1);
+    setCurrentMonth(prev => {
+      if (prev === 11) {
+        // Si on est en décembre, on passe à janvier de l'année suivante
+        // Mais on reste dans l'année courante du calendrier pour l'instant
+        return 0;
+      }
+      return prev + 1;
+    });
   };
 
   // Gestion des congés

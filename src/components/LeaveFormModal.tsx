@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Save, Trash2, Edit3 } from 'lucide-react';
 import DateInputWithHelpers from './DateInputWithHelpers';
-import { LEAVE_TYPES } from '../utils/leaveUtils';
+import { LEAVE_TYPES, getHolidaysForYear } from '../utils/leaveUtils';
 
 interface LeaveFormModalProps {
   isOpen: boolean;
@@ -148,8 +148,9 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
       let days = 0;
       let current = new Date(start);
 
-      // S'assurer que holidays est un tableau
-      const holidaysArray = Array.isArray(holidays) ? holidays : [];
+      // Utiliser les jours fériés pour l'année de la date de début
+      const year = start.getFullYear();
+      const holidaysForYear = getHolidaysForYear(year);
 
       while (current <= end) {
         const dayOfWeek = current.getDay();
@@ -157,7 +158,7 @@ const LeaveFormModal: React.FC<LeaveFormModalProps> = ({
         
         // Vérifier si c'est un jour ouvré (pas week-end et pas jour férié)
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        const isHoliday = holidaysArray.some(holiday => {
+        const isHoliday = holidaysForYear.some(holiday => {
           if (!holiday || !holiday.date) return false;
           const holidayDate = new Date(holiday.date).toISOString().split('T')[0];
           return holidayDate === currentDateStr;

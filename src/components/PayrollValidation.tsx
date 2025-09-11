@@ -13,7 +13,10 @@ interface PayrollValidationProps {
 
 export default function PayrollValidation({ leaves, currentYear, onDataUpdate }: PayrollValidationProps) {
   const [payrollData, setPayrollData] = useState<PayrollData[]>([])
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const currentMonth = new Date().getMonth() + 1
+    return currentMonth === 1 ? 12 : currentMonth - 1
+  })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingData, setEditingData] = useState<PayrollData | null>(null)
   const [formData, setFormData] = useState<Partial<PayrollData>>({})
@@ -32,7 +35,8 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
   }
 
   const goToCurrentMonth = () => {
-    setSelectedMonth(new Date().getMonth() + 1)
+    const currentMonth = new Date().getMonth() + 1
+    setSelectedMonth(currentMonth === 1 ? 12 : currentMonth - 1)
   }
 
 
@@ -394,7 +398,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     {/* CP Pris mois précédent */}
                     <div className={`rounded p-3 border-2 ${validation.cpPrisMoisPrecedent.status === 'valid' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">CP Mois Précédent</span>
+                        <span className="text-sm font-medium">CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}</span>
                         {getStatusIcon(validation.cpPrisMoisPrecedent.status)}
                       </div>
                       <div className="text-sm space-y-1">
@@ -502,7 +506,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                       )}
                       {validation.cpPrisMoisPrecedent.manquantes.length > 0 && (
                         <div>
-                          <div className="font-semibold mb-1">• <strong>CP Mois Précédent:</strong> Ajouter les dates manquantes</div>
+                          <div className="font-semibold mb-1">• <strong>CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}:</strong> Ajouter les dates manquantes</div>
                           <div className="ml-4 text-xs space-y-1">
                             <div>📊 <strong>Feuille de paie:</strong> {validation.cpPrisMoisPrecedent.saisies.length} jour{validation.cpPrisMoisPrecedent.saisies.length > 1 ? 's' : ''} CP saisis</div>
                             <div>📅 <strong>Congés enregistrés:</strong> {validation.cpPrisMoisPrecedent.calculees} jour{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} CP trouvé{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} dans le système (jours ouvrés uniquement)</div>
@@ -516,7 +520,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                       )}
                       {validation.cpPrisMoisPrecedent.enTrop.length > 0 && (
                         <div>
-                          <div className="font-semibold mb-1">• <strong>CP Mois Précédent:</strong> Supprimer les dates en trop</div>
+                          <div className="font-semibold mb-1">• <strong>CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}:</strong> Supprimer les dates en trop</div>
                           <div className="ml-4 text-xs space-y-1">
                             <div>📊 <strong>Feuille de paie:</strong> {validation.cpPrisMoisPrecedent.saisies.length} jour{validation.cpPrisMoisPrecedent.saisies.length > 1 ? 's' : ''} CP saisis</div>
                             <div>📅 <strong>Congés enregistrés:</strong> {validation.cpPrisMoisPrecedent.calculees} jour{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} CP trouvé{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} dans le système (jours ouvrés uniquement)</div>
@@ -605,9 +609,10 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     </label>
                     <input
                       type="number"
+                      min="0"
                       step="0.01"
                       value={formData.cpAvenir || ''}
-                      onChange={(e) => setFormData({...formData, cpAvenir: parseFloat(e.target.value)})}
+                      onChange={(e) => setFormData({...formData, cpAvenir: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -617,9 +622,10 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     </label>
                     <input
                       type="number"
+                      min="0"
                       step="0.01"
                       value={formData.cpEcoules || ''}
-                      onChange={(e) => setFormData({...formData, cpEcoules: parseFloat(e.target.value)})}
+                      onChange={(e) => setFormData({...formData, cpEcoules: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -629,9 +635,10 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     </label>
                     <input
                       type="number"
+                      min="0"
                       step="0.01"
                       value={formData.cpReliquat || ''}
-                      onChange={(e) => setFormData({...formData, cpReliquat: parseFloat(e.target.value)})}
+                      onChange={(e) => setFormData({...formData, cpReliquat: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -641,12 +648,13 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      RTT Pris dans le mois
+                      RTT Pris sur {monthNames[selectedMonth - 1]}
                     </label>
                     <input
                       type="number"
+                      min="0"
                       value={formData.rttPrisDansMois || ''}
-                      onChange={(e) => setFormData({...formData, rttPrisDansMois: parseInt(e.target.value)})}
+                      onChange={(e) => setFormData({...formData, rttPrisDansMois: e.target.value === '' ? 0 : parseInt(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -656,8 +664,9 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     </label>
                     <input
                       type="number"
+                      min="0"
                       value={formData.soldeCet || ''}
-                      onChange={(e) => setFormData({...formData, soldeCet: parseInt(e.target.value)})}
+                      onChange={(e) => setFormData({...formData, soldeCet: e.target.value === '' ? 0 : parseInt(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -666,7 +675,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                 {/* CP pris mois précédent */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    CP pris le mois précédent (dates)
+                    CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} (dates)
                   </label>
                   <textarea
                     value={(formData.cpPrisMoisPrecedent || []).join('\n')}

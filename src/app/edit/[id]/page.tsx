@@ -117,7 +117,13 @@ export default function EditLeavePage() {
       return
     }
 
-    if (workingDays <= 0) {
+    if (workingDays < 0) {
+      toast.error('Le nombre de jours ouvrables ne peut pas être négatif')
+      return
+    }
+    
+    // Pour les RTT, on peut autoriser 0 jour ouvré (cas particuliers)
+    if (formData.type !== 'rtt' && workingDays === 0) {
       toast.error('La période sélectionnée doit contenir au moins un jour ouvrable')
       return
     }
@@ -309,7 +315,7 @@ export default function EditLeavePage() {
                     </Link>
                     <button
                       type="submit"
-                      disabled={isSubmitting || workingDays <= 0}
+                      disabled={isSubmitting || (formData.type !== 'rtt' && workingDays <= 0)}
                       className="btn-primary"
                     >
                       <Save className="w-4 h-4 mr-2" />

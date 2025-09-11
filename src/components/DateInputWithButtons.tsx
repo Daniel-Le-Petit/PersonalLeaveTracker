@@ -68,26 +68,26 @@ const DateInputWithButtons: React.FC<DateInputWithButtonsProps> = ({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="input input-mobile pr-16"
+          className="input input-mobile pl-12 pr-4"
           required={required}
           placeholder={placeholder}
         />
-        <div className="absolute right-1 top-1/2 transform -translate-y-1/2 flex flex-col space-y-1">
+        <div className="absolute left-1 top-1/2 transform -translate-y-1/2 flex flex-col space-y-0.5">
           <button
             type="button"
             onClick={() => adjustDate(1)}
-            className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
             title="Ajouter un jour"
           >
-            <ChevronUp className="w-3 h-3" />
+            <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-gray-700 dark:border-b-gray-200"></div>
           </button>
           <button
             type="button"
             onClick={() => adjustDate(-1)}
-            className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
             title="Soustraire un jour"
           >
-            <ChevronDown className="w-3 h-3" />
+            <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-gray-700 dark:border-t-gray-200"></div>
           </button>
         </div>
       </div>

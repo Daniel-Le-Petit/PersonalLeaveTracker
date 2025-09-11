@@ -604,6 +604,22 @@ export default function Dashboard() {
                         </div>
                       </div>
                             
+                            {/* Légende des couleurs */}
+                            <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-3 h-3 bg-red-500 rounded"></div>
+                                <span className="text-gray-600 dark:text-gray-400">Pris</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-3 h-3 bg-green-600 rounded"></div>
+                                <span className="text-gray-600 dark:text-gray-400">Planifié</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-3 h-3 bg-green-300 dark:bg-green-400 rounded"></div>
+                                <span className="text-gray-600 dark:text-gray-400">Restant</span>
+                              </div>
+                            </div>
+                            
                             {/* Explications */}
                             <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                               <div className="space-y-3">
@@ -706,6 +722,22 @@ export default function Dashboard() {
                                 {totalRestants}
                         </div>
                       </div>
+                            
+                            {/* Légende des couleurs */}
+                            <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                                <span className="text-gray-600 dark:text-gray-400">Pris</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-3 h-3 bg-green-600 rounded"></div>
+                                <span className="text-gray-600 dark:text-gray-400">Planifié</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-3 h-3 bg-green-300 dark:bg-green-400 rounded"></div>
+                                <span className="text-gray-600 dark:text-gray-400">Restant</span>
+                              </div>
+                            </div>
                             
                             {/* Explications */}
                             <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
@@ -925,38 +957,38 @@ export default function Dashboard() {
                         </td>
                       </tr>
                     ))}
-                    {/* Ligne de totaux */}
-                    {monthlySummarySeparated?.yearlyTotals && (
-                      <tr className="bg-red-50 dark:bg-red-900/20">
-                        <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          Total
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
-                          {monthlySummarySeparated.yearlyTotals.rtt.real}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
-                          {monthlySummarySeparated.yearlyTotals.cp.real}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                      </tr>
-                    )}
+                     {/* Ligne de totaux combinés */}
+                     {monthlySummarySeparated?.yearlyTotals && (
+                       <tr className="bg-red-50 dark:bg-red-900/20">
+                         <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                           
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                           {monthlySummarySeparated.yearlyTotals.rtt.real}
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                           
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                           {monthlySummarySeparated.yearlyTotals.cp.real}
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                           
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm font-bold text-purple-600 dark:text-purple-400 border-r border-gray-200 dark:border-gray-700">
+                           {monthlySummarySeparated.yearlyTotals.rtt.forecast}
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                           
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm font-bold text-purple-600 dark:text-purple-400 border-r border-gray-200 dark:border-gray-700">
+                           {monthlySummarySeparated.yearlyTotals.cp.forecast}
+                         </td>
+                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                           
+                         </td>
+                       </tr>
+                     )}
                   </tbody>
                 </table>
 

@@ -59,6 +59,20 @@ export const FRENCH_HOLIDAYS_2025: PublicHoliday[] = [
   { id: '10', date: '2025-12-25', name: 'Noël', year: 2025, country: 'FR' },
 ];
 
+// Jours fériés français 2026
+export const FRENCH_HOLIDAYS_2026: PublicHoliday[] = [
+  { id: '1', date: '2026-01-01', name: 'Jour de l\'an', year: 2026, country: 'FR' },
+  { id: '2', date: '2026-05-01', name: 'Fête du travail', year: 2026, country: 'FR' },
+  { id: '3', date: '2026-05-08', name: 'Victoire 1945', year: 2026, country: 'FR' },
+  { id: '4', date: '2026-05-14', name: 'Ascension', year: 2026, country: 'FR' },
+  { id: '5', date: '2026-05-25', name: 'Lundi de Pentecôte', year: 2026, country: 'FR' },
+  { id: '6', date: '2026-07-14', name: 'Fête nationale', year: 2026, country: 'FR' },
+  { id: '7', date: '2026-08-15', name: 'Assomption', year: 2026, country: 'FR' },
+  { id: '8', date: '2026-11-01', name: 'Toussaint', year: 2026, country: 'FR' },
+  { id: '9', date: '2026-11-11', name: 'Armistice', year: 2026, country: 'FR' },
+  { id: '10', date: '2026-12-25', name: 'Noël', year: 2026, country: 'FR' },
+];
+
 /**
  * Calcule le nombre de jours ouvrés entre deux dates
  */
@@ -123,6 +137,7 @@ export function isHoliday(date: Date, holidays: PublicHoliday[]): boolean {
 export function getHolidaysForYear(year: number): PublicHoliday[] {
   if (year === 2024) return FRENCH_HOLIDAYS_2024;
   if (year === 2025) return FRENCH_HOLIDAYS_2025;
+  if (year === 2026) return FRENCH_HOLIDAYS_2026;
   
   // Pour les autres années, on peut étendre ou utiliser une API
   return [];
