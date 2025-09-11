@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Calendar, CheckCircle, AlertTriangle, XCircle, Plus, Trash2, Edit3 } from 'lucide-react'
+import { Calendar, CheckCircle, AlertTriangle, XCircle, Plus, Trash2, Edit3, Download, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { PayrollData, type PayrollValidation, LeaveEntry } from '../types'
 
@@ -33,6 +33,62 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
 
   const goToCurrentMonth = () => {
     setSelectedMonth(new Date().getMonth() + 1)
+  }
+
+  // Export des données de feuille de paie
+  const handleExport = async () => {
+    try {
+      const data = {
+        year: currentYear,
+        payrollData: payrollData,
+        exportDate: new Date().toISOString()
+      }
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `feuilles-paie-${currentYear}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      
+      toast.success('Données de feuille de paie exportées avec succès')
+    } catch (error) {
+      console.error('Erreur lors de l\'export:', error)
+      toast.error('Erreur lors de l\'export')
+    }
+  }
+
+  // Import des données de feuille de paie
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string
+        const data = JSON.parse(content)
+        
+        if (data.payrollData && Array.isArray(data.payrollData)) {
+          setPayrollData(data.payrollData)
+          await savePayrollData(data.payrollData)
+          toast.success('Données de feuille de paie importées avec succès')
+          onDataUpdate?.()
+        } else {
+          toast.error('Format de fichier invalide')
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'import:', error)
+        toast.error('Erreur lors de l\'import')
+      }
+    }
+    reader.readAsText(file)
+    
+    // Reset input
+    event.target.value = ''
   }
 
   // Charger les données de feuille de paie
@@ -278,13 +334,32 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
               📋 Validation Feuilles de Paie - {currentYear}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Vérification des données de congés avec les feuilles de paie
-            </p>
-            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-              📅 Mois sélectionné: {monthNames[selectedMonth - 1]}
+              Vérification des données de congés avec les feuilles de paie - 📅 Mois: {monthNames[selectedMonth - 1]}
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            {/* Boutons Export/Import */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleExport}
+                className="flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                title="Exporter les données de feuille de paie"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Export
+              </button>
+              <label className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                <Upload className="w-4 h-4 mr-1" />
+                Import
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            
             {/* Navigation par mois */}
             <div className="flex items-center space-x-2">
               <button

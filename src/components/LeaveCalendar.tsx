@@ -33,7 +33,7 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
   onLeaveDelete 
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [viewMode, setViewMode] = useState<'calendar' | 'timeline'>('calendar');
+  const [viewMode] = useState<'calendar' | 'timeline'>('calendar');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -322,34 +322,9 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
                 Calendrier des Congés
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Timeline et suggestions intelligentes
-              </p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                💡 Les congés ne s'affichent que sur les jours ouvrés (exclut WE et jours fériés)
+                Timeline et suggestions intelligentes - 💡 Les congés ne s'affichent que sur les jours ouvrés (exclut WE et jours fériés)
               </p>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setViewMode('calendar')}
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                viewMode === 'calendar' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Calendrier
-            </button>
-            <button
-              onClick={() => setViewMode('timeline')}
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                viewMode === 'timeline' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Timeline
-            </button>
           </div>
         </div>
       </div>
