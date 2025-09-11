@@ -13,6 +13,7 @@ import LeaveCalendar from '../components/LeaveCalendar'
 import LeaveAnalytics from '../components/LeaveAnalytics'
 import ThemeToggle from '../components/ThemeToggle'
 import PayrollValidation from '../components/PayrollValidation'
+import CalculationTooltip from '../components/CalculationTooltip'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -360,6 +361,87 @@ export default function Dashboard() {
     .filter(leave => ['cp', 'rtt', 'cet'].includes(leave.type))
     .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
     .slice(0, 5);
+
+  // Fonctions pour générer les explications de calcul
+  const getRttCumulativeCalculation = (monthData: any, monthIndex: number) => {
+    const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
+    const carryoverRtt = carryovers.find(c => c.type === 'rtt')?.days || 0;
+    const totalRtt = rttQuota + carryoverRtt;
+    
+    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
+    const rttCumulReal = monthlySummarySeparated?.months
+      ?.slice(0, monthIndex + 1)
+      ?.reduce((sum, month) => sum + (month.rtt.real.taken || 0), 0) || 0;
+    
+    const remaining = Math.max(0, totalRtt - rttCumulReal);
+    
+    return `${remaining} = ${totalRtt} (Quota ${currentYear}: ${rttQuota} + Reliquat ${currentYear - 1}: ${carryoverRtt}) - ${rttCumulReal} (Pris jusqu'à ${monthData.monthName})`;
+  };
+
+  const getCpCumulativeCalculation = (monthData: any, monthIndex: number) => {
+    const cpQuota = settings?.quotas?.find(q => q.type === 'cp')?.yearlyQuota || 25;
+    const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
+    const totalCPCETQuota = cpQuota + cetQuota;
+    
+    const cpCarryover = carryovers.find(c => c.type === 'cp')?.days || 0;
+    const cetCarryover = carryovers.find(c => c.type === 'cet')?.days || 0;
+    const totalCPCETCarryover = cpCarryover + cetCarryover;
+    
+    const totalCp = totalCPCETQuota + totalCPCETCarryover;
+    
+    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
+    const cpCumulReal = monthlySummarySeparated?.months
+      ?.slice(0, monthIndex + 1)
+      ?.reduce((sum, month) => sum + (month.cp.real.taken || 0), 0) || 0;
+    
+    const remaining = Math.max(0, totalCp - cpCumulReal);
+    
+    return `${remaining} = ${totalCp} (Quota ${currentYear}: ${totalCPCETQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Pris jusqu'à ${monthData.monthName})`;
+  };
+
+  const getRttForecastCumulativeCalculation = (monthData: any, monthIndex: number) => {
+    const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
+    const carryoverRtt = carryovers.find(c => c.type === 'rtt')?.days || 0;
+    const totalRtt = rttQuota + carryoverRtt;
+    
+    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
+    const rttCumulReal = monthlySummarySeparated?.months
+      ?.slice(0, monthIndex + 1)
+      ?.reduce((sum, month) => sum + (month.rtt.real.taken || 0), 0) || 0;
+    
+    const rttCumulForecast = monthlySummarySeparated?.months
+      ?.slice(0, monthIndex + 1)
+      ?.reduce((sum, month) => sum + (month.rtt.forecast.taken || 0), 0) || 0;
+    
+    const remaining = Math.max(0, totalRtt - rttCumulReal - rttCumulForecast);
+    
+    return `${remaining} = ${totalRtt} (Quota ${currentYear}: ${rttQuota} + Reliquat ${currentYear - 1}: ${carryoverRtt}) - ${rttCumulReal} (Réel) - ${rttCumulForecast} (Planifié jusqu'à ${monthData.monthName})`;
+  };
+
+  const getCpForecastCumulativeCalculation = (monthData: any, monthIndex: number) => {
+    const cpQuota = settings?.quotas?.find(q => q.type === 'cp')?.yearlyQuota || 25;
+    const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
+    const totalCPCETQuota = cpQuota + cetQuota;
+    
+    const cpCarryover = carryovers.find(c => c.type === 'cp')?.days || 0;
+    const cetCarryover = carryovers.find(c => c.type === 'cet')?.days || 0;
+    const totalCPCETCarryover = cpCarryover + cetCarryover;
+    
+    const totalCp = totalCPCETQuota + totalCPCETCarryover;
+    
+    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
+    const cpCumulReal = monthlySummarySeparated?.months
+      ?.slice(0, monthIndex + 1)
+      ?.reduce((sum, month) => sum + (month.cp.real.taken || 0), 0) || 0;
+    
+    const cpCumulForecast = monthlySummarySeparated?.months
+      ?.slice(0, monthIndex + 1)
+      ?.reduce((sum, month) => sum + (month.cp.forecast.taken || 0), 0) || 0;
+    
+    const remaining = Math.max(0, totalCp - cpCumulReal - cpCumulForecast);
+    
+    return `${remaining} = ${totalCp} (Quota ${currentYear}: ${totalCPCETQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Réel) - ${cpCumulForecast} (Planifié jusqu'à ${monthData.monthName})`;
+  };
 
   // Calcul des congés planifiés (prévisions)
   const plannedStats = useMemo(() => {
@@ -741,28 +823,56 @@ export default function Dashboard() {
                           {monthData.rtt.real.taken > 0 ? monthData.rtt.real.taken : ''}
                         </td>
                         <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          {monthData.rtt.real.remaining}
+                          <CalculationTooltip
+                            value={monthData.rtt.real.remaining}
+                            calculation={getRttCumulativeCalculation(monthData, index)}
+                          >
+                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              {monthData.rtt.real.remaining}
+                            </span>
+                          </CalculationTooltip>
                         </td>
                         {/* CP Réel */}
                         <td className="px-2 py-2 text-center text-sm text-green-600 dark:text-green-400 font-semibold border-r border-gray-200 dark:border-gray-700">
                           {monthData.cp.real.taken > 0 ? monthData.cp.real.taken : ''}
                         </td>
                         <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          {monthData.cp.real.remaining}
+                          <CalculationTooltip
+                            value={monthData.cp.real.remaining}
+                            calculation={getCpCumulativeCalculation(monthData, index)}
+                          >
+                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              {monthData.cp.real.remaining}
+                            </span>
+                          </CalculationTooltip>
                         </td>
                         {/* RTT Prévisions */}
                         <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
                           {monthData.rtt.forecast.taken > 0 ? monthData.rtt.forecast.taken : ''}
                         </td>
                         <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          {monthData.rtt.forecast.remaining}
+                          <CalculationTooltip
+                            value={monthData.rtt.forecast.remaining}
+                            calculation={getRttForecastCumulativeCalculation(monthData, index)}
+                          >
+                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              {monthData.rtt.forecast.remaining}
+                            </span>
+                          </CalculationTooltip>
                         </td>
                         {/* CP Prévisions */}
                         <td className="px-2 py-2 text-center text-sm text-green-600 dark:text-green-400 font-semibold border-r border-gray-200 dark:border-gray-700">
                           {monthData.cp.forecast.taken > 0 ? monthData.cp.forecast.taken : ''}
                         </td>
                         <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          {monthData.cp.forecast.remaining}
+                          <CalculationTooltip
+                            value={monthData.cp.forecast.remaining}
+                            calculation={getCpForecastCumulativeCalculation(monthData, index)}
+                          >
+                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              {monthData.cp.forecast.remaining}
+                            </span>
+                          </CalculationTooltip>
                         </td>
                       </tr>
                     ))}

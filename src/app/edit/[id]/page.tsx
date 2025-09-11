@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { LeaveEntry, LeaveType } from '../../../types'
 import { calculateWorkingDays, formatDate, frenchDateToISO, isoDateToFrench, isValidFrenchDate, getHolidaysForYear } from '../../../utils/leaveUtils'
 import { leaveStorage } from '../../../utils/storage'
+import DateInputWithButtons from '../../../components/DateInputWithButtons'
 
 export default function EditLeavePage() {
   const params = useParams()
@@ -220,32 +221,20 @@ export default function EditLeavePage() {
 
                   {/* Dates */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Date de début *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.startDate}
-                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        className="input"
-                        required
-                        placeholder="DD/MM/YYYY (ex: 02/01/2024)"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Date de fin *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.endDate}
-                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                        className="input"
-                        required
-                        placeholder="DD/MM/YYYY (ex: 03/01/2024)"
-                      />
-                    </div>
+                    <DateInputWithButtons
+                      label="Date de début"
+                      value={formData.startDate}
+                      onChange={(value) => setFormData({ ...formData, startDate: value })}
+                      placeholder="DD/MM/YYYY (ex: 02/01/2024)"
+                      required
+                    />
+                    <DateInputWithButtons
+                      label="Date de fin"
+                      value={formData.endDate}
+                      onChange={(value) => setFormData({ ...formData, endDate: value })}
+                      placeholder="DD/MM/YYYY (ex: 03/01/2024)"
+                      required
+                    />
                   </div>
 
                   {/* Demi-journée */}
