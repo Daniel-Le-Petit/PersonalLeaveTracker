@@ -1059,22 +1059,28 @@ export default function Dashboard() {
             <BarChart3 className="mobile-nav-icon" />
             <span className="mobile-nav-label">Dashboard</span>
           </Link>
-          <Link href="/add" className="mobile-nav-item-inactive">
-            <Plus className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Ajouter</span>
-          </Link>
           <Link href="/history" className="mobile-nav-item-inactive">
             <Clock className="mobile-nav-icon" />
             <span className="mobile-nav-label">Historique</span>
-          </Link>
-          <Link href="/calendar" className="mobile-nav-item-inactive">
-            <Calendar className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Calendrier</span>
           </Link>
           <Link href="/carryover" className="mobile-nav-item-inactive">
             <Package className="mobile-nav-icon" />
             <span className="mobile-nav-label">Reliquats</span>
           </Link>
+          <button 
+            onClick={handleExport}
+            className="mobile-nav-item-inactive"
+          >
+            <Download className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Exporter</span>
+          </button>
+          <button 
+            onClick={() => document.getElementById('import-file')?.click()}
+            className="mobile-nav-item-inactive"
+          >
+            <Upload className="mobile-nav-icon" />
+            <span className="mobile-nav-label">Importer</span>
+          </button>
           <Link href="/settings" className="mobile-nav-item-inactive">
             <Settings className="mobile-nav-icon" />
             <span className="mobile-nav-label">Réglages</span>
