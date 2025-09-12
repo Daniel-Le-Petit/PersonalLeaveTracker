@@ -210,7 +210,6 @@ export default function DashboardHeader({
               </div>
             </div>
 
-
             {/* Bouton Paramètres */}
             <Link 
               href="/settings" 

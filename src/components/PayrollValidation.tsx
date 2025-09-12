@@ -380,7 +380,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     {/* RTT Pris dans le mois précédent */}
                     <div className={`rounded p-3 border-2 ${validation.rttPrisDansMois.status === 'valid' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">RTT - {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} {selectedMonth === 1 ? currentYear - 1 : currentYear}</span>
+                        <span className="text-sm font-medium">RTT {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} {selectedMonth === 1 ? currentYear - 1 : currentYear}</span>
                         {getStatusIcon(validation.rttPrisDansMois.status)}
                       </div>
                       <div className="text-sm space-y-1">
@@ -403,7 +403,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     {/* CP Pris mois précédent */}
                     <div className={`rounded p-3 border-2 ${validation.cpPrisMoisPrecedent.status === 'valid' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}</span>
+                        <span className="text-sm font-medium">CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} {selectedMonth === 1 ? currentYear - 1 : currentYear}</span>
                         {getStatusIcon(validation.cpPrisMoisPrecedent.status)}
                       </div>
                       <div className="text-sm space-y-1">
@@ -439,7 +439,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                     {/* Solde CET */}
                     <div className={`rounded p-3 border-2 ${validation.soldeCet.status === 'valid' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Solde CET</span>
+                        <span className="text-sm font-medium">Solde CET {currentYear}</span>
                         {getStatusIcon(validation.soldeCet.status)}
                       </div>
                       <div className="text-sm space-y-1">
@@ -681,7 +681,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Solde CET
+                      Solde CET {currentYear}
                     </label>
                     <input
                       type="number"

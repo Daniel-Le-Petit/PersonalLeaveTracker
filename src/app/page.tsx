@@ -11,7 +11,6 @@ import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
 import DashboardHeader from '../components/DashboardHeader'
 import LeaveCalendar from '../components/LeaveCalendar'
-import ThemeToggle from '../components/ThemeToggle'
 import PayrollValidation from '../components/PayrollValidation'
 
 export default function Dashboard() {
@@ -496,9 +495,6 @@ export default function Dashboard() {
               className="hidden"
               id="import-file"
             />
-            <div className="ml-4 flex items-center space-x-2">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
 
