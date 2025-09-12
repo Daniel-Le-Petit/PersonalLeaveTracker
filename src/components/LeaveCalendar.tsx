@@ -420,13 +420,15 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
                   </button>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                  ℹ️ RTT du mois = {currentMonthStats.rttDays}
-                </span>
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  ℹ️ CP/CET du mois = {currentMonthStats.cpDays}
-                </span>
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                    ℹ️ RTT du mois = {currentMonthStats.rttDays}
+                  </span>
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    ℹ️ CP/CET du mois = {currentMonthStats.cpDays}
+                  </span>
+                </div>
               </div>
             </div>
 
