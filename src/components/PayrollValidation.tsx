@@ -293,8 +293,11 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                📋 Validation Feuilles de Paie
+                Validation Feuilles de Paie
               </h2>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Vérifiez que les données de votre feuille de paie correspondent à ce qui a été saisi dans Leave Tracker
+              </p>
               <div className="flex items-center space-x-4 mt-2">
                 <div className="flex items-center space-x-2">
                   <button
@@ -332,13 +335,6 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => openModal()}
-              className="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              title="Ajouter une feuille de paie"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>
@@ -373,6 +369,13 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                       </div>
                     </div>
                     <div className="flex space-x-2">
+                      <button
+                        onClick={() => openModal()}
+                        className="p-2 text-gray-600 hover:text-green-600 transition-colors"
+                        title="Ajouter une feuille de paie"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => openModal(data)}
                         className="p-2 text-gray-600 hover:text-blue-600 transition-colors"

@@ -68,26 +68,26 @@ const DateInputWithButtons: React.FC<DateInputWithButtonsProps> = ({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="input input-mobile pl-12 pr-4"
+          className="w-full px-12 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
           required={required}
           placeholder={placeholder}
         />
-        <div className="absolute left-1 top-1/2 transform -translate-y-1/2 flex flex-col space-y-0.5">
+        <div className="absolute left-2 top-1/2 transform -translate-y-1/2 flex flex-col space-y-1">
           <button
             type="button"
             onClick={() => adjustDate(1)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="w-6 h-3 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors"
             title="Ajouter un jour"
           >
-            <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-gray-700 dark:border-b-gray-200"></div>
+            <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[6px] border-l-transparent border-r-transparent border-b-blue-600 dark:border-b-blue-400"></div>
           </button>
           <button
             type="button"
             onClick={() => adjustDate(-1)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="w-6 h-3 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors"
             title="Soustraire un jour"
           >
-            <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-gray-700 dark:border-t-gray-200"></div>
+            <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-blue-600 dark:border-t-blue-400"></div>
           </button>
         </div>
       </div>

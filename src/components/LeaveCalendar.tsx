@@ -369,10 +369,10 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
             <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                📅 Calendrier des Congés
+                Calendrier des Congés
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Timeline et suggestions intelligentes - 💡 Les congés ne s'affichent que sur les jours ouvrés (exclut WE et jours fériés)
+                Ajoutez, modifiez ou supprimez des jours de RTT, CP ou CET
               </p>
             </div>
           </div>
@@ -422,10 +422,10 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
               </div>
               <div className="flex items-center space-x-4">
                 <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                  RTT du mois = {currentMonthStats.rttDays}
+                  ℹ️ RTT du mois = {currentMonthStats.rttDays}
                 </span>
                 <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  CP/CET du mois = {currentMonthStats.cpDays}
+                  ℹ️ CP/CET du mois = {currentMonthStats.cpDays}
                 </span>
               </div>
             </div>

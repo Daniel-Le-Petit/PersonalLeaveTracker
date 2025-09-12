@@ -43,7 +43,6 @@ export default function DashboardHeader({
             {/* Titre avec icône */}
             <div className="flex items-center">
               <div className="flex items-center space-x-3">
-                <div className="text-3xl">📊</div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                     Leave Tracker Dashboard

@@ -394,7 +394,7 @@ export default function Dashboard() {
     
     const remaining = Math.max(0, totalCp - cpCumulReal);
     
-    return `${remaining} = ${totalCp} (Quota ${currentYear}: ${totalCPCETQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Pris jusqu'à ${monthData.monthName})`;
+    return `${remaining} = ${totalCp} (Quota CP ${currentYear}: ${cpQuota} + CET: ${cetQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Pris jusqu'à ${monthData.monthName})`;
   };
 
   const getRttForecastCumulativeCalculation = (monthData: any, monthIndex: number) => {
@@ -438,7 +438,7 @@ export default function Dashboard() {
     
     const remaining = Math.max(0, totalCp - cpCumulReal - cpCumulForecast);
     
-    return `${remaining} = ${totalCp} (Quota ${currentYear}: ${totalCPCETQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Réel) - ${cpCumulForecast} (Planifié jusqu'à ${monthData.monthName})`;
+    return `${remaining} = ${totalCp} (Quota CP ${currentYear}: ${cpQuota} + CET: ${cetQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Réel) - ${cpCumulForecast} (Planifié jusqu'à ${monthData.monthName})`;
   };
 
   // Calcul des congés planifiés (prévisions)
@@ -508,7 +508,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                    📊 Tableau de bord des congés
+                    Tableau de bord des congés
                   </h2>
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Évolution mensuelle des congés pris et restants par type
@@ -547,9 +547,14 @@ export default function Dashboard() {
                 {/* Graphique RTT */}
                 <div className="card">
                   <div className="card-header">
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white text-center">
-                      📊 RTT
-                    </h3>
+                    <div className="text-center mb-2">
+                      <div className="inline-flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                          RTT
+                        </h3>
+                      </div>
+                    </div>
                   </div>
                   <div className="card-body p-6">
                     <div className="space-y-4">
@@ -605,7 +610,7 @@ export default function Dashboard() {
                               </div>
                               <div className="flex items-center space-x-1">
                                 <div className="w-3 h-3 bg-green-300 dark:bg-green-400 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">Restant</span>
+                                <span className="text-gray-600 dark:text-gray-400">A planifier</span>
                               </div>
                             </div>
                             
@@ -651,9 +656,14 @@ export default function Dashboard() {
                 {/* Graphique CP/CET */}
                 <div className="card">
                   <div className="card-header">
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white text-center">
-                      📊 CP/CET
-                    </h3>
+                    <div className="text-center mb-2">
+                      <div className="inline-flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                          CP/CET
+                        </h3>
+                      </div>
+                    </div>
                   </div>
                   <div className="card-body p-6">
                     <div className="space-y-4">
@@ -724,7 +734,7 @@ export default function Dashboard() {
                   </div>
                               <div className="flex items-center space-x-1">
                                 <div className="w-3 h-3 bg-green-300 dark:bg-green-400 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">Restant</span>
+                                <span className="text-gray-600 dark:text-gray-400">A planifier</span>
                 </div>
               </div>
                             
@@ -810,7 +820,7 @@ export default function Dashboard() {
               <div className="flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    📊 Tableau Réel vs Prévisions
+                    Tableau Réel vs Prévisions
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                       Suivi mensuel des RTT et CP avec données réelles et prévisions
@@ -848,7 +858,7 @@ export default function Dashboard() {
                     {/* En-tête principal */}
                     <tr>
                       <th rowSpan={2} className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-                        Mois
+                        
                       </th>
                       <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-200 dark:bg-blue-800 border-r border-gray-200 dark:border-gray-700">
                         Réel
@@ -984,34 +994,6 @@ export default function Dashboard() {
                   </tbody>
                 </table>
 
-                {/* Légende */}
-                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                    💡 Explication du tableau
-                  </h4>
-                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-blue-200 dark:bg-blue-800 rounded mr-2"></div>
-                      <span><strong>Réel :</strong> Données effectives des congés pris</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-purple-200 dark:bg-purple-800 rounded mr-2"></div>
-                      <span><strong>Prévisions :</strong> Planification des congés à venir</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded mr-2"></div>
-                      <span><strong>RTT :</strong> Réduction du temps de travail</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-yellow-100 dark:bg-yellow-900 rounded mr-2"></div>
-                      <span><strong>CP :</strong> Congés payés</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
-                      <span><strong>Total :</strong> Somme des jours pris</span>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
