@@ -1,19 +1,22 @@
 'use client'
 
-import { ArrowLeft, Calendar, Download, Moon, Save, Sun, Upload } from 'lucide-react'
+import { ArrowLeft, Calendar, Download, Moon, Save, Sun, Upload, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { AppSettings } from '../../types'
+import { AppSettings, LeaveEntry, PublicHoliday } from '../../types'
 import { leaveStorage } from '../../utils/storage'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [leaves, setLeaves] = useState<LeaveEntry[]>([])
+  const [holidays, setHolidays] = useState<PublicHoliday[]>([])
 
   useEffect(() => {
     loadSettings()
+    loadData()
   }, [])
 
   const loadSettings = async () => {
@@ -42,6 +45,68 @@ export default function SettingsPage() {
       toast.error('Erreur lors du chargement des paramètres')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadData = async () => {
+    try {
+      const [leavesData, holidaysData] = await Promise.all([
+        leaveStorage.getLeaves(),
+        leaveStorage.getHolidays()
+      ])
+      setLeaves(leavesData || [])
+      setHolidays(holidaysData || [])
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error)
+    }
+  }
+
+  // Fonction pour corriger les jours ouvrés des congés existants
+  const correctWorkingDays = async () => {
+    try {
+      const correctedLeaves = leaves.map(leave => {
+        const start = new Date(leave.startDate);
+        const end = new Date(leave.endDate);
+        let workingDays = 0;
+        let current = new Date(start);
+
+        // S'assurer que holidays est un tableau
+        const holidaysArray = Array.isArray(holidays) ? holidays : [];
+
+        while (current <= end) {
+          const dayOfWeek = current.getDay();
+          const currentDateStr = current.toISOString().split('T')[0];
+          
+          // Vérifier si c'est un jour ouvré (pas week-end et pas jour férié)
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+          const isHoliday = holidaysArray.some(holiday => {
+            if (!holiday || !holiday.date) return false;
+            const holidayDate = new Date(holiday.date).toISOString().split('T')[0];
+            return holidayDate === currentDateStr;
+          });
+          
+          // Seuls les jours ouvrés (lundi à vendredi, non fériés) sont comptés
+          if (!isWeekend && !isHoliday) {
+            workingDays++;
+          }
+          
+          current.setDate(current.getDate() + 1);
+        }
+
+        return {
+          ...leave,
+          workingDays: workingDays
+        };
+      });
+
+      setLeaves(correctedLeaves);
+      await leaveStorage.saveLeaves(correctedLeaves);
+      await loadData();
+      
+      toast.success('Jours ouvrés corrigés avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la correction des jours ouvrés:', error);
+      toast.error('Erreur lors de la correction des jours ouvrés');
     }
   }
 
@@ -329,15 +394,85 @@ export default function SettingsPage() {
               </p>
             </div>
             <div className="card-body">
-              <div className="text-center py-8">
-                <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  Les jours fériés pour {settings.country} sont automatiquement configurés
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-                  Cette fonctionnalité sera bientôt disponible
-                </p>
-              </div>
+              {settings.country === 'FR' ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Jours fériés fixes */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        📅 Jours fériés fixes
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">1er janvier</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Jour de l'An</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">1er mai</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Fête du Travail</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">8 mai</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Victoire 1945</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">14 juillet</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Fête Nationale</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">15 août</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Assomption</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">1er novembre</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Toussaint</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">11 novembre</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Armistice</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded">
+                          <span className="text-sm font-medium">25 décembre</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Noël</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Jours fériés mobiles */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        🐣 Jours fériés mobiles 2025 (2 jours)
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                          <span className="text-sm font-medium">21 avril 2025</span>
+                          <span className="text-sm text-green-700 dark:text-green-300">Lundi de Pâques</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                          <span className="text-sm font-medium">29 mai 2025</span>
+                          <span className="text-sm text-green-700 dark:text-green-300">Ascension</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      💡 <strong>Note :</strong> Ces jours fériés sont automatiquement pris en compte dans le calcul des jours ouvrés pour vos congés.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Les jours fériés pour {settings.country} sont automatiquement configurés
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                    Cette fonctionnalité sera bientôt disponible pour les autres pays
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -349,30 +484,49 @@ export default function SettingsPage() {
               </h2>
             </div>
             <div className="card-body">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
-                  onClick={() => {
-                    if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes les données ? Cette action est irréversible.')) {
-                      leaveStorage.clearAllData()
-                      toast.success('Données réinitialisées')
-                      loadSettings()
-                    }
-                  }}
-                  className="btn-danger w-full"
+                  onClick={correctWorkingDays}
+                  className="flex items-center justify-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  title="Recalculer les jours ouvrés de tous les congés (exclure WE et jours fériés)"
                 >
-                  Réinitialiser toutes les données
+                  <Wrench className="w-4 h-4 mr-2" />
+                  Corriger les jours ouvrés
                 </button>
                 <button
                   onClick={() => {
                     if (confirm('Êtes-vous sûr de vouloir supprimer tous les congés ?')) {
                       leaveStorage.clearLeaves()
                       toast.success('Congés supprimés')
+                      loadData()
                     }
                   }}
                   className="btn-warning w-full"
                 >
                   Supprimer tous les congés
                 </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes les données ? Cette action est irréversible.')) {
+                      leaveStorage.clearAllData()
+                      toast.success('Données réinitialisées')
+                      loadSettings()
+                      loadData()
+                    }
+                  }}
+                  className="btn-danger w-full"
+                >
+                  Réinitialiser toutes les données
+                </button>
+              </div>
+              <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <h4 className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-2">
+                  🔧 Correction des jours ouvrés
+                </h4>
+                <p className="text-xs text-orange-700 dark:text-orange-300">
+                  Cette fonction recalcule automatiquement les jours ouvrés de tous vos congés en excluant les week-ends et les jours fériés. 
+                  Utile après un import de données ou une modification des jours fériés.
+                </p>
               </div>
             </div>
           </div>

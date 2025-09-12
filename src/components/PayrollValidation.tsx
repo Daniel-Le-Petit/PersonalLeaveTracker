@@ -80,10 +80,9 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
       return leaveDate.getMonth() + 1 === previousMonth && leaveDate.getFullYear() === previousYear
     })
 
-    // Calculs RTT - sur la feuille de paie, les RTT pris correspondent au mois précédent
-    const rttPrisDansMois = previousMonthLeaves
-      .filter(leave => leave.type === 'rtt')
-      .reduce((sum, leave) => sum + leave.workingDays, 0)
+    // Calculs RTT - RTT pris dans le mois précédent
+    const rttLeaves = previousMonthLeaves.filter(leave => leave.type === 'rtt')
+    const rttPrisDansMois = rttLeaves.reduce((sum, leave) => sum + leave.workingDays, 0)
 
     // Calculs CP
     const cpPrisDansMois = monthLeaves
@@ -102,6 +101,11 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
 
     return {
       rttPrisDansMois,
+      rttLeavesDates: rttLeaves.map(leave => ({
+        startDate: leave.startDate,
+        endDate: leave.endDate,
+        workingDays: leave.workingDays
+      })),
       cpPrisDansMois,
       cpPrisMoisPrecedent: cpPrisMoisPrecedentCount,
       cetPrisDansMois
@@ -118,7 +122,8 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
       calculee: expected.rttPrisDansMois,
       difference: data.rttPrisDansMois - expected.rttPrisDansMois,
       status: (Math.abs(data.rttPrisDansMois - expected.rttPrisDansMois) <= 0.5 ? 'valid' : 
-              Math.abs(data.rttPrisDansMois - expected.rttPrisDansMois) <= 1 ? 'warning' : 'error') as 'valid' | 'warning' | 'error'
+              Math.abs(data.rttPrisDansMois - expected.rttPrisDansMois) <= 1 ? 'warning' : 'error') as 'valid' | 'warning' | 'error',
+      rttLeavesDates: expected.rttLeavesDates
     }
 
     // Validation CP mois précédent
@@ -372,19 +377,19 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* RTT Pris dans le mois */}
+                    {/* RTT Pris dans le mois précédent */}
                     <div className={`rounded p-3 border-2 ${validation.rttPrisDansMois.status === 'valid' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">RTT Pris</span>
+                        <span className="text-sm font-medium">RTT - {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} {selectedMonth === 1 ? currentYear - 1 : currentYear}</span>
                         {getStatusIcon(validation.rttPrisDansMois.status)}
                       </div>
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
-                          <span>Saisi:</span>
+                          <span>- Feuille de paie:</span>
                           <span className="font-medium">{validation.rttPrisDansMois.saisie}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Calculé:</span>
+                          <span>- Calendrier:</span>
                           <span className="font-medium">{validation.rttPrisDansMois.calculee}</span>
                         </div>
                         {validation.rttPrisDansMois.difference !== 0 && (
@@ -403,11 +408,11 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                       </div>
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
-                          <span>Saisi:</span>
+                          <span>- Feuille de paie:</span>
                           <span className="font-medium">{validation.cpPrisMoisPrecedent.saisies.length} jours</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Calculé:</span>
+                          <span>- Calendrier:</span>
                           <span className="font-medium">{validation.cpPrisMoisPrecedent.calculees} jours</span>
                         </div>
                         {validation.cpPrisMoisPrecedent.manquantes.length > 0 && (
@@ -439,11 +444,11 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                       </div>
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
-                          <span>Saisi:</span>
+                          <span>- Feuille de paie:</span>
                           <span className="font-medium">{validation.soldeCet.saisie}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Calculé:</span>
+                          <span>- Calendrier:</span>
                           <span className="font-medium">{validation.soldeCet.calculee}</span>
                         </div>
                         {validation.soldeCet.difference !== 0 && (
@@ -498,8 +503,16 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                         <div>
                           <div className="font-semibold mb-1">• <strong>RTT:</strong> {validation.rttPrisDansMois.difference > 0 ? 'Réduire' : 'Augmenter'} le nombre de jours saisis</div>
                           <div className="ml-4 text-xs space-y-1">
-                            <div>📊 <strong>Feuille de paie:</strong> {validation.rttPrisDansMois.saisie} jour{validation.rttPrisDansMois.saisie > 1 ? 's' : ''} RTT pris en {monthNames[data.month - 2 >= 0 ? data.month - 2 : 11]}</div>
+                            <div>📊 <strong>Feuille de paie:</strong> {validation.rttPrisDansMois.saisie} jour{validation.rttPrisDansMois.saisie > 1 ? 's' : ''} RTT pris en {monthNames[data.month === 1 ? 11 : data.month - 2]} {data.month === 1 ? data.year - 1 : data.year}</div>
                             <div>📅 <strong>Congés enregistrés:</strong> {validation.rttPrisDansMois.calculee} jour{validation.rttPrisDansMois.calculee > 1 ? 's' : ''} RTT trouvé{validation.rttPrisDansMois.calculee > 1 ? 's' : ''} dans le système</div>
+                            {validation.rttPrisDansMois.rttLeavesDates && validation.rttPrisDansMois.rttLeavesDates.length > 0 && (
+                              <div>📅 <strong>Dates dans le calendrier:</strong> {validation.rttPrisDansMois.rttLeavesDates.map((leave, index) => (
+                                <span key={index}>
+                                  {new Date(leave.startDate).toLocaleDateString('fr-FR')} - {new Date(leave.endDate).toLocaleDateString('fr-FR')} ({leave.workingDays} jour{leave.workingDays > 1 ? 's' : ''})
+                                  {index < validation.rttPrisDansMois.rttLeavesDates!.length - 1 ? ', ' : ''}
+                                </span>
+                              ))}</div>
+                            )}
                             <div>⚖️ <strong>Action:</strong> {validation.rttPrisDansMois.difference > 0 ? 'Réduire de' : 'Augmenter de'} {Math.abs(validation.rttPrisDansMois.difference)} jour{Math.abs(validation.rttPrisDansMois.difference) > 1 ? 's' : ''} sur la feuille de paie</div>
                           </div>
                         </div>
@@ -509,6 +522,10 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                           <div className="font-semibold mb-1">• <strong>CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}:</strong> Ajouter les dates manquantes</div>
                           <div className="ml-4 text-xs space-y-1">
                             <div>📊 <strong>Feuille de paie:</strong> {validation.cpPrisMoisPrecedent.saisies.length} jour{validation.cpPrisMoisPrecedent.saisies.length > 1 ? 's' : ''} CP saisis</div>
+                            <div>📋 <strong>Dates sur feuille de paie:</strong> {validation.cpPrisMoisPrecedent.saisies.map(date => {
+                              const d = new Date(date)
+                              return d.toLocaleDateString('fr-FR')
+                            }).join(', ')}</div>
                             <div>📅 <strong>Congés enregistrés:</strong> {validation.cpPrisMoisPrecedent.calculees} jour{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} CP trouvé{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} dans le système (jours ouvrés uniquement)</div>
                             <div>➕ <strong>Dates à ajouter:</strong> {validation.cpPrisMoisPrecedent.manquantes.map(date => {
                               const d = new Date(date)
@@ -523,6 +540,10 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                           <div className="font-semibold mb-1">• <strong>CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}:</strong> Supprimer les dates en trop</div>
                           <div className="ml-4 text-xs space-y-1">
                             <div>📊 <strong>Feuille de paie:</strong> {validation.cpPrisMoisPrecedent.saisies.length} jour{validation.cpPrisMoisPrecedent.saisies.length > 1 ? 's' : ''} CP saisis</div>
+                            <div>📋 <strong>Dates sur feuille de paie:</strong> {validation.cpPrisMoisPrecedent.saisies.map(date => {
+                              const d = new Date(date)
+                              return d.toLocaleDateString('fr-FR')
+                            }).join(', ')}</div>
                             <div>📅 <strong>Congés enregistrés:</strong> {validation.cpPrisMoisPrecedent.calculees} jour{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} CP trouvé{validation.cpPrisMoisPrecedent.calculees > 1 ? 's' : ''} dans le système (jours ouvrés uniquement)</div>
                             <div>➖ <strong>Dates à supprimer:</strong> {validation.cpPrisMoisPrecedent.enTrop.map(date => {
                               const d = new Date(date)
@@ -648,7 +669,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate }:
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      RTT Pris sur {monthNames[selectedMonth - 1]}
+                      RTT Pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}
                     </label>
                     <input
                       type="number"

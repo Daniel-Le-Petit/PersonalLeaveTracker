@@ -124,6 +124,11 @@ export interface PayrollValidation {
     calculee: number;
     difference: number;
     status: 'valid' | 'warning' | 'error';
+    rttLeavesDates?: {
+      startDate: string;
+      endDate: string;
+      workingDays: number;
+    }[];
   };
   
   soldeCet: {

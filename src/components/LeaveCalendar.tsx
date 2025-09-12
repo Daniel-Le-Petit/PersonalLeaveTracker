@@ -33,11 +33,17 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
   onLeaveDelete 
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [displayYear, setDisplayYear] = useState(currentYear);
   const [viewMode] = useState<'calendar' | 'timeline'>('calendar');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Synchroniser displayYear avec currentYear
+  React.useEffect(() => {
+    setDisplayYear(currentYear);
+  }, [currentYear]);
 
   // Détection mobile
   React.useEffect(() => {
@@ -55,20 +61,20 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
       // Filtrer les jours fériés pour l'année courante du calendrier
       return holidays.filter(h => {
         const holidayYear = new Date(h.date).getFullYear();
-        return holidayYear === currentYear;
+        return holidayYear === displayYear;
       });
     }
     
     // Générer les jours fériés pour l'année courante du calendrier
     const holidaysForYear = [
-      { date: `${currentYear}-01-01`, name: 'Jour de l\'An' },
-      { date: `${currentYear}-05-01`, name: 'Fête du Travail' },
-      { date: `${currentYear}-05-08`, name: 'Victoire 1945' },
-      { date: `${currentYear}-07-14`, name: 'Fête Nationale' },
-      { date: `${currentYear}-08-15`, name: 'Assomption' },
-      { date: `${currentYear}-11-01`, name: 'Toussaint' },
-      { date: `${currentYear}-11-11`, name: 'Armistice' },
-      { date: `${currentYear}-12-25`, name: 'Noël' }
+      { date: `${displayYear}-01-01`, name: 'Jour de l\'An' },
+      { date: `${displayYear}-05-01`, name: 'Fête du Travail' },
+      { date: `${displayYear}-05-08`, name: 'Victoire 1945' },
+      { date: `${displayYear}-07-14`, name: 'Fête Nationale' },
+      { date: `${displayYear}-08-15`, name: 'Assomption' },
+      { date: `${displayYear}-11-01`, name: 'Toussaint' },
+      { date: `${displayYear}-11-11`, name: 'Armistice' },
+      { date: `${displayYear}-12-25`, name: 'Noël' }
     ];
 
     // Ajouter les fêtes mobiles (approximation simple)
@@ -76,13 +82,11 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
       holidaysForYear.push(
         { date: '2025-04-21', name: 'Lundi de Pâques' },
         { date: '2025-05-29', name: 'Ascension' },
-        { date: '2025-06-09', name: 'Lundi de Pentecôte' }
       );
     } else if (currentYear === 2026) {
       holidaysForYear.push(
         { date: '2026-04-06', name: 'Lundi de Pâques' },
         { date: '2026-05-14', name: 'Ascension' },
-        { date: '2026-05-25', name: 'Lundi de Pentecôte' }
       );
     }
 
@@ -169,7 +173,7 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
 
   // Génération du calendrier
   const calendarDays = useMemo(() => {
-    const year = currentYear;
+    const year = displayYear;
     const firstDay = new Date(year, currentMonth, 1);
     const lastDay = new Date(year, currentMonth + 1, 0);
     const startDate = new Date(firstDay);

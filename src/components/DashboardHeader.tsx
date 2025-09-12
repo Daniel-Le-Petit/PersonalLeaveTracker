@@ -60,14 +60,6 @@ export default function DashboardHeader({
               {/* Actions principales */}
               <div className="flex items-center space-x-2">
                 <Link
-                  href="/add"
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
-                  title="Ajouter un congé"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Ajouter
-                </Link>
-                <Link
                   href="/history"
                   className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
                   title="Voir l'historique"
@@ -160,18 +152,6 @@ export default function DashboardHeader({
               </h4>
               <div className="grid grid-cols-1 gap-3">
                 <Link 
-                  href="/add" 
-                  className="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                  onClick={closeMobileMenu}
-                >
-                  <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3" />
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-white">Ajouter un congé</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Créer une nouvelle entrée</div>
-                  </div>
-                </Link>
-                
-                <Link 
                   href="/history" 
                   className="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
                   onClick={closeMobileMenu}
@@ -229,6 +209,7 @@ export default function DashboardHeader({
                 </button>
               </div>
             </div>
+
 
             {/* Bouton Paramètres */}
             <Link 

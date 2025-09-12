@@ -37,12 +37,11 @@ export const FRENCH_HOLIDAYS_2024: PublicHoliday[] = [
   { id: '2', date: '2024-05-01', name: 'Fête du travail', year: 2024, country: 'FR' },
   { id: '3', date: '2024-05-08', name: 'Victoire 1945', year: 2024, country: 'FR' },
   { id: '4', date: '2024-05-09', name: 'Ascension', year: 2024, country: 'FR' },
-  { id: '5', date: '2024-05-20', name: 'Lundi de Pentecôte', year: 2024, country: 'FR' },
-  { id: '6', date: '2024-07-14', name: 'Fête nationale', year: 2024, country: 'FR' },
-  { id: '7', date: '2024-08-15', name: 'Assomption', year: 2024, country: 'FR' },
-  { id: '8', date: '2024-11-01', name: 'Toussaint', year: 2024, country: 'FR' },
-  { id: '9', date: '2024-11-11', name: 'Armistice', year: 2024, country: 'FR' },
-  { id: '10', date: '2024-12-25', name: 'Noël', year: 2024, country: 'FR' },
+  { id: '5', date: '2024-07-14', name: 'Fête nationale', year: 2024, country: 'FR' },
+  { id: '6', date: '2024-08-15', name: 'Assomption', year: 2024, country: 'FR' },
+  { id: '7', date: '2024-11-01', name: 'Toussaint', year: 2024, country: 'FR' },
+  { id: '8', date: '2024-11-11', name: 'Armistice', year: 2024, country: 'FR' },
+  { id: '9', date: '2024-12-25', name: 'Noël', year: 2024, country: 'FR' },
 ];
 
 // Jours fériés français 2025
@@ -51,12 +50,11 @@ export const FRENCH_HOLIDAYS_2025: PublicHoliday[] = [
   { id: '2', date: '2025-05-01', name: 'Fête du travail', year: 2025, country: 'FR' },
   { id: '3', date: '2025-05-08', name: 'Victoire 1945', year: 2025, country: 'FR' },
   { id: '4', date: '2025-05-29', name: 'Ascension', year: 2025, country: 'FR' },
-  { id: '5', date: '2025-06-09', name: 'Lundi de Pentecôte', year: 2025, country: 'FR' },
-  { id: '6', date: '2025-07-14', name: 'Fête nationale', year: 2025, country: 'FR' },
-  { id: '7', date: '2025-08-15', name: 'Assomption', year: 2025, country: 'FR' },
-  { id: '8', date: '2025-11-01', name: 'Toussaint', year: 2025, country: 'FR' },
-  { id: '9', date: '2025-11-11', name: 'Armistice', year: 2025, country: 'FR' },
-  { id: '10', date: '2025-12-25', name: 'Noël', year: 2025, country: 'FR' },
+  { id: '5', date: '2025-07-14', name: 'Fête nationale', year: 2025, country: 'FR' },
+  { id: '6', date: '2025-08-15', name: 'Assomption', year: 2025, country: 'FR' },
+  { id: '7', date: '2025-11-01', name: 'Toussaint', year: 2025, country: 'FR' },
+  { id: '8', date: '2025-11-11', name: 'Armistice', year: 2025, country: 'FR' },
+  { id: '9', date: '2025-12-25', name: 'Noël', year: 2025, country: 'FR' },
 ];
 
 // Jours fériés français 2026
@@ -65,12 +63,11 @@ export const FRENCH_HOLIDAYS_2026: PublicHoliday[] = [
   { id: '2', date: '2026-05-01', name: 'Fête du travail', year: 2026, country: 'FR' },
   { id: '3', date: '2026-05-08', name: 'Victoire 1945', year: 2026, country: 'FR' },
   { id: '4', date: '2026-05-14', name: 'Ascension', year: 2026, country: 'FR' },
-  { id: '5', date: '2026-05-25', name: 'Lundi de Pentecôte', year: 2026, country: 'FR' },
-  { id: '6', date: '2026-07-14', name: 'Fête nationale', year: 2026, country: 'FR' },
-  { id: '7', date: '2026-08-15', name: 'Assomption', year: 2026, country: 'FR' },
-  { id: '8', date: '2026-11-01', name: 'Toussaint', year: 2026, country: 'FR' },
-  { id: '9', date: '2026-11-11', name: 'Armistice', year: 2026, country: 'FR' },
-  { id: '10', date: '2026-12-25', name: 'Noël', year: 2026, country: 'FR' },
+  { id: '5', date: '2026-07-14', name: 'Fête nationale', year: 2026, country: 'FR' },
+  { id: '6', date: '2026-08-15', name: 'Assomption', year: 2026, country: 'FR' },
+  { id: '7', date: '2026-11-01', name: 'Toussaint', year: 2026, country: 'FR' },
+  { id: '8', date: '2026-11-11', name: 'Armistice', year: 2026, country: 'FR' },
+  { id: '9', date: '2026-12-25', name: 'Noël', year: 2026, country: 'FR' },
 ];
 
 /**

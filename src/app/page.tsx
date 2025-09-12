@@ -497,13 +497,6 @@ export default function Dashboard() {
               id="import-file"
             />
             <div className="ml-4 flex items-center space-x-2">
-              <button
-                onClick={correctWorkingDays}
-                className="px-3 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                title="Corriger les jours ouvrés (exclure WE et jours fériés)"
-              >
-                🔧 Corriger
-              </button>
               <ThemeToggle />
             </div>
           </div>
@@ -519,7 +512,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                    📈 Graphiques cumulés des congés - {currentYear}
+                    📊 Tableau de bord des congés
                   </h2>
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Évolution mensuelle des congés pris et restants par type
@@ -559,7 +552,7 @@ export default function Dashboard() {
                 <div className="card">
                   <div className="card-header">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center">
-                      📊 RTT - {currentYear}
+                      📊 RTT
                     </h3>
                   </div>
                   <div className="card-body p-6">
@@ -609,7 +602,7 @@ export default function Dashboard() {
                               <div className="flex items-center space-x-1">
                                 <div className="w-3 h-3 bg-red-500 rounded"></div>
                                 <span className="text-gray-600 dark:text-gray-400">Pris</span>
-                              </div>
+                    </div>
                               <div className="flex items-center space-x-1">
                                 <div className="w-3 h-3 bg-green-600 rounded"></div>
                                 <span className="text-gray-600 dark:text-gray-400">Planifié</span>
@@ -663,7 +656,7 @@ export default function Dashboard() {
                 <div className="card">
                   <div className="card-header">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center">
-                      📊 CP/CET - {currentYear}
+                      📊 CP/CET
                     </h3>
                   </div>
                   <div className="card-body p-6">
@@ -728,16 +721,16 @@ export default function Dashboard() {
                               <div className="flex items-center space-x-1">
                                 <div className="w-3 h-3 bg-blue-500 rounded"></div>
                                 <span className="text-gray-600 dark:text-gray-400">Pris</span>
-                              </div>
+                    </div>
                               <div className="flex items-center space-x-1">
                                 <div className="w-3 h-3 bg-green-600 rounded"></div>
                                 <span className="text-gray-600 dark:text-gray-400">Planifié</span>
-                              </div>
+                  </div>
                               <div className="flex items-center space-x-1">
                                 <div className="w-3 h-3 bg-green-300 dark:bg-green-400 rounded"></div>
                                 <span className="text-gray-600 dark:text-gray-400">Restant</span>
-                              </div>
-                            </div>
+                </div>
+              </div>
                             
                             {/* Explications */}
                             <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
@@ -815,7 +808,7 @@ export default function Dashboard() {
               <div className="flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    📊 Tableau Réel vs Prévisions - {currentYear}
+                    📊 Tableau Réel vs Prévisions
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                       Suivi mensuel des RTT et CP avec données réelles et prévisions
@@ -852,8 +845,8 @@ export default function Dashboard() {
                   <thead>
                     {/* En-tête principal */}
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-red-600 text-white border-r border-gray-200 dark:border-gray-700">
-                        {currentYear}
+                      <th rowSpan={2} className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                        Mois
                       </th>
                       <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-200 dark:bg-blue-800 border-r border-gray-200 dark:border-gray-700">
                         Réel
@@ -864,9 +857,6 @@ export default function Dashboard() {
                     </tr>
                     {/* En-tête des colonnes */}
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 sticky left-0 z-10">
-                        Mois
-                      </th>
                       <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
                         RTT
                       </th>
@@ -958,37 +948,37 @@ export default function Dashboard() {
                       </tr>
                     ))}
                      {/* Ligne de totaux combinés */}
-                     {monthlySummarySeparated?.yearlyTotals && (
-                       <tr className="bg-red-50 dark:bg-red-900/20">
-                         <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
+                    {monthlySummarySeparated?.yearlyTotals && (
+                      <tr className="bg-red-50 dark:bg-red-900/20">
+                        <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
                            
-                         </td>
-                         <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
-                           {monthlySummarySeparated.yearlyTotals.rtt.real}
-                         </td>
-                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                           
-                         </td>
-                         <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
-                           {monthlySummarySeparated.yearlyTotals.cp.real}
-                         </td>
-                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                           
-                         </td>
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                          {monthlySummarySeparated.yearlyTotals.rtt.real}
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                          
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
+                          {monthlySummarySeparated.yearlyTotals.cp.real}
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                          
+                        </td>
                          <td className="px-2 py-2 text-center text-sm font-bold text-purple-600 dark:text-purple-400 border-r border-gray-200 dark:border-gray-700">
                            {monthlySummarySeparated.yearlyTotals.rtt.forecast}
-                         </td>
-                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                           
-                         </td>
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                          
+                        </td>
                          <td className="px-2 py-2 text-center text-sm font-bold text-purple-600 dark:text-purple-400 border-r border-gray-200 dark:border-gray-700">
                            {monthlySummarySeparated.yearlyTotals.cp.forecast}
-                         </td>
-                         <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                           
-                         </td>
-                       </tr>
-                     )}
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                          
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
 
