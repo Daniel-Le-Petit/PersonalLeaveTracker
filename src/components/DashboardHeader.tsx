@@ -10,18 +10,21 @@ import {
   Upload, 
   Settings, 
   Menu, 
-  X 
+  X,
+  Mail
 } from 'lucide-react'
 
 interface DashboardHeaderProps {
   onExport?: () => void
   onImport?: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onEmail?: () => void
   className?: string
 }
 
 export default function DashboardHeader({ 
   onExport, 
   onImport, 
+  onEmail,
   className = '' 
 }: DashboardHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -79,7 +82,7 @@ export default function DashboardHeader({
               {/* Séparateur visuel */}
               <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2"></div>
 
-              {/* Actions secondaires - Export/Import unifiés */}
+              {/* Actions secondaires - Export/Import/Email unifiés */}
               <div className="flex items-center space-x-2">
                 <button
                   onClick={onExport}
@@ -99,6 +102,14 @@ export default function DashboardHeader({
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   <span className="hidden sm:inline">Importer</span>
+                </button>
+                <button
+                  onClick={onEmail}
+                  className="flex items-center px-3 py-2 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800 transition-all duration-200 border border-purple-200 dark:border-purple-700"
+                  title="Envoyer le rapport de congés par email"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Email</span>
                 </button>
               </div>
 
@@ -176,12 +187,12 @@ export default function DashboardHeader({
               </div>
             </div>
 
-            {/* Actions secondaires - Export/Import unifiés */}
+            {/* Actions secondaires - Export/Import/Email unifiés */}
             <div className="mb-6">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Export/Import
+                Export/Import/Email
               </h4>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => {
                     onExport?.()
@@ -205,6 +216,18 @@ export default function DashboardHeader({
                   <Upload className="w-5 h-5 text-blue-600 dark:text-blue-400 mb-2" />
                   <span className="text-sm font-medium text-gray-900 dark:text-white">Importer</span>
                   <span className="text-xs text-gray-600 dark:text-gray-400">Toutes les données</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onEmail?.()
+                    closeMobileMenu()
+                  }}
+                  className="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                >
+                  <Mail className="w-5 h-5 text-purple-600 dark:text-purple-400 mb-2" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Email</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Rapport congés</span>
                 </button>
               </div>
             </div>

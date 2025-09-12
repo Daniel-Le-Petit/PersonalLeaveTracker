@@ -12,6 +12,7 @@ import CumulativeCharts from '../components/CumulativeCharts'
 import DashboardHeader from '../components/DashboardHeader'
 import LeaveCalendar from '../components/LeaveCalendar'
 import PayrollValidation from '../components/PayrollValidation'
+import EmailReportModal from '../components/EmailReportModal'
 
 export default function Dashboard() {
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [monthlySummary, setMonthlySummary] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
   const [monthlySummarySeparated, setMonthlySummarySeparated] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 
   const goToPreviousYear = () => {
     setCurrentYear(prev => prev - 1)
@@ -486,6 +488,7 @@ export default function Dashboard() {
             <DashboardHeader
               onExport={handleExport}
               onImport={handleImport}
+              onEmail={() => setIsEmailModalOpen(true)}
               className="flex-1"
             />
             <input
@@ -1035,10 +1038,10 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            {/* Section Export/Import */}
+            {/* Section Export/Import/Email */}
             <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Export/Import</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Export/Import/Email</h4>
+              <div className="grid grid-cols-3 gap-4">
                 <button 
                   onClick={() => {
                     handleExport();
@@ -1064,6 +1067,20 @@ export default function Dashboard() {
                     <div className="text-3xl mb-2">📥</div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">Importer</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Charger des données</p>
+                  </div>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    setIsEmailModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="action-item-mobile"
+                >
+                  <div className="text-center p-4 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
+                    <div className="text-3xl mb-2">📧</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Email</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Envoyer rapport</p>
                   </div>
                 </button>
               </div>
@@ -1105,6 +1122,15 @@ export default function Dashboard() {
           </Link>
         </div>
       </nav>
+
+      {/* Modal d'envoi d'email */}
+      <EmailReportModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        leaves={leaves}
+        currentYear={currentYear}
+        onLeaveUpdate={handleLeaveUpdate}
+      />
     </div>
   )
 }
