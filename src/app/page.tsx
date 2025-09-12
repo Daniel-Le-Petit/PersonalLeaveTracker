@@ -518,7 +518,7 @@ export default function Dashboard() {
                 <div className="flex items-center space-x-2">
               <button
                     onClick={goToPreviousYear}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     title="Année précédente"
                   >
                     ←
@@ -532,7 +532,7 @@ export default function Dashboard() {
               </button>
               <button
                     onClick={goToNextYear}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     title="Année suivante"
                   >
                     →
@@ -547,7 +547,7 @@ export default function Dashboard() {
                 {/* Graphique RTT */}
                 <div className="card">
                   <div className="card-header">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white text-center">
                       📊 RTT
                     </h3>
                   </div>
@@ -651,7 +651,7 @@ export default function Dashboard() {
                 {/* Graphique CP/CET */}
                 <div className="card">
                   <div className="card-header">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white text-center">
                       📊 CP/CET
                     </h3>
                   </div>
@@ -780,6 +780,9 @@ export default function Dashboard() {
               // Recharger les données si nécessaire
               console.log('Données de feuille de paie mises à jour')
             }}
+            onYearChange={(year) => {
+              setCurrentYear(year)
+            }}
           />
         </div>
 
@@ -793,6 +796,9 @@ export default function Dashboard() {
               onLeaveAdd={handleLeaveAdd}
               onLeaveUpdate={handleLeaveUpdate}
               onLeaveDelete={handleLeaveDelete}
+              onYearChange={(year) => {
+                setCurrentYear(year)
+              }}
             />
           </div>
         </div>

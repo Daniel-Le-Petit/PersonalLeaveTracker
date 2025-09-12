@@ -11,6 +11,7 @@ interface LeaveCalendarProps {
   onLeaveAdd?: (leave: any) => void;
   onLeaveUpdate?: (leave: any) => void;
   onLeaveDelete?: (id: string) => void;
+  onYearChange?: (year: number) => void;
 }
 
 interface CalendarDay {
@@ -30,7 +31,8 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
   holidays, 
   onLeaveAdd, 
   onLeaveUpdate, 
-  onLeaveDelete 
+  onLeaveDelete,
+  onYearChange
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [displayYear, setDisplayYear] = useState(currentYear);
@@ -298,6 +300,12 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
     });
   };
 
+  const setCurrentYear = (year: number) => {
+    if (onYearChange) {
+      onYearChange(year)
+    }
+  };
+
   // Gestion des congés
   const handleDayClick = (day: CalendarDay) => {
     if (day.leave) {
@@ -376,29 +384,50 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
           <>
             {/* Navigation du calendrier */}
             <div className="flex items-center justify-between mb-6">
-              <button
-                onClick={goToPreviousMonth}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setCurrentYear(currentYear - 1)}
+                    className="px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title="Année précédente"
+                  >
+                    ←
+                  </button>
+                  <span className="px-3 py-1 text-sm font-medium bg-blue-500 text-white rounded">{currentYear}</span>
+                  <button
+                    onClick={() => setCurrentYear(currentYear + 1)}
+                    className="px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title="Année suivante"
+                  >
+                    →
+                  </button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={goToPreviousMonth}
+                    className="px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title="Mois précédent"
+                  >
+                    ←
+                  </button>
+                  <span className="px-3 py-1 text-sm font-medium bg-blue-500 text-white rounded">{monthNames[currentMonth]}</span>
+                  <button
+                    onClick={goToNextMonth}
+                    className="px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title="Mois suivant"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
               <div className="flex items-center space-x-4">
                 <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                  (RTT={currentMonthStats.rttDays})
+                  RTT du mois = {currentMonthStats.rttDays}
                 </span>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {monthNames[currentMonth]} {currentYear}
-                </h2>
                 <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  (CP={currentMonthStats.cpDays})
+                  CP/CET du mois = {currentMonthStats.cpDays}
                 </span>
               </div>
-              <button
-                onClick={goToNextMonth}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
             </div>
 
             {/* Grille du calendrier */}
