@@ -1004,9 +1004,9 @@ export default function Dashboard() {
       {/* Menu mobile des actions rapides */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-lg p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-lg p-6 pb-20" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Actions rapides</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Actions principales</h3>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -1015,15 +1015,9 @@ export default function Dashboard() {
                 ✕
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Link href="/add" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-3xl mb-2">➕</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Ajouter un congé</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Créer une nouvelle entrée</p>
-                </div>
-              </Link>
-              
+            
+            {/* Section Historique - Reliquats */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <Link href="/history" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div className="text-3xl mb-2">📋</div>
@@ -1032,19 +1026,57 @@ export default function Dashboard() {
                 </div>
               </Link>
               
-              <Link href="/calendar" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="text-3xl mb-2">📅</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Calendrier</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Vue calendrier</p>
-                </div>
-              </Link>
-              
               <Link href="/carryover" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                   <div className="text-3xl mb-2">📦</div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Reliquats</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Congés reportés</p>
+                </div>
+              </Link>
+            </div>
+
+            {/* Section Export/Import */}
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Export/Import</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => {
+                    handleExport();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="action-item-mobile"
+                >
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-3xl mb-2">📤</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Exporter</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Télécharger les données</p>
+                  </div>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    document.getElementById('import-file')?.click();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="action-item-mobile"
+                >
+                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-3xl mb-2">📥</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Importer</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Charger des données</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Section Paramètres */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Paramètres</h4>
+              <Link href="/settings" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+                  <div className="text-3xl mb-2">⚙️</div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Paramètres</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Configuration</p>
                 </div>
               </Link>
             </div>
@@ -1067,23 +1099,9 @@ export default function Dashboard() {
             <Package className="mobile-nav-icon" />
             <span className="mobile-nav-label">Reliquats</span>
           </Link>
-          <button 
-            onClick={handleExport}
-            className="mobile-nav-item-inactive"
-          >
-            <Download className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Exporter</span>
-          </button>
-          <button 
-            onClick={() => document.getElementById('import-file')?.click()}
-            className="mobile-nav-item-inactive"
-          >
-            <Upload className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Importer</span>
-          </button>
           <Link href="/settings" className="mobile-nav-item-inactive">
             <Settings className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Réglages</span>
+            <span className="mobile-nav-label">Paramètres</span>
           </Link>
         </div>
       </nav>
