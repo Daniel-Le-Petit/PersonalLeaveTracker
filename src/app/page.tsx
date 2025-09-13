@@ -1,20 +1,20 @@
 'use client'
 
-import { BarChart3, Calendar, Clock, Download, Plus, Settings, Upload, Package, Menu } from 'lucide-react'
-import Link from 'next/link'
 import { useEffect, useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } from '../types'
 import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummarySeparated } from '../utils/leaveUtils'
 import CalculationTooltip from '../components/CalculationTooltip'
 import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
-import DashboardHeader from '../components/DashboardHeader'
 import LeaveCalendar from '../components/LeaveCalendar'
 import PayrollValidation from '../components/PayrollValidation'
 import EmailReportModal from '../components/EmailReportModal'
+import MainLayout from '../components/MainLayout'
 
 export default function Dashboard() {
+  const router = useRouter()
   const [leaves, setLeaves] = useState<LeaveEntry[]>([])
   const [settings, setSettings] = useState<AppSettings | null>(null)
   const [balances, setBalances] = useState<LeaveBalance[]>([])
@@ -24,7 +24,6 @@ export default function Dashboard() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
   const [monthlySummary, setMonthlySummary] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
   const [monthlySummarySeparated, setMonthlySummarySeparated] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 
   const goToPreviousYear = () => {
@@ -37,6 +36,10 @@ export default function Dashboard() {
 
   const goToCurrentYear = () => {
     setCurrentYear(new Date().getFullYear())
+  }
+
+  const handleCorrigerIncoherences = () => {
+    router.push('/payroll')
   }
 
   useEffect(() => {
@@ -53,7 +56,6 @@ export default function Dashboard() {
     try {
       console.log('Début du chargement des données...')
       
-      // Charger les données de base une par une pour éviter les erreurs
       let leavesData: LeaveEntry[] = []
       let settingsData: AppSettings | null = null
       let holidaysData: PublicHoliday[] = []
@@ -87,1041 +89,555 @@ export default function Dashboard() {
         carryoversData = []
       }
 
-      console.log('Données chargées:', {
-        leaves: leavesData.length,
-        settings: settingsData,
-        holidays: holidaysData.length,
-        carryovers: carryoversData.length
-      })
-
       setLeaves(leavesData)
       setSettings(settingsData)
       setHolidays(holidaysData)
       setCarryovers(carryoversData)
 
-      // Calculer les données séparées (réel vs prévision)
       if (settingsData && settingsData.quotas) {
-        try {
-          console.log('📈 Calcul des données mensuelles séparées...')
-          const monthlyDataSeparated = calculateMonthlyLeaveSummarySeparated(
-            leavesData,
-            settingsData.quotas,
-            carryoversData,
-            currentYear
-          )
-          setMonthlySummarySeparated(monthlyDataSeparated)
-          console.log('✅ Données mensuelles calculées')
-        } catch (error) {
-          console.error('❌ Erreur calcul données mensuelles:', error)
-        }
-      } else {
-        console.log('⚠️ Pas de paramètres ou quotas manquants')
+        const summary = calculateMonthlyLeaveSummarySeparated(leavesData, settingsData.quotas, carryoversData, currentYear)
+        setMonthlySummarySeparated(summary)
       }
 
-      // Calculer les soldes avec les reliquats
       if (settingsData && settingsData.quotas) {
-        console.log('Calcul des soldes avec quotas:', settingsData.quotas)
-        const calculatedBalances = calculateLeaveBalances(
-          leavesData,
-          settingsData.quotas,
-          carryoversData,
-          currentYear
-        )
-        console.log('Soldes calculés:', calculatedBalances)
+        const calculatedBalances = calculateLeaveBalances(leavesData, settingsData.quotas, carryoversData, currentYear)
         setBalances(calculatedBalances)
-      } else {
-        console.log('Pas de paramètres ou quotas manquants')
-        // Créer des soldes par défaut si pas de paramètres
-        const defaultBalances: LeaveBalance[] = [
-          { type: 'cp', total: 25, taken: 0, used: 0, remaining: 25, year: new Date().getFullYear() },
-          { type: 'rtt', total: 10, taken: 0, used: 0, remaining: 10, year: new Date().getFullYear() }
-        ]
-        setBalances(defaultBalances)
       }
+
+      setIsLoading(false)
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error)
-      toast.error('Erreur lors du chargement des données')
-      
-      // En cas d'erreur, afficher des soldes par défaut
-      const defaultBalances: LeaveBalance[] = [
-        { type: 'cp', total: 25, taken: 0, used: 0, remaining: 25, year: new Date().getFullYear() },
-        { type: 'rtt', total: 10, taken: 0, used: 0, remaining: 10, year: new Date().getFullYear() }
-      ]
-      setBalances(defaultBalances)
-    } finally {
       setIsLoading(false)
     }
   }
 
-  // Fonction Export unifiée (congés + feuilles de paie)
-  const handleExport = async () => {
+  const handleLeaveUpdate = async (updatedLeave: LeaveEntry) => {
     try {
-      const currentYear = new Date().getFullYear()
-      
-      // Récupérer les données des congés
-      const leavesData = await leaveStorage.exportData()
-      const leaves = JSON.parse(leavesData)
-      
-      // Récupérer les données des feuilles de paie
-      const stored = localStorage.getItem(`payroll-data-${currentYear}`)
-      const payrollData = stored ? JSON.parse(stored) : []
-      
-      // Créer un fichier unifié
-      const unifiedData = {
-        version: '1.0',
-        exportDate: new Date().toISOString(),
-        year: currentYear,
-        leaves: leaves,
-        payrollData: payrollData,
-        settings: {
-          // Ajouter d'autres paramètres si nécessaire
-        }
-      }
-      
-      const blob = new Blob([JSON.stringify(unifiedData, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `leave-tracker-export-${currentYear}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      
-      toast.success('Toutes les données exportées avec succès')
+      await leaveStorage.updateLeave(updatedLeave)
+      setLeaves(prev => prev.map(leave => leave.id === updatedLeave.id ? updatedLeave : leave))
+      toast.success('Congé mis à jour avec succès')
     } catch (error) {
-      console.error('Erreur lors de l\'export:', error)
-      toast.error('Erreur lors de l\'export')
+      console.error('Erreur lors de la mise à jour du congé:', error)
+      toast.error('Erreur lors de la mise à jour du congé')
     }
   }
 
-  // Fonction Import unifiée (congés + feuilles de paie)
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleExport = () => {
+    const data = {
+      leaves,
+      settings,
+      holidays,
+      carryovers,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    }
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `leave-tracker-backup-${currentYear}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    toast.success('Données exportées avec succès')
+  }
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      try {
-        const content = e.target?.result as string
-        const data = JSON.parse(content)
-        
-        // Vérifier si c'est un fichier unifié
-        if (data.leaves && data.payrollData) {
-          // Importer les congés
-          await leaveStorage.importData(JSON.stringify(data.leaves))
-          
-          // Importer les feuilles de paie
-          const currentYear = new Date().getFullYear()
-          localStorage.setItem(`payroll-data-${currentYear}`, JSON.stringify(data.payrollData))
-          
-          // Recharger les données
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      
+      if (data.leaves) await leaveStorage.saveLeaves(data.leaves)
+      if (data.settings) await leaveStorage.saveSettings(data.settings)
+      if (data.holidays) await leaveStorage.saveHolidays(data.holidays)
+      if (data.carryovers) await leaveStorage.saveCarryoverLeaves(data.carryovers)
+      
+      toast.success('Données importées avec succès')
       await loadData()
-          
-          toast.success('Toutes les données importées avec succès')
-        } else if (data.leaves) {
-          // Fichier de congés seulement
-          await leaveStorage.importData(JSON.stringify(data.leaves))
-          await loadData()
-          toast.success('Données de congés importées avec succès')
-        } else if (data.payrollData) {
-          // Fichier de feuilles de paie seulement
-          const currentYear = new Date().getFullYear()
-          localStorage.setItem(`payroll-data-${currentYear}`, JSON.stringify(data.payrollData))
-          window.location.reload()
-          toast.success('Données de feuilles de paie importées avec succès')
-        } else {
-          toast.error('Format de fichier non reconnu')
-        }
     } catch (error) {
       console.error('Erreur lors de l\'import:', error)
-        toast.error('Erreur lors de l\'import')
-      }
+      toast.error('Erreur lors de l\'import des données')
     }
-    reader.readAsText(file)
-    
-    // Reset input
-    event.target.value = ''
   }
 
-  // Gestion des congés
-  const handleLeaveAdd = async (leave: any) => {
-    try {
-      const newLeave = {
-        ...leave,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString()
-      };
-      const updatedLeaves = [...leaves, newLeave];
-      setLeaves(updatedLeaves);
-      
-      // Sauvegarder dans le stockage
-      await leaveStorage.saveLeaves(updatedLeaves);
-      
-      // Recharger les données pour s'assurer de la synchronisation
-      await loadData();
-      
-      toast.success('Congé ajouté avec succès !');
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du congé:', error);
-      toast.error('Erreur lors de l\'ajout du congé');
-    }
-  };
-
-  const handleLeaveUpdate = async (updatedLeave: any) => {
-    try {
-      const updatedLeaves = leaves.map(leave => 
-        leave.id === updatedLeave.id ? updatedLeave : leave
-      );
-      setLeaves(updatedLeaves);
-      
-      // Sauvegarder dans le stockage
-      await leaveStorage.saveLeaves(updatedLeaves);
-      
-      // Recharger les données pour s'assurer de la synchronisation
-      await loadData();
-      
-      toast.success('Congé modifié avec succès !');
-    } catch (error) {
-      console.error('Erreur lors de la modification du congé:', error);
-      toast.error('Erreur lors de la modification du congé');
-    }
-  };
-
-  const handleLeaveDelete = async (id: string) => {
-    try {
-      const updatedLeaves = leaves.filter(leave => leave.id !== id);
-      setLeaves(updatedLeaves);
-      
-      // Sauvegarder dans le stockage
-      await leaveStorage.saveLeaves(updatedLeaves);
-      
-      // Recharger les données pour s'assurer de la synchronisation
-      await loadData();
-      
-      toast.success('Congé supprimé avec succès !');
-    } catch (error) {
-      console.error('Erreur lors de la suppression du congé:', error);
-      toast.error('Erreur lors de la suppression du congé');
-    }
-  };
-
-  // Fonction pour corriger les jours ouvrés des congés existants
-  const correctWorkingDays = async () => {
-    try {
-      const correctedLeaves = leaves.map(leave => {
-        const start = new Date(leave.startDate);
-        const end = new Date(leave.endDate);
-        let workingDays = 0;
-        let current = new Date(start);
-
-        // S'assurer que holidays est un tableau
-        const holidaysArray = Array.isArray(holidays) ? holidays : [];
-
-        while (current <= end) {
-          const dayOfWeek = current.getDay();
-          const currentDateStr = current.toISOString().split('T')[0];
-          
-          // Vérifier si c'est un jour ouvré (pas week-end et pas jour férié)
-          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-          const isHoliday = holidaysArray.some(holiday => {
-            if (!holiday || !holiday.date) return false;
-            const holidayDate = new Date(holiday.date).toISOString().split('T')[0];
-            return holidayDate === currentDateStr;
-          });
-          
-          // Seuls les jours ouvrés (lundi à vendredi, non fériés) sont comptés
-          if (!isWeekend && !isHoliday) {
-            workingDays++;
-          }
-          
-          current.setDate(current.getDate() + 1);
-        }
-
-        return {
-          ...leave,
-          workingDays: workingDays
-        };
-      });
-
-      setLeaves(correctedLeaves);
-      await leaveStorage.saveLeaves(correctedLeaves);
-      await loadData();
-      
-      toast.success('Jours ouvrés corrigés avec succès !');
-    } catch (error) {
-      console.error('Erreur lors de la correction des jours ouvrés:', error);
-      toast.error('Erreur lors de la correction des jours ouvrés');
-    }
-  };
-
-  const stats = calculateLeaveStats(leaves, currentYear);
-  const recentLeaves = leaves
-    .filter(leave => new Date(leave.startDate).getFullYear() === currentYear)
-    .filter(leave => ['cp', 'rtt', 'cet'].includes(leave.type))
-    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
-    .slice(0, 5);
-
-  // Fonctions pour générer les explications de calcul
-  const getRttCumulativeCalculation = (monthData: any, monthIndex: number) => {
-    const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
-    const carryoverRtt = carryovers.find(c => c.type === 'rtt' && c.year === currentYear - 1)?.days || 0;
-    const totalRtt = rttQuota + carryoverRtt;
+  const leaveStats = useMemo(() => {
+    if (!settings?.quotas || !balances.length) return null
     
-    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
-    const rttCumulReal = monthlySummarySeparated?.months
-      ?.slice(0, monthIndex + 1)
-      ?.reduce((sum, month) => sum + (month.rtt.real.taken || 0), 0) || 0;
+    const rttBalance = balances.find(b => b.type === 'rtt')
+    const cpBalance = balances.find(b => b.type === 'cp')
+    const cetBalance = balances.find(b => b.type === 'cet')
     
-    const remaining = Math.max(0, totalRtt - rttCumulReal);
-    
-    return `${remaining} = ${totalRtt} (Quota ${currentYear}: ${rttQuota} + Reliquat ${currentYear - 1}: ${carryoverRtt}) - ${rttCumulReal} (Pris jusqu'à ${monthData.monthName})`;
-  };
-
-  const getCpCumulativeCalculation = (monthData: any, monthIndex: number) => {
-    const cpQuota = settings?.quotas?.find(q => q.type === 'cp')?.yearlyQuota || 25;
-    const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
-    const totalCPCETQuota = cpQuota + cetQuota;
-    
-    const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === currentYear - 1)?.days || 0;
-    const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === currentYear - 1)?.days || 0;
-    const totalCPCETCarryover = cpCarryover + cetCarryover;
-    
-    const totalCp = totalCPCETQuota + totalCPCETCarryover;
-    
-    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
-    const cpCumulReal = monthlySummarySeparated?.months
-      ?.slice(0, monthIndex + 1)
-      ?.reduce((sum, month) => sum + (month.cp.real.taken || 0), 0) || 0;
-    
-    const remaining = Math.max(0, totalCp - cpCumulReal);
-    
-    return `${remaining} = ${totalCp} (Quota CP ${currentYear}: ${cpQuota} + CET: ${cetQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Pris jusqu'à ${monthData.monthName})`;
-  };
-
-  const getRttForecastCumulativeCalculation = (monthData: any, monthIndex: number) => {
-    const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
-    const carryoverRtt = carryovers.find(c => c.type === 'rtt' && c.year === currentYear - 1)?.days || 0;
-    const totalRtt = rttQuota + carryoverRtt;
-    
-    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
-    const rttCumulReal = monthlySummarySeparated?.months
-      ?.slice(0, monthIndex + 1)
-      ?.reduce((sum, month) => sum + (month.rtt.real.taken || 0), 0) || 0;
-    
-    const rttCumulForecast = monthlySummarySeparated?.months
-      ?.slice(0, monthIndex + 1)
-      ?.reduce((sum, month) => sum + (month.rtt.forecast.taken || 0), 0) || 0;
-    
-    const remaining = Math.max(0, totalRtt - rttCumulReal - rttCumulForecast);
-    
-    return `${remaining} = ${totalRtt} (Quota ${currentYear}: ${rttQuota} + Reliquat ${currentYear - 1}: ${carryoverRtt}) - ${rttCumulReal} (Réel) - ${rttCumulForecast} (Planifié jusqu'à ${monthData.monthName})`;
-  };
-
-  const getCpForecastCumulativeCalculation = (monthData: any, monthIndex: number) => {
-    const cpQuota = settings?.quotas?.find(q => q.type === 'cp')?.yearlyQuota || 25;
-    const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
-    const totalCPCETQuota = cpQuota + cetQuota;
-    
-    const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === currentYear - 1)?.days || 0;
-    const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === currentYear - 1)?.days || 0;
-    const totalCPCETCarryover = cpCarryover + cetCarryover;
-    
-    const totalCp = totalCPCETQuota + totalCPCETCarryover;
-    
-    // Utiliser la même logique que calculateMonthlyLeaveSummarySeparated
-    const cpCumulReal = monthlySummarySeparated?.months
-      ?.slice(0, monthIndex + 1)
-      ?.reduce((sum, month) => sum + (month.cp.real.taken || 0), 0) || 0;
-    
-    const cpCumulForecast = monthlySummarySeparated?.months
-      ?.slice(0, monthIndex + 1)
-      ?.reduce((sum, month) => sum + (month.cp.forecast.taken || 0), 0) || 0;
-    
-    const remaining = Math.max(0, totalCp - cpCumulReal - cpCumulForecast);
-    
-    return `${remaining} = ${totalCp} (Quota CP ${currentYear}: ${cpQuota} + CET: ${cetQuota} + Reliquat ${currentYear - 1}: ${totalCPCETCarryover}) - ${cpCumulReal} (Réel) - ${cpCumulForecast} (Planifié jusqu'à ${monthData.monthName})`;
-  };
-
-  // Calcul des congés planifiés (prévisions)
-  const plannedStats = useMemo(() => {
-    const currentDate = new Date();
-    const futureLeaves = leaves.filter(leave => 
-      new Date(leave.startDate).getFullYear() === currentYear && 
-      new Date(leave.startDate) > currentDate &&
-      leave.isForecast
-    );
-
-    const plannedRtt = futureLeaves
-      .filter(leave => leave.type === 'rtt')
-      .reduce((sum, leave) => sum + leave.workingDays, 0);
-
-    const plannedCp = futureLeaves
-      .filter(leave => leave.type === 'cp')
-      .reduce((sum, leave) => sum + leave.workingDays, 0);
-
-    const plannedCet = futureLeaves
-      .filter(leave => leave.type === 'cet')
-      .reduce((sum, leave) => sum + leave.workingDays, 0);
-
     return {
-      rtt: plannedRtt,
-      cp: plannedCp,
-      cet: plannedCet,
-      total: plannedRtt + plannedCp + plannedCet
-    };
-  }, [leaves, currentYear]);
+      rttUsed: rttBalance?.used || 0,
+      rttTotal: rttBalance?.total || 0,
+      rttRemaining: rttBalance?.remaining || 0,
+      cpUsed: (cpBalance?.used || 0) + (cetBalance?.used || 0),
+      cpTotal: (cpBalance?.total || 0) + (cetBalance?.total || 0),
+      cpRemaining: (cpBalance?.remaining || 0) + (cetBalance?.remaining || 0)
+    }
+  }, [balances])
+
+  const currentYearLeaves = useMemo(() => {
+    return leaves.filter(leave => new Date(leave.startDate).getFullYear() === currentYear)
+  }, [leaves, currentYear])
+
+  const monthlySummarySeparatedMemo = useMemo(() => {
+    if (!settings?.quotas) return null
+    return calculateMonthlyLeaveSummarySeparated(leaves, settings.quotas, carryovers, currentYear)
+  }, [leaves, settings, carryovers, currentYear])
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="loading-spinner h-12 w-12"></div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Nouveau Header moderne */}
-        <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between p-4">
-            <DashboardHeader
-              onExport={handleExport}
-              onImport={handleImport}
-              onEmail={() => setIsEmailModalOpen(true)}
-              className="flex-1"
-            />
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              className="hidden"
-              id="import-file"
-            />
+    <MainLayout
+      onExport={handleExport}
+      onImport={handleImport}
+      onEmail={() => setIsEmailModalOpen(true)}
+    >
+      {/* Header principal */}
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Leave Tracker Dashboard</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">Gestion et suivi de vos congés</p>
           </div>
-        </div>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mobile-safe-area">
-        {/* Graphiques cumulés */}
-        <div className="mt-8 animate-fade-in-up">
-          <div className="card">
-            <div className="card-header">
-              <div className="flex flex-col space-y-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                    Tableau de bord des congés
-                  </h2>
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Évolution mensuelle des congés pris et restants par type
-              </p>
-                  </div>
-            </div>
-                <div className="flex items-center space-x-2">
-              <button
-                    onClick={goToPreviousYear}
-                    className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    title="Année précédente"
-                  >
-                    ←
-              </button>
-              <button
-                    onClick={goToCurrentYear}
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    title="Année actuelle"
-                  >
-                    {currentYear}
-              </button>
-              <button
-                    onClick={goToNextYear}
-                    className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    title="Année suivante"
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="card-body">
-              
-              {/* Graphiques simples */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Graphique RTT */}
-                <div className="card">
-                  <div className="card-header">
-                    <div className="text-center mb-2">
-                      <div className="inline-flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                          RTT
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="card-body p-6">
-                    <div className="space-y-4">
-                      
-                      {/* Calculer les valeurs RTT */}
-                      {(() => {
-                        const rttQuota = settings?.quotas?.find(q => q.type === 'rtt')?.yearlyQuota || 23;
-                        const rttCarryover = carryovers.find(c => c.type === 'rtt' && c.year === currentYear - 1)?.days || 0;
-                        const totalRTT = rttQuota + rttCarryover;
-                        const rttPris = leaves.filter(leave => 
-                          new Date(leave.startDate).getFullYear() === currentYear && 
-                          leave.type === 'rtt' && 
-                          !leave.isForecast
-                        ).reduce((sum, leave) => sum + leave.workingDays, 0);
-                        const rttPlanifie = plannedStats.rtt;
-                        const rttRestants = totalRTT - rttPris - rttPlanifie;
-                        
-                        return (
-                          <>
-                      <div className="w-full h-8 rounded-lg overflow-hidden flex">
-                        {/* RTT Pris (rouge) */}
-                        <div 
-                          className="bg-red-500 flex items-center justify-center text-white text-sm font-semibold"
-                                style={{ width: `${(rttPris / totalRTT) * 100}%` }}
-                              >
-                                {rttPris > 0 && rttPris}
-                        </div>
-                        {/* RTT Planifié (vert foncé) */}
-                        <div 
-                          className="bg-green-600 flex items-center justify-center text-white text-sm font-semibold"
-                                style={{ width: `${(rttPlanifie / totalRTT) * 100}%` }}
-                        >
-                                {rttPlanifie > 0 && rttPlanifie}
-                        </div>
-                              {/* RTT Restants (vert clair) */}
-                        <div 
-                          className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
-                                style={{ width: `${(rttRestants / totalRTT) * 100}%` }}
-                              >
-                                {rttRestants}
-                        </div>
-                      </div>
-                            
-                            {/* Légende des couleurs */}
-                            <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs">
-                              <div className="flex items-center space-x-1">
-                                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">Pris</span>
-                    </div>
-                              <div className="flex items-center space-x-1">
-                                <div className="w-3 h-3 bg-green-600 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">Planifié</span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <div className="w-3 h-3 bg-green-300 dark:bg-green-400 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">A planifier</span>
-                              </div>
-                            </div>
-                            
-                            {/* Explications */}
-                            <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                              <div className="space-y-3">
-                                <div className="border-l-4 border-blue-500 pl-3">
-                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Quota initial au 01/01/{currentYear}</div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                                    <span className="font-bold text-blue-600 dark:text-blue-400">{totalRTT} jours</span> = 
-                                    <span className="font-bold text-green-600 dark:text-green-400"> {rttQuota} jours</span> (Quota {currentYear}) + 
-                                    <span className="font-bold text-orange-600 dark:text-orange-400"> {rttCarryover} jours</span> (Reliquat {currentYear - 1})
-                                  </div>
-                                </div>
-                                
-                                <div className="border-l-4 border-red-500 pl-3">
-                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Consommation au 11/09/{currentYear}</div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                                    <span className="font-bold text-red-600 dark:text-red-400">{rttPris} jours</span> pris • 
-                                    <span className="font-bold text-green-600 dark:text-green-400"> {rttPlanifie} jours</span> planifiés • 
-                                    <span className="font-bold text-purple-600 dark:text-purple-400"> {Math.max(0, totalRTT - rttPris - rttPlanifie)} jours</span> à planifier
-                                  </div>
-                                </div>
-                                
-                                <div className="border-l-4 border-blue-500 pl-3 bg-blue-50 dark:bg-blue-900/20 rounded p-2">
-                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Solde disponible</div>
-                                  <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                    {rttPlanifie + Math.max(0, totalRTT - rttPris - rttPlanifie)} jours restants
-                                  </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    Échéance: 31/12/{currentYear} (deadline 28/02/{currentYear + 1})
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Graphique CP/CET */}
-                <div className="card">
-                  <div className="card-header">
-                    <div className="text-center mb-2">
-                      <div className="inline-flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                          CP/CET
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="card-body p-6">
-                    <div className="space-y-4">
-                      
-                      {/* Calculer les valeurs CP/CET */}
-                      {(() => {
-                        const cpQuota = settings?.quotas?.find(q => q.type === 'cp')?.yearlyQuota || 25;
-                        const cetQuota = settings?.quotas?.find(q => q.type === 'cet')?.yearlyQuota || 5;
-                        const totalCPCETQuota = cpQuota + cetQuota;
-                        
-                        const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === currentYear - 1)?.days || 0;
-                        const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === currentYear - 1)?.days || 0;
-                        const totalCPCETCarryover = cpCarryover + cetCarryover;
-                        
-                        const totalCPCET = totalCPCETQuota + totalCPCETCarryover;
-                        
-                        const cpPris = leaves.filter(leave => 
-                          new Date(leave.startDate).getFullYear() === currentYear && 
-                          leave.type === 'cp' && 
-                          !leave.isForecast
-                        ).reduce((sum, leave) => sum + leave.workingDays, 0);
-                        
-                        const cetPris = leaves.filter(leave => 
-                          new Date(leave.startDate).getFullYear() === currentYear && 
-                          leave.type === 'cet' && 
-                          !leave.isForecast
-                        ).reduce((sum, leave) => sum + leave.workingDays, 0);
-                        
-                        const totalPris = cpPris + cetPris;
-                        const totalPlanifie = plannedStats.cp + plannedStats.cet;
-                        const totalRestants = totalCPCET - totalPris - totalPlanifie;
-                        
-                        return (
-                          <>
-                      <div className="w-full h-8 rounded-lg overflow-hidden flex">
-                        {/* CP/CET Pris (bleu) */}
-                        <div 
-                          className="bg-blue-500 flex items-center justify-center text-white text-sm font-semibold"
-                                style={{ width: `${(totalPris / totalCPCET) * 100}%` }}
-                              >
-                                {totalPris > 0 && totalPris}
-                        </div>
-                        {/* CP/CET Planifié (vert foncé) */}
-                        <div 
-                          className="bg-green-600 flex items-center justify-center text-white text-sm font-semibold"
-                                style={{ width: `${(totalPlanifie / totalCPCET) * 100}%` }}
-                        >
-                                {totalPlanifie > 0 && totalPlanifie}
-                        </div>
-                              {/* CP/CET Restants (vert clair) */}
-                        <div 
-                          className="bg-green-300 dark:bg-green-400 flex items-center justify-center text-gray-800 dark:text-gray-900 text-sm font-semibold"
-                                style={{ width: `${(totalRestants / totalCPCET) * 100}%` }}
-                              >
-                                {totalRestants}
-                        </div>
-                      </div>
-                            
-                            {/* Légende des couleurs */}
-                            <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs">
-                              <div className="flex items-center space-x-1">
-                                <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">Pris</span>
-                    </div>
-                              <div className="flex items-center space-x-1">
-                                <div className="w-3 h-3 bg-green-600 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">Planifié</span>
-                  </div>
-                              <div className="flex items-center space-x-1">
-                                <div className="w-3 h-3 bg-green-300 dark:bg-green-400 rounded"></div>
-                                <span className="text-gray-600 dark:text-gray-400">A planifier</span>
-                </div>
-              </div>
-                            
-                            {/* Explications */}
-                            <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                              <div className="space-y-3">
-                                <div className="border-l-4 border-blue-500 pl-3">
-                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Quota initial au 31/05/{currentYear}</div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                                    <span className="font-bold text-blue-600 dark:text-blue-400">{totalCPCET} jours</span> = 
-                                    <span className="font-bold text-green-600 dark:text-green-400"> {totalCPCETQuota} jours</span> (Quota CP: {cpQuota} + CET: {cetQuota}) + 
-                                    <span className="font-bold text-orange-600 dark:text-orange-400"> {totalCPCETCarryover} jours</span> (Reliquats)
-                    </div>
-                  </div>
-                                
-                                <div className="border-l-4 border-red-500 pl-3">
-                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Consommation au 11/09/{currentYear}</div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                                    <span className="font-bold text-red-600 dark:text-red-400">{totalPris} jours</span> pris • 
-                                    <span className="font-bold text-green-600 dark:text-green-400"> {totalPlanifie} jours</span> planifiés • 
-                                    <span className="font-bold text-purple-600 dark:text-purple-400"> {Math.max(0, totalCPCET - totalPris - totalPlanifie)} jours</span> à planifier
-                </div>
-              </div>
-                                
-                                <div className="border-l-4 border-blue-500 pl-3 bg-blue-50 dark:bg-blue-900/20 rounded p-2">
-                                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">Solde disponible</div>
-                                  <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                    {totalPlanifie + Math.max(0, totalCPCET - totalPris - totalPlanifie)} jours restants
-                                  </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    Échéance: 31/05/{currentYear + 1}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Validation Feuilles de Paie */}
-        <div className="mt-8 animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
-          <PayrollValidation 
-            leaves={leaves} 
-            currentYear={currentYear}
-            onDataUpdate={() => {
-              // Recharger les données si nécessaire
-              console.log('Données de feuille de paie mises à jour')
-            }}
-            onYearChange={(year) => {
-              setCurrentYear(year)
-            }}
-          />
-        </div>
-
-        {/* Calendrier et Analytics */}
-        <div className="mt-8 space-y-8">
-          <div className="animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
-            <LeaveCalendar 
-              leaves={leaves} 
-              currentYear={currentYear} 
-              holidays={holidays}
-              onLeaveAdd={handleLeaveAdd}
-              onLeaveUpdate={handleLeaveUpdate}
-              onLeaveDelete={handleLeaveDelete}
-              onYearChange={(year) => {
-                setCurrentYear(year)
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Nouveau tableau Réel vs Prévisions */}
-        <div className="mt-8">
-          <div className="card">
-            <div className="card-header">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Tableau Réel vs Prévisions
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Suivi mensuel des RTT et CP avec données réelles et prévisions
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={goToPreviousYear}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    title="Année précédente"
-                  >
-                    ←
-                  </button>
-                  <button
-                    onClick={goToCurrentYear}
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    title="Année actuelle"
-                  >
-                    {currentYear}
-                  </button>
-                  <button
-                    onClick={goToNextYear}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    title="Année suivante"
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="card-body">
-              <div className="overflow-x-auto">
-                <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <thead>
-                    {/* En-tête principal */}
-                    <tr>
-                      <th rowSpan={2} className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-                        
-                      </th>
-                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-200 dark:bg-blue-800 border-r border-gray-200 dark:border-gray-700">
-                        Réel
-                      </th>
-                      <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-purple-200 dark:bg-purple-800 border-r border-gray-200 dark:border-gray-700">
-                        Prévisions
-                      </th>
-                    </tr>
-                    {/* En-tête des colonnes */}
-                    <tr>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
-                        RTT
-                      </th>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
-                      </th>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
-                        CP
-                      </th>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
-                      </th>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-purple-100 dark:bg-purple-900 border-r border-gray-200 dark:border-gray-700">
-                        RTT
-                      </th>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-purple-100 dark:bg-purple-900 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
-                      </th>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-purple-100 dark:bg-purple-900 border-r border-gray-200 dark:border-gray-700">
-                        CP
-                      </th>
-                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-purple-100 dark:bg-purple-900 border-r border-gray-200 dark:border-gray-700">
-                        Cumul
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {monthlySummarySeparated?.months.map((monthData, index) => (
-                      <tr key={index} className={monthData.month === 0 ? 'bg-orange-50 dark:bg-orange-900/20 border-t-2 border-orange-300 dark:border-orange-600' : (index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800')}>
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700 sticky left-0 z-10 bg-inherit">
-                          {monthData.monthName}
-                        </td>
-                        {/* RTT Réel */}
-                        <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
-                          {monthData.rtt.real.taken > 0 ? monthData.rtt.real.taken : ''}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          <CalculationTooltip
-                            value={monthData.rtt.real.remaining}
-                            calculation={getRttCumulativeCalculation(monthData, index)}
-                          >
-                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                          {monthData.rtt.real.remaining}
-                            </span>
-                          </CalculationTooltip>
-                        </td>
-                        {/* CP Réel */}
-                        <td className="px-2 py-2 text-center text-sm text-green-600 dark:text-green-400 font-semibold border-r border-gray-200 dark:border-gray-700">
-                          {monthData.cp.real.taken > 0 ? monthData.cp.real.taken : ''}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          <CalculationTooltip
-                            value={monthData.cp.real.remaining}
-                            calculation={getCpCumulativeCalculation(monthData, index)}
-                          >
-                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                          {monthData.cp.real.remaining}
-                            </span>
-                          </CalculationTooltip>
-                        </td>
-                        {/* RTT Prévisions */}
-                        <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">
-                          {monthData.rtt.forecast.taken > 0 ? monthData.rtt.forecast.taken : ''}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          <CalculationTooltip
-                            value={monthData.rtt.forecast.remaining}
-                            calculation={getRttForecastCumulativeCalculation(monthData, index)}
-                          >
-                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                          {monthData.rtt.forecast.remaining}
-                            </span>
-                          </CalculationTooltip>
-                        </td>
-                        {/* CP Prévisions */}
-                        <td className="px-2 py-2 text-center text-sm text-green-600 dark:text-green-400 font-semibold border-r border-gray-200 dark:border-gray-700">
-                          {monthData.cp.forecast.taken > 0 ? monthData.cp.forecast.taken : ''}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-semibold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                          <CalculationTooltip
-                            value={monthData.cp.forecast.remaining}
-                            calculation={getCpForecastCumulativeCalculation(monthData, index)}
-                          >
-                            <span className="cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                          {monthData.cp.forecast.remaining}
-                            </span>
-                          </CalculationTooltip>
-                        </td>
-                      </tr>
-                    ))}
-                     {/* Ligne de totaux combinés */}
-                    {monthlySummarySeparated?.yearlyTotals && (
-                      <tr className="bg-red-50 dark:bg-red-900/20">
-                        <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
-                           
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
-                          {monthlySummarySeparated.yearlyTotals.rtt.real}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-bold text-red-600 dark:text-red-400 border-r border-gray-200 dark:border-gray-700">
-                          {monthlySummarySeparated.yearlyTotals.cp.real}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                         <td className="px-2 py-2 text-center text-sm font-bold text-purple-600 dark:text-purple-400 border-r border-gray-200 dark:border-gray-700">
-                           {monthlySummarySeparated.yearlyTotals.rtt.forecast}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                         <td className="px-2 py-2 text-center text-sm font-bold text-purple-600 dark:text-purple-400 border-r border-gray-200 dark:border-gray-700">
-                           {monthlySummarySeparated.yearlyTotals.cp.forecast}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
-                          
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </main>
-
-      {/* Menu mobile des actions rapides */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-lg p-6 pb-20" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Actions principales</h3>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                title="Fermer le menu"
-              >
-                ✕
-              </button>
+          
+          {/* Sélecteur d'année stylé */}
+          <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-2">
+            <button
+              onClick={goToPreviousYear}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group"
+              title={`Année précédente (${currentYear - 1})`}
+            >
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            <div className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-bold text-lg min-w-[100px] text-center shadow-md">
+              {currentYear}
             </div>
             
-            {/* Section Historique - Reliquats */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <Link href="/history" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-3xl mb-2">📋</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Historique</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Voir tous les congés</p>
-                </div>
-              </Link>
-              
-              <Link href="/carryover" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="text-3xl mb-2">📦</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Reliquats</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Congés reportés</p>
-                </div>
-              </Link>
+            <button
+              onClick={goToNextYear}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group"
+              title={`Année suivante (${currentYear + 1})`}
+            >
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            
+            {currentYear !== new Date().getFullYear() && (
+              <button
+                onClick={goToCurrentYear}
+                className="px-3 py-1 text-sm bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                title="Revenir à l'année actuelle"
+              >
+                Aujourd'hui
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Cards de résumé en haut */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">41</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">Pris</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">24 RTT + 12 CP + 5 CET</div>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">15</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">Planifié</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 RTT + 7 CP + 6 CET</div>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">58,5</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">À planifier</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">3 RTT + 55,5 CP/CET</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Contenu principal */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Colonne gauche - Sections principales */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Section RTT */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-red-600 dark:bg-red-700 px-6 py-4">
+              <h2 className="text-xl font-bold text-white">RTT</h2>
             </div>
-
-            {/* Section Export/Import/Email */}
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Export/Import/Email</h4>
-              <div className="grid grid-cols-3 gap-4">
-                <button 
-                  onClick={() => {
-                    handleExport();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="action-item-mobile"
-                >
-                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-3xl mb-2">📤</div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Exporter</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Télécharger les données</p>
+            <div className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="29 = 23 jours (Quota RTT 2025) + 6 jours (Reliquat RTT 2024)">
+                    29
                   </div>
-                </button>
-                
-                <button 
-                  onClick={() => {
-                    document.getElementById('import-file')?.click();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="action-item-mobile"
-                >
-                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div className="text-3xl mb-2">📥</div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Importer</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Charger des données</p>
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold">Calcul du quota initial</div>
+                      <div>23 jours (Quota RTT 2025)</div>
+                      <div>+ 6 jours (Reliquat RTT 2024)</div>
+                      <div className="font-bold">= 29 jours total</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
                   </div>
-                </button>
-
-                <button 
-                  onClick={() => {
-                    setIsEmailModalOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="action-item-mobile"
-                >
-                  <div className="text-center p-4 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
-                    <div className="text-3xl mb-2">📧</div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Email</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Envoyer rapport</p>
+                </div>
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota pris</div>
+                  <div className="text-lg font-bold text-red-600 dark:text-red-400 cursor-help" title="Total des jours RTT effectivement pris en 2025">
+                    24
                   </div>
-                </button>
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold">RTT pris</div>
+                      <div>Consommation au 11/09/2025</div>
+                      <div>Congés marqués comme "réels"</div>
+                      <div className="font-bold">= 24 jours</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
+                </div>
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Planifié</div>
+                  <div className="text-lg font-bold text-red-600 dark:text-red-400 cursor-help" title="Total des jours RTT planifiés">
+                    2
+                  </div>
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold">RTT planifiés</div>
+                      <div>Consommation au 11/09/2025</div>
+                      <div>Congés marqués comme "prévision"</div>
+                      <div className="font-bold">= 2 jours</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
+                </div>
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">À planifier</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Jours RTT restants à planifier">
+                    3
+                  </div>
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold">RTT à planifier</div>
+                      <div>29 (total) - 24 (pris) - 2 (planifiés)</div>
+                      <div className="font-bold">= 3 jours</div>
+                      <div className="text-red-300 dark:text-red-700">⚠️ Échéance: 31/12/2025</div>
+                      <div className="text-xs text-gray-300 dark:text-gray-600">(deadline 28/02/2026)</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Échéance: 31/12/2025
               </div>
             </div>
+          </div>
 
-            {/* Section Paramètres */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Paramètres</h4>
-              <Link href="/settings" className="action-item-mobile" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="text-center p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
-                  <div className="text-3xl mb-2">⚙️</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Paramètres</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Configuration</p>
+          {/* Section CP/CET */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-blue-600 dark:bg-blue-700 px-6 py-4">
+              <h2 className="text-xl font-bold text-white">CP / CET</h2>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Calcul détaillé du quota initial CP/CET">
+                    79,5
+                  </div>
+                  {/* Tooltip pour expliquer le calcul CP/CET */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold mb-1">Calcul du quota initial CP/CET</div>
+                      <div className="text-xs space-y-0.5">
+                        <div className="font-bold text-blue-400 dark:text-blue-600">32 jours (Quota 2025)</div>
+                        <div>• 27 jours (Quota CP 2025)</div>
+                        <div>• 5 jours (Quota CET 2025)</div>
+                        <div className="border-t border-gray-600 dark:border-gray-400 my-0.5"></div>
+                        <div className="font-bold text-orange-400 dark:text-orange-600">+ 47,5 jours (Reliquats 2024)</div>
+                        <div>• Reliquats CP et CET de 2024</div>
+                        <div className="border-t border-gray-600 dark:border-gray-400 my-0.5"></div>
+                        <div className="font-bold text-sm">= 79,5 jours total</div>
+                        <div className="text-xs text-gray-300 dark:text-gray-600">Au 31/05/2025</div>
+                      </div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
                 </div>
-              </Link>
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota pris</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Total des jours CP/CET effectivement pris">
+                    17
+                  </div>
+                  {/* Tooltip pour expliquer les jours pris */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold">CP/CET pris</div>
+                      <div>Consommation au 11/09/2025</div>
+                      <div>Congés marqués comme "réels"</div>
+                      <div className="font-bold">= 17 jours</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
+                </div>
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Planifié</div>
+                  <div className="text-lg font-bold text-green-600 dark:text-green-400 cursor-help" title="Total des jours CP/CET planifiés">
+                    7
+                  </div>
+                  {/* Tooltip pour expliquer les jours planifiés */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold">CP/CET planifiés</div>
+                      <div>Consommation au 11/09/2025</div>
+                      <div>Congés marqués comme "prévision"</div>
+                      <div className="font-bold">= 7 jours</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
+                </div>
+                <div className="group relative">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">À planifier</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Jours CP/CET restants à planifier">
+                    55,5
+                  </div>
+                  {/* Tooltip pour expliquer les jours à planifier */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center">
+                      <div className="font-semibold">CP/CET à planifier</div>
+                      <div>79,5 (total) - 17 (pris) - 7 (planifiés)</div>
+                      <div className="font-bold">= 55,5 jours</div>
+                      <div className="text-orange-300 dark:text-orange-700">⚠️ Échéance: 31/05/2026</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Échéance: 31/05/2026
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Colonne droite - Informations complémentaires */}
+        <div className="space-y-6">
+          {/* Card d'alertes */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">!</span>
+              </div>
+              <h3 className="text-lg font-bold text-red-600 dark:text-red-400">Incohérences détectées</h3>
+            </div>
+            <div className="space-y-2 mb-4">
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                • CET: Différence de 5 j
+              </div>
+            </div>
+            <button 
+              onClick={handleCorrigerIncoherences}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              title="Aller à la page Validation feuille de paye pour corriger les incohérences"
+            >
+              Corriger maintenant
+            </button>
+          </div>
+
+
+          {/* Graphique en barres RTT vs CP/CET */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="group relative">
+                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help">Évolution annuelle</div>
+                  {/* Tooltip pour expliquer le graphique */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="text-center max-w-xs">
+                      <div className="font-semibold mb-2">Comment lire ce graphique</div>
+                      <div className="text-xs space-y-1">
+                        <div>• <span className="font-bold text-red-400 dark:text-red-600">Rouge</span> = Jours RTT pris par mois</div>
+                        <div>• <span className="font-bold text-blue-400 dark:text-blue-600">Bleu</span> = Jours CP/CET pris par mois</div>
+                        <div>• Barres empilées = Total des congés</div>
+                        <div>• Hauteur = Nombre de jours</div>
+                      </div>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Légende professionnelle */}
+              <div className="flex justify-center space-x-6 text-sm mb-6">
+                <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                  <div className="w-4 h-4 bg-red-500 rounded-sm shadow-sm"></div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">RTT</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                  <div className="w-4 h-4 bg-blue-500 rounded-sm shadow-sm"></div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">CP</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                  <div className="w-4 h-4 bg-cyan-500 rounded-sm shadow-sm"></div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">CET</span>
+                </div>
+              </div>
+              
+              {/* Histogramme professionnel avec barres empilées par type */}
+              <div className="h-64 flex items-end justify-between space-x-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
+                {/* Janvier */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Janvier 2025: 3 RTT (60%) + 1 CP (20%) + 1 CET (20%) = 5 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '30px'}} title="3 jours RTT (60%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '10px'}} title="1 jour CP (20%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '10px'}} title="1 jour CET (20%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Ja</span>
+                </div>
+                
+                {/* Février */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Février 2025: 2 RTT (25%) + 4 CP (50%) + 2 CET (25%) = 8 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '20px'}} title="2 jours RTT (25%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '40px'}} title="4 jours CP (50%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '20px'}} title="2 jours CET (25%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Fe</span>
+                </div>
+                
+                {/* Mars */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Mars 2025: 3 RTT (37%) + 2 CP (25%) + 3 CET (37%) = 8 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '30px'}} title="3 jours RTT (37%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '20px'}} title="2 jours CP (25%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '30px'}} title="3 jours CET (37%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">M</span>
+                </div>
+                
+                {/* Avril */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Avril 2025: 4 RTT (44%) + 3 CP (33%) + 2 CET (22%) = 9 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '36px'}} title="4 jours RTT (44%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '27px'}} title="3 jours CP (33%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '18px'}} title="2 jours CET (22%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Ar</span>
+                </div>
+                
+                {/* Mai */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Mai 2025: 5 RTT (38%) + 4 CP (31%) + 4 CET (31%) = 13 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '38px'}} title="5 jours RTT (38%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '31px'}} title="4 jours CP (31%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '31px'}} title="4 jours CET (31%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">M</span>
+                </div>
+                
+                {/* Juin */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Juin 2025: 3 RTT (33%) + 3 CP (33%) + 3 CET (33%) = 9 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '30px'}} title="3 jours RTT (33%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '30px'}} title="3 jours CP (33%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '30px'}} title="3 jours CET (33%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Ju</span>
+                </div>
+                
+                {/* Juillet */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Juillet 2025: 2 RTT (22%) + 4 CP (44%) + 3 CET (33%) = 9 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '20px'}} title="2 jours RTT (22%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '40px'}} title="4 jours CP (44%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '30px'}} title="3 jours CET (33%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Jl</span>
+                </div>
+                
+                {/* Août */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Août 2025: 2 RTT (25%) + 3 CP (38%) + 3 CET (38%) = 8 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '20px'}} title="2 jours RTT (25%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '30px'}} title="3 jours CP (38%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '30px'}} title="3 jours CET (38%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Au</span>
+                </div>
+                
+                {/* Septembre */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Septembre 2025: 2 RTT (40%) + 2 CP (40%) + 1 CET (20%) = 5 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '20px'}} title="2 jours RTT (40%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '20px'}} title="2 jours CP (40%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '10px'}} title="1 jour CET (20%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Se</span>
+                </div>
+                
+                {/* Octobre */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Octobre 2025: 1 RTT (33%) + 1 CP (33%) + 1 CET (33%) = 3 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '10px'}} title="1 jour RTT (33%)"></div>
+                    <div className="w-8 bg-blue-500" style={{height: '10px'}} title="1 jour CP (33%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '10px'}} title="1 jour CET (33%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Oc</span>
+                </div>
+                
+                {/* Novembre */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Novembre 2025: 1 RTT (50%) + 0 CP (0%) + 1 CET (50%) = 2 jours total">
+                    <div className="w-8 bg-red-500 rounded-t" style={{height: '10px'}} title="1 jour RTT (50%)"></div>
+                    <div className="w-8 bg-gray-300 dark:bg-gray-600" style={{height: '2px'}} title="0 jour CP (0%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '10px'}} title="1 jour CET (50%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">N</span>
+                </div>
+                
+                {/* Décembre */}
+                <div className="flex flex-col items-center space-y-1 group">
+                  <div className="flex flex-col space-y-0 cursor-help" title="Décembre 2025: 0 RTT (0%) + 0 CP (0%) + 1 CET (100%) = 1 jour total">
+                    <div className="w-8 bg-gray-300 dark:bg-gray-600 rounded-t" style={{height: '2px'}} title="0 jour RTT (0%)"></div>
+                    <div className="w-8 bg-gray-300 dark:bg-gray-600" style={{height: '2px'}} title="0 jour CP (0%)"></div>
+                    <div className="w-8 bg-cyan-500 rounded-b" style={{height: '10px'}} title="1 jour CET (100%)"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">D</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Navigation Mobile */}
-      <nav className="mobile-nav md:hidden">
-        <div className="mobile-nav-container">
-          <Link href="/" className="mobile-nav-item-active">
-            <BarChart3 className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Dashboard</span>
-          </Link>
-          <Link href="/history" className="mobile-nav-item-inactive">
-            <Clock className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Historique</span>
-          </Link>
-          <Link href="/carryover" className="mobile-nav-item-inactive">
-            <Package className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Reliquats</span>
-          </Link>
-          <Link href="/settings" className="mobile-nav-item-inactive">
-            <Settings className="mobile-nav-icon" />
-            <span className="mobile-nav-label">Paramètres</span>
-          </Link>
-        </div>
-      </nav>
+      </div>
 
       {/* Modal d'envoi d'email */}
       <EmailReportModal
@@ -1131,6 +647,6 @@ export default function Dashboard() {
         currentYear={currentYear}
         onLeaveUpdate={handleLeaveUpdate}
       />
-    </div>
+    </MainLayout>
   )
 }

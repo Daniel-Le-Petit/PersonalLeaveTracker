@@ -11,16 +11,16 @@ interface EmailReportModalProps {
   onClose: () => void;
   leaves: LeaveEntry[];
   currentYear: number;
-  holidays: any[];
   onLeaveUpdate?: (leave: LeaveEntry) => void;
 }
+
+type TemplateType = 'recent' | 'current_month' | 'last_week' | 'urgent_rtt';
 
 const EmailReportModal: React.FC<EmailReportModalProps> = ({
   isOpen,
   onClose,
   leaves,
   currentYear,
-  holidays,
   onLeaveUpdate
 }) => {
   const [selectedLeaves, setSelectedLeaves] = useState<string[]>([]);
@@ -35,7 +35,8 @@ const EmailReportModal: React.FC<EmailReportModalProps> = ({
   const filteredLeaves = useMemo(() => {
     let filtered = leaves.filter(leave => 
       new Date(leave.startDate).getFullYear() === currentYear &&
-      selectedTypes.includes(leave.type)
+      (leave.type === 'rtt' || leave.type === 'cp' || leave.type === 'cet') &&
+      selectedTypes.includes(leave.type as 'rtt' | 'cp' | 'cet')
     );
 
     // Appliquer le filtre de statut (réel/prévision)
@@ -323,7 +324,7 @@ const EmailReportModal: React.FC<EmailReportModalProps> = ({
         });
         
         // Trier les dates et les afficher
-        const uniqueDates = [...new Set(allDates)].sort((a, b) => {
+        const uniqueDates = Array.from(new Set(allDates)).sort((a, b) => {
           const dateA = new Date(a);
           const dateB = new Date(b);
           return dateA.getTime() - dateB.getTime();
