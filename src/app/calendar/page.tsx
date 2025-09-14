@@ -92,7 +92,7 @@ export default function CalendarPage() {
     
     // Ajouter les jours vides du début
     for (let i = 0; i < startingDay; i++) {
-      days.push(<div key={`empty-${i}`} className="calendar-day bg-gray-50 dark:bg-gray-800"></div>)
+      days.push(<div key={`empty-${i}`} className="h-6 w-6 sm:h-8 sm:w-8 bg-gray-50 dark:bg-gray-800 rounded"></div>)
     }
     
     // Ajouter les jours du mois
@@ -100,28 +100,41 @@ export default function CalendarPage() {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
       const dayLeaves = getLeavesForDate(date)
       const isWeekendDay = isWeekend(date)
+      const isToday = date.toDateString() === new Date().toDateString()
+      
+      // Déterminer la couleur du carreau
+      let carreauColor = ''
+      if (isWeekendDay) {
+        carreauColor = 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+      } else if (isToday) {
+        carreauColor = 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold'
+      } else if (dayLeaves.length > 0) {
+        // Si plusieurs congés, prioriser RTT > CP > CET > Autres
+        const rttLeaves = dayLeaves.filter(l => l.type === 'rtt')
+        const cpLeaves = dayLeaves.filter(l => l.type === 'cp')
+        const cetLeaves = dayLeaves.filter(l => l.type === 'cet')
+        
+        if (rttLeaves.length > 0) {
+          carreauColor = 'bg-red-500 text-white font-medium'
+        } else if (cpLeaves.length > 0) {
+          carreauColor = 'bg-blue-500 text-white font-medium'
+        } else if (cetLeaves.length > 0) {
+          carreauColor = 'bg-cyan-500 text-white font-medium'
+        } else {
+          carreauColor = 'bg-orange-500 text-white font-medium'
+        }
+      } else {
+        carreauColor = 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-500'
+      }
       
       days.push(
         <div 
           key={day} 
-          className={`calendar-day ${isWeekendDay ? 'calendar-day-weekend' : ''} ${
-            dayLeaves.length > 0 ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-          }`}
+          className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-xs rounded cursor-pointer relative ${carreauColor}`}
+          title={`${day}/${currentDate.getMonth() + 1}${dayLeaves.length > 0 ? `\nCongés: ${dayLeaves.map(l => getLeaveTypeLabel(l.type)).join(', ')}` : ''}`}
+          onClick={() => handleDateClick(date)}
         >
-          <div className="text-sm font-medium mb-1">{day}</div>
-          {dayLeaves.map((leave, index) => (
-            <div
-              key={`${leave.id}-${index}`}
-              className={`text-xs p-1 rounded mb-1 text-white ${getLeaveTypeColor(leave.type)} cursor-pointer hover:opacity-80 transition-opacity group relative`}
-              title={`${getLeaveTypeLabel(leave.type)}: ${formatDate(leave.startDate)} - ${formatDate(leave.endDate)} - Cliquez pour modifier`}
-              onClick={() => handleEditLeave(leave)}
-            >
-              <div className="flex items-center justify-between">
-                <span>{getLeaveTypeLabel(leave.type)}</span>
-                <Edit className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
-          ))}
+          {day}
         </div>
       )
     }
@@ -165,16 +178,24 @@ export default function CalendarPage() {
   }
 
   const handleDateClick = (date: Date) => {
-    setSelectedDate(date)
-    const dateStr = date.toISOString().split('T')[0]
-    setFormData({
-      type: 'cp',
-      startDate: dateStr,
-      endDate: dateStr,
-      isForecast: false,
-      notes: ''
-    })
-    setShowAddModal(true)
+    const dayLeaves = getLeavesForDate(date)
+    
+    if (dayLeaves.length > 0) {
+      // Si il y a des congés ce jour, modifier le premier
+      handleEditLeave(dayLeaves[0])
+    } else {
+      // Sinon, ajouter un nouveau congé
+      setSelectedDate(date)
+      const dateStr = date.toISOString().split('T')[0]
+      setFormData({
+        type: 'cp',
+        startDate: dateStr,
+        endDate: dateStr,
+        isForecast: false,
+        notes: ''
+      })
+      setShowAddModal(true)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -285,10 +306,11 @@ export default function CalendarPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Contrôles du calendrier */}
-        <div className="card mb-8">
+        {/* Calendrier multi-mois */}
+        <div className="card">
           <div className="card-body">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Calendrier des congés</h2>
               <div className="flex items-center space-x-4">
                 <button
                   onClick={goToPreviousMonth}
@@ -309,110 +331,144 @@ export default function CalendarPage() {
                   Suivant →
                 </button>
               </div>
-              <div className="text-xl font-semibold text-gray-900 dark:text-white">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </div>
+
+            {/* Légende */}
+            <div className="flex justify-center space-x-4 text-sm mb-6">
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-red-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">RTT</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">CP</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-cyan-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">CET</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-orange-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">Autres</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">Aujourd'hui</span>
+              </div>
+            </div>
+
+            {/* Grille du calendrier - 3 mois */}
+            <div className="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 overflow-x-auto">
+              {/* En-têtes des mois */}
+              <div className="flex mb-4">
+                {Array.from({ length: 3 }, (_, monthIndex) => {
+                  const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthIndex, 1)
+                  const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+                  const monthName = monthNames[month.getMonth()]
+                  
+                  return (
+                    <div key={monthIndex} className="flex-1 text-center min-w-[200px]">
+                      <div className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{monthName} {month.getFullYear()}</div>
+                      {/* En-têtes des jours de la semaine */}
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, dayIndex) => (
+                          <div key={dayIndex} className="text-xs text-gray-500 dark:text-gray-400 text-center p-1">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              
+              {/* Grille du calendrier - 3 mois */}
+              <div className="flex">
+                {Array.from({ length: 3 }, (_, monthIndex) => {
+                  const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthIndex, 1)
+                  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1)
+                  const startDate = new Date(firstDay)
+                  startDate.setDate(startDate.getDate() - firstDay.getDay() + 1) // Commencer le lundi
+                  
+                  // Générer toutes les semaines du mois (jusqu'à 6 semaines)
+                  const weeks = []
+                  const maxWeeks = 6
+                  for (let week = 0; week < maxWeeks; week++) {
+                    const weekDays = []
+                    for (let day = 0; day < 7; day++) {
+                      const currentDate = new Date(startDate)
+                      currentDate.setDate(startDate.getDate() + (week * 7) + day)
+                      
+                      // Vérifier si c'est un jour de congé
+                      const dayLeaves = leaves.filter(leave => {
+                        const leaveStart = new Date(leave.startDate)
+                        const leaveEnd = new Date(leave.endDate)
+                        return currentDate >= leaveStart && 
+                               currentDate <= leaveEnd &&
+                               currentDate.getDay() !== 0 && // Pas le dimanche
+                               currentDate.getDay() !== 6    // Pas le samedi
+                      })
+                      
+                      const isCurrentMonth = currentDate.getMonth() === month.getMonth()
+                      const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6
+                      const isToday = currentDate.toDateString() === new Date().toDateString()
+                      
+                      // Déterminer la couleur du carreau
+                      let carreauColor = ''
+                      if (!isCurrentMonth) {
+                        carreauColor = 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600'
+                      } else if (isWeekend) {
+                        carreauColor = 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+                      } else if (isToday) {
+                        carreauColor = 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold'
+                      } else if (dayLeaves.length > 0) {
+                        // Prioriser RTT > CP > CET > Autres
+                        const rttLeaves = dayLeaves.filter(l => l.type === 'rtt')
+                        const cpLeaves = dayLeaves.filter(l => l.type === 'cp')
+                        const cetLeaves = dayLeaves.filter(l => l.type === 'cet')
+                        
+                        if (rttLeaves.length > 0) {
+                          carreauColor = 'bg-red-500 text-white font-medium'
+                        } else if (cpLeaves.length > 0) {
+                          carreauColor = 'bg-blue-500 text-white font-medium'
+                        } else if (cetLeaves.length > 0) {
+                          carreauColor = 'bg-cyan-500 text-white font-medium'
+                        } else {
+                          carreauColor = 'bg-orange-500 text-white font-medium'
+                        }
+                      } else {
+                        carreauColor = 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-500'
+                      }
+                      
+                      weekDays.push(
+                        <div
+                          key={day}
+                          className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-xs rounded cursor-pointer relative ${carreauColor}`}
+                          title={`${currentDate.getDate()}/${currentDate.getMonth() + 1}${dayLeaves.length > 0 ? `\nCongés: ${dayLeaves.map(l => getLeaveTypeLabel(l.type)).join(', ')}` : ''}`}
+                          onClick={() => handleDateClick(currentDate)}
+                        >
+                          {currentDate.getDate()}
+                        </div>
+                      )
+                    }
+                    weeks.push(
+                      <div key={week} className="grid grid-cols-7 gap-1 mb-1">
+                        {weekDays}
+                      </div>
+                    )
+                  }
+                  
+                  return (
+                    <div key={monthIndex} className="flex-1 min-w-[200px]">
+                      {weeks}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Calendrier */}
-        <div className="card">
-          <div className="card-body">
-            {/* En-têtes des jours */}
-            <div className="grid grid-cols-7 gap-1 mb-4">
-              {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map((day) => (
-                <div key={day} className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 py-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Grille du calendrier */}
-            <div className="grid grid-cols-7 gap-1">
-              {renderCalendar()}
-            </div>
-          </div>
-        </div>
-
-        {/* Légende */}
-        <div className="card mt-8">
-          <div className="card-header">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Légende
-            </h2>
-          </div>
-          <div className="card-body">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {[
-                { type: 'cp', label: 'CP - Congés payés' },
-                { type: 'rtt', label: 'RTT - Réduction du temps de travail' },
-                { type: 'sick', label: 'Maladie' },
-                
-              ].map((item) => (
-                <div key={item.type} className="flex items-center space-x-2">
-                  <div className={`w-4 h-4 rounded ${getLeaveTypeColor(item.type)}`}></div>
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Statistiques du mois */}
-        <div className="card mt-8">
-          <div className="card-header">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Statistiques du mois
-            </h2>
-          </div>
-          <div className="card-body">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {leaves.filter(leave => {
-                    const start = new Date(leave.startDate)
-                    const end = new Date(leave.endDate)
-                    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-                    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-                    return (start <= monthEnd && end >= monthStart)
-                  }).length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Congés ce mois
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {leaves.filter(leave => {
-                    const start = new Date(leave.startDate)
-                    const end = new Date(leave.endDate)
-                    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-                    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-                    return (start <= monthEnd && end >= monthStart)
-                  }).reduce((sum, leave) => sum + leave.workingDays, 0)}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Jours de congé
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {new Set(leaves.filter(leave => {
-                    const start = new Date(leave.startDate)
-                    const end = new Date(leave.endDate)
-                    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-                    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-                    return (start <= monthEnd && end >= monthStart)
-                  }).map(leave => leave.type)).size}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Types de congé
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
 
       {/* Modal d'ajout de congé */}
@@ -431,6 +487,7 @@ export default function CalendarPage() {
                   value={formData.type}
                   onChange={(e) => setFormData({...formData, type: e.target.value as LeaveType})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de début"
                   required
                 >
                   <option value="cp">CP - Congés payés</option>
@@ -449,6 +506,7 @@ export default function CalendarPage() {
                   value={formData.startDate}
                   onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de début"
                   required
                 />
               </div>
@@ -462,6 +520,7 @@ export default function CalendarPage() {
                   value={formData.endDate}
                   onChange={(e) => setFormData({...formData, endDate: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de fin"
                   required
                 />
               </div>
@@ -487,6 +546,7 @@ export default function CalendarPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de début"
                   rows={3}
                 />
               </div>
@@ -527,6 +587,7 @@ export default function CalendarPage() {
                   value={formData.type}
                   onChange={(e) => setFormData({...formData, type: e.target.value as LeaveType})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de début"
                   required
                 >
                   <option value="cp">CP - Congés payés</option>
@@ -545,6 +606,7 @@ export default function CalendarPage() {
                   value={formData.startDate}
                   onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de début"
                   required
                 />
               </div>
@@ -558,6 +620,7 @@ export default function CalendarPage() {
                   value={formData.endDate}
                   onChange={(e) => setFormData({...formData, endDate: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de fin"
                   required
                 />
               </div>
@@ -583,6 +646,7 @@ export default function CalendarPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  title="Sélectionner la date de début"
                   rows={3}
                 />
               </div>
