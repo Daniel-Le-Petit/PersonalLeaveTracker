@@ -346,14 +346,14 @@ export default function Dashboard() {
             </div>
             <div className="p-2 sm:p-4 text-center">
               <CalculationTooltip
-                value="40"
-                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: 23 jours (depuis 01/01)\n• CP: 12 jours (depuis 01/01)\n• CET: 5 jours (depuis 01/01)\n= 40 jours total`}
+                value="46"
+                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: 24 jours (depuis 01/01)\n• CP: 17 jours (depuis 01/01)\n• CET: 5 jours (depuis 01/01)\n= 46 jours total`}
               >
-                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">40</div>
+                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">46</div>
               </CalculationTooltip>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>23 RTT</div>
-                <div>+ 12 CP + 5 CET</div>
+                <div>24 RTT</div>
+                <div>+ 17 CP + 5 CET</div>
               </div>
             </div>
           </div>
@@ -393,9 +393,9 @@ export default function Dashboard() {
               <span className="text-green-700 dark:text-green-300 font-medium text-xs sm:text-sm">À planifier</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">60.5</div>
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">58.5</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>5 RTT</div>
+                <div>3 RTT</div>
                 <div>+ 55.5 CP / CET</div>
               </div>
             </div>
@@ -412,10 +412,10 @@ export default function Dashboard() {
               <span className="text-blue-700 dark:text-blue-300 font-medium text-xs sm:text-sm">Disponible</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">69.5</div>
+              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">67.5</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>Disponible</div>
-                <div>(A) planifier)</div>
+                <div>5 RTT + 62.5 CP</div>
+                <div>+ 0 CET</div>
               </div>
             </div>
           </div>
@@ -533,31 +533,31 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
                   <CalculationTooltip
-                    value="3"
+                    value="2"
                     calculation={`RTT planifiés (marqués comme "Prévision"):
 • Congés futurs déjà planifiés
 • Statut: "Prévision" uniquement
-= 3 jours total`}
+= 2 jours total`}
                   >
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">3</div>
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">2</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">3 RTT Planifié</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">2 RTT Planifié</div>
                 </div>
                 
                 {/* À planifier RTT */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
                   <CalculationTooltip
-                    value="2"
+                    value="3"
                     calculation={`RTT restants à planifier:
 • Quota initial: 29 jours
 • - Pris: 24 jours
-• - Planifiés: 3 jours
-= 2 jours restants`}
+• - Planifiés: 2 jours
+= 3 jours restants`}
                   >
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">2</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">3</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 2 RTT à Planifier</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 3 RTT à Planifier</div>
                 </div>
                 
                 {/* Disponible RTT */}
@@ -566,8 +566,8 @@ export default function Dashboard() {
                   <CalculationTooltip
                     value="5"
                     calculation={`RTT disponibles (planifiés + non planifiés):
-• Planifiés: 3 jours
-• + À planifier: 2 jours
+• Planifiés: 2 jours
+• + À planifier: 3 jours
 = 5 jours disponibles`}
                   >
                     <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">5</div>
@@ -670,84 +670,187 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Colonne gauche - Sections principales */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Graphique en barres RTT vs CP/CET */}
+          {/* Bloc Évolution annuelle en pleine largeur */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="group relative">
-                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help">Évolution annuelle</div>
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold">Calcul du quota initial</div>
-                      <div>23 jours (Quota RTT 2025)</div>
-                      <div>+ 6 jours (Reliquat RTT 2024)</div>
-                      <div className="font-bold">= 29 jours total</div>
+              <div className="space-y-4">
+                <div className="flex justify-start items-center">
+                  <div className="group relative">
+                    <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help">Évolution annuelle</div>
+                    {/* Tooltip pour expliquer le graphique */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      <div className="text-center max-w-xs">
+                        <div className="font-semibold mb-2">Comment lire ce graphique</div>
+                        <div className="text-xs space-y-1">
+                          <div>• <span className="font-bold text-red-400 dark:text-red-600">Rouge</span> = Jours RTT pris par mois</div>
+                          <div>• <span className="font-bold text-blue-400 dark:text-blue-600">Bleu</span> = Jours CP pris par mois</div>
+                          <div>• <span className="font-bold text-cyan-400 dark:text-cyan-600">Cyan</span> = Jours CET pris par mois</div>
+                          <div>• Barres empilées = Total des congés</div>
+                          <div>• Courbes = Progression cumulée (%)</div>
+                        </div>
+                      </div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
                     </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
                   </div>
                 </div>
-                <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota pris</div>
-                  <div className="text-lg font-bold text-red-600 dark:text-red-400 cursor-help" title="Total des jours RTT effectivement pris en 2025">
-                    24
+                
+                {/* Légende professionnelle */}
+                <div className="flex justify-center space-x-6 text-sm mb-6">
+                  <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                    <div className="w-4 h-4 bg-red-500 rounded-sm shadow-sm"></div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">RTT</span>
                   </div>
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold">RTT pris</div>
-                      <div>Consommation au 11/09/2025</div>
-                      <div>Congés marqués comme "réels"</div>
-                      <div className="font-bold">= 24 jours</div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                    <div className="w-4 h-4 bg-blue-500 rounded-sm shadow-sm"></div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">CP</span>
                   </div>
-                </div>
-                <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Planifié</div>
-                  <div className="text-lg font-bold text-red-600 dark:text-red-400 cursor-help" title="Total des jours RTT planifiés">
-                    2
-                  </div>
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold">RTT planifiés</div>
-                      <div>Consommation au 11/09/2025</div>
-                      <div>Congés marqués comme "prévision"</div>
-                      <div className="font-bold">= 2 jours</div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                  <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                    <div className="w-4 h-4 bg-cyan-500 rounded-sm shadow-sm"></div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">CET</span>
                   </div>
                 </div>
-                <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">À planifier</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Jours RTT restants à planifier">
-                    3
+                
+                {/* Histogramme avec données réelles et courbes cumulatives */}
+                <div className="relative h-96 bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
+                  {/* Graphique en barres */}
+                  <div className="h-64 flex items-end justify-between space-x-2 mb-4">
+                    {monthlyLeaveData.map((monthData, index) => {
+                      const monthNames = ['Ja', 'Fe', 'M', 'Ar', 'M', 'Ju', 'Jl', 'Au', 'Se', 'Oc', 'N', 'D']
+                      const maxHeight = 240
+                      const maxDays = Math.max(...monthlyLeaveData.map(m => m.totalDays), 1)
+                      const scaleFactor = maxHeight / maxDays
+                      
+                      const rttHeight = Math.max(monthData.rttDays * scaleFactor, 2)
+                      const cpHeight = Math.max(monthData.cpDays * scaleFactor, 2)
+                      const cetHeight = Math.max(monthData.cetDays * scaleFactor, 2)
+                      
+                      return (
+                        <div key={index} className="flex flex-col items-center space-y-1 group">
+                          <div className="flex flex-col space-y-0 cursor-help" title={`${monthNames[index]} ${currentYear}: ${monthData.rttDays} RTT (${monthData.rttPercent}%) + ${monthData.cpDays} CP (${monthData.cpPercent}%) + ${monthData.cetDays} CET (${monthData.cetPercent}%) = ${monthData.totalDays} jours total`}>
+                            {monthData.rttDays > 0 && (
+                              <div 
+                                className="w-8 bg-red-500 rounded-t" 
+                                style={{height: `${rttHeight}px`}} 
+                                title={`${monthData.rttDays} jours RTT (${monthData.rttPercent}%)`}
+                              ></div>
+                            )}
+                            {monthData.cpDays > 0 && (
+                              <div 
+                                className="w-8 bg-blue-500" 
+                                style={{height: `${cpHeight}px`}} 
+                                title={`${monthData.cpDays} jours CP (${monthData.cpPercent}%)`}
+                              ></div>
+                            )}
+                            {monthData.cetDays > 0 && (
+                              <div 
+                                className="w-8 bg-cyan-500 rounded-b" 
+                                style={{height: `${cetHeight}px`}} 
+                                title={`${monthData.cetDays} jours CET (${monthData.cetPercent}%)`}
+                              ></div>
+                            )}
+                            {monthData.totalDays === 0 && (
+                              <div 
+                                className="w-8 bg-gray-300 dark:bg-gray-600 rounded" 
+                                style={{height: '10px'}} 
+                                title="Aucun congé ce mois"
+                              ></div>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-600 dark:text-gray-400">{monthNames[index]}</span>
+                        </div>
+                      )
+                    })}
                   </div>
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold">RTT à planifier</div>
-                      <div>29 (total) - 24 (pris) - 2 (planifiés)</div>
-                      <div className="font-bold">= 3 jours</div>
-                      <div className="text-red-300 dark:text-red-700">⚠️ Échéance: 31/12/2025</div>
-                      <div className="text-xs text-gray-300 dark:text-gray-600">(deadline 28/02/2026)</div>
+
+                  {/* Courbes cumulatives */}
+                  <div className="relative h-20 border-t border-gray-300 dark:border-gray-600 pt-2">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Progression cumulée (%)</div>
+                    
+                    {/* Grille de fond */}
+                    <div className="absolute inset-0 flex justify-between">
+                      {Array.from({ length: 13 }).map((_, i) => (
+                        <div key={i} className="w-8 flex justify-center">
+                          <div className="w-px h-full bg-gray-200 dark:bg-gray-600"></div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                    
+                    {/* Courbe RTT */}
+                    <svg className="absolute inset-0 w-full h-full" style={{ top: '8px' }}>
+                      <polyline
+                        points={cumulativeData.map((data, index) => {
+                          const x = (index * (100 / 11)) + 4
+                          const y = 80 - (data.rttProgress * 0.8)
+                          return `${x},${y}`
+                        }).join(' ')}
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="2"
+                        strokeDasharray="3,3"
+                      />
+                      {cumulativeData.map((data, index) => {
+                        const x = (index * (100 / 11)) + 4
+                        const y = 80 - (data.rttProgress * 0.8)
+                        return (
+                          <circle
+                            key={index}
+                            cx={x}
+                            cy={y}
+                            r="2"
+                            fill="#ef4444"
+                          >
+                            <title>{`Mois ${index + 1}: ${data.cumulativeRtt} jours RTT (${data.rttProgress.toFixed(1)}%)`}</title>
+                          </circle>
+                        )
+                      })}
+                    </svg>
+                    
+                    {/* Courbe CP/CET */}
+                    <svg className="absolute inset-0 w-full h-full" style={{ top: '8px' }}>
+                      <polyline
+                        points={cumulativeData.map((data, index) => {
+                          const x = (index * (100 / 11)) + 4
+                          const y = 80 - (data.cpCetProgress * 0.8)
+                          return `${x},${y}`
+                        }).join(' ')}
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                      />
+                      {cumulativeData.map((data, index) => {
+                        const x = (index * (100 / 11)) + 4
+                        const y = 80 - (data.cpCetProgress * 0.8)
+                        return (
+                          <circle
+                            key={index}
+                            cx={x}
+                            cy={y}
+                            r="2"
+                            fill="#3b82f6"
+                          >
+                            <title>{`Mois ${index + 1}: ${data.cumulativeCp + data.cumulativeCet} jours CP/CET (${data.cpCetProgress.toFixed(1)}%)`}</title>
+                          </circle>
+                        )
+                      })}
+                    </svg>
+                    
+                    {/* Légende des courbes */}
+                    <div className="absolute top-0 right-0 flex space-x-4 text-xs">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-0.5 bg-red-500" style={{ borderTop: '2px dashed #ef4444' }}></div>
+                        <span className="text-gray-600 dark:text-gray-400">RTT</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-0.5 bg-blue-500" style={{ borderTop: '2px dashed #3b82f6' }}></div>
+                        <span className="text-gray-600 dark:text-gray-400">CP/CET</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Échéance: 31/12/2025
               </div>
             </div>
-          </div>
 
-        </div>
-
-        {/* Colonne droite - Informations complémentaires */}
-        <div className="space-y-6">
-          {/* Card d'alertes */}
+          {/* Bloc Incohérences détectées */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
@@ -768,186 +871,10 @@ export default function Dashboard() {
               Corriger maintenant
             </button>
           </div>
+        </div>
 
-          {/* Graphique en barres RTT vs CP/CET */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="group relative">
-                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help">Évolution annuelle</div>
-                  {/* Tooltip pour expliquer le graphique */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center max-w-xs">
-                      <div className="font-semibold mb-2">Comment lire ce graphique</div>
-                      <div className="text-xs space-y-1">
-                        <div>• <span className="font-bold text-red-400 dark:text-red-600">Rouge</span> = Jours RTT pris par mois</div>
-                        <div>• <span className="font-bold text-blue-400 dark:text-blue-600">Bleu</span> = Jours CP pris par mois</div>
-                        <div>• <span className="font-bold text-cyan-400 dark:text-cyan-600">Cyan</span> = Jours CET pris par mois</div>
-                        <div>• Barres empilées = Total des congés</div>
-                        <div>• Courbes = Progression cumulée (%)</div>
-                      </div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Légende professionnelle */}
-              <div className="flex justify-center space-x-6 text-sm mb-6">
-                <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                  <div className="w-4 h-4 bg-red-500 rounded-sm shadow-sm"></div>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">RTT</span>
-                </div>
-                <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                  <div className="w-4 h-4 bg-blue-500 rounded-sm shadow-sm"></div>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">CP</span>
-                </div>
-                <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                  <div className="w-4 h-4 bg-cyan-500 rounded-sm shadow-sm"></div>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">CET</span>
-                </div>
-              </div>
-              
-              {/* Histogramme avec données réelles et courbes cumulatives */}
-              <div className="relative h-80 bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
-                {/* Graphique en barres */}
-                <div className="h-48 flex items-end justify-between space-x-2 mb-4">
-                  {monthlyLeaveData.map((monthData, index) => {
-                    const monthNames = ['Ja', 'Fe', 'M', 'Ar', 'M', 'Ju', 'Jl', 'Au', 'Se', 'Oc', 'N', 'D']
-                    const maxHeight = 180
-                    const maxDays = Math.max(...monthlyLeaveData.map(m => m.totalDays), 1)
-                    const scaleFactor = maxHeight / maxDays
-                    
-                    const rttHeight = Math.max(monthData.rttDays * scaleFactor, 2)
-                    const cpHeight = Math.max(monthData.cpDays * scaleFactor, 2)
-                    const cetHeight = Math.max(monthData.cetDays * scaleFactor, 2)
-                    
-                    return (
-                      <div key={index} className="flex flex-col items-center space-y-1 group">
-                        <div className="flex flex-col space-y-0 cursor-help" title={`${monthNames[index]} ${currentYear}: ${monthData.rttDays} RTT (${monthData.rttPercent}%) + ${monthData.cpDays} CP (${monthData.cpPercent}%) + ${monthData.cetDays} CET (${monthData.cetPercent}%) = ${monthData.totalDays} jours total`}>
-                          {monthData.rttDays > 0 && (
-                            <div 
-                              className="w-8 bg-red-500 rounded-t" 
-                              style={{height: `${rttHeight}px`}} 
-                              title={`${monthData.rttDays} jours RTT (${monthData.rttPercent}%)`}
-                            ></div>
-                          )}
-                          {monthData.cpDays > 0 && (
-                            <div 
-                              className="w-8 bg-blue-500" 
-                              style={{height: `${cpHeight}px`}} 
-                              title={`${monthData.cpDays} jours CP (${monthData.cpPercent}%)`}
-                            ></div>
-                          )}
-                          {monthData.cetDays > 0 && (
-                            <div 
-                              className="w-8 bg-cyan-500 rounded-b" 
-                              style={{height: `${cetHeight}px`}} 
-                              title={`${monthData.cetDays} jours CET (${monthData.cetPercent}%)`}
-                            ></div>
-                          )}
-                          {monthData.totalDays === 0 && (
-                            <div 
-                              className="w-8 bg-gray-300 dark:bg-gray-600 rounded" 
-                              style={{height: '10px'}} 
-                              title="Aucun congé ce mois"
-                            ></div>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-600 dark:text-gray-400">{monthNames[index]}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Courbes cumulatives */}
-                <div className="relative h-20 border-t border-gray-300 dark:border-gray-600 pt-2">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Progression cumulée (%)</div>
-                  
-                  {/* Grille de fond */}
-                  <div className="absolute inset-0 flex justify-between">
-                    {Array.from({ length: 13 }).map((_, i) => (
-                      <div key={i} className="w-8 flex justify-center">
-                        <div className="w-px h-full bg-gray-200 dark:bg-gray-600"></div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Courbe RTT */}
-                  <svg className="absolute inset-0 w-full h-full" style={{ top: '8px' }}>
-                    <polyline
-                      points={cumulativeData.map((data, index) => {
-                        const x = (index * (100 / 11)) + 4
-                        const y = 80 - (data.rttProgress * 0.8)
-                        return `${x},${y}`
-                      }).join(' ')}
-                      fill="none"
-                      stroke="#ef4444"
-                      strokeWidth="2"
-                      strokeDasharray="3,3"
-                    />
-                    {cumulativeData.map((data, index) => {
-                      const x = (index * (100 / 11)) + 4
-                      const y = 80 - (data.rttProgress * 0.8)
-                      return (
-                        <circle
-                          key={index}
-                          cx={x}
-                          cy={y}
-                          r="2"
-                          fill="#ef4444"
-                        >
-                          <title>{`Mois ${index + 1}: ${data.cumulativeRtt} jours RTT (${data.rttProgress.toFixed(1)}%)`}</title>
-                        </circle>
-                      )
-                    })}
-                  </svg>
-                  
-                  {/* Courbe CP/CET */}
-                  <svg className="absolute inset-0 w-full h-full" style={{ top: '8px' }}>
-                    <polyline
-                      points={cumulativeData.map((data, index) => {
-                        const x = (index * (100 / 11)) + 4
-                        const y = 80 - (data.cpCetProgress * 0.8)
-                        return `${x},${y}`
-                      }).join(' ')}
-                      fill="none"
-                      stroke="#3b82f6"
-                      strokeWidth="2"
-                      strokeDasharray="5,5"
-                    />
-                    {cumulativeData.map((data, index) => {
-                      const x = (index * (100 / 11)) + 4
-                      const y = 80 - (data.cpCetProgress * 0.8)
-                      return (
-                        <circle
-                          key={index}
-                          cx={x}
-                          cy={y}
-                          r="2"
-                          fill="#3b82f6"
-                        >
-                          <title>{`Mois ${index + 1}: ${data.cumulativeCp + data.cumulativeCet} jours CP/CET (${data.cpCetProgress.toFixed(1)}%)`}</title>
-                        </circle>
-                      )
-                    })}
-                  </svg>
-                  
-                  {/* Légende des courbes */}
-                  <div className="absolute top-0 right-0 flex space-x-4 text-xs">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-0.5 bg-red-500" style={{ backgroundImage: 'repeating-linear-gradient(to right, #ef4444, #ef4444 3px, transparent 3px, transparent 6px)' }}></div>
-                      <span className="text-gray-600 dark:text-gray-400">RTT</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-0.5 bg-blue-500" style={{ backgroundImage: 'repeating-linear-gradient(to right, #3b82f6, #3b82f6 5px, transparent 5px, transparent 10px)' }}></div>
-                      <span className="text-gray-600 dark:text-gray-400">CP/CET</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Colonne droite - Informations complémentaires */}
+        <div className="space-y-6">
         </div>
       </div>
 
