@@ -671,8 +671,9 @@ export default function Dashboard() {
                           cy={y}
                           r="2"
                           fill="#ef4444"
-                          title={`Mois ${index + 1}: ${data.cumulativeRtt} jours RTT (${data.rttProgress.toFixed(1)}%)`}
-                        />
+                        >
+                          <title>{`Mois ${index + 1}: ${data.cumulativeRtt} jours RTT (${data.rttProgress.toFixed(1)}%)`}</title>
+                        </circle>
                       )
                     })}
                   </svg>
@@ -700,8 +701,9 @@ export default function Dashboard() {
                           cy={y}
                           r="2"
                           fill="#3b82f6"
-                          title={`Mois ${index + 1}: ${data.cumulativeCp + data.cumulativeCet} jours CP/CET (${data.cpCetProgress.toFixed(1)}%)`}
-                        />
+                        >
+                          <title>{`Mois ${index + 1}: ${data.cumulativeCp + data.cumulativeCet} jours CP/CET (${data.cpCetProgress.toFixed(1)}%)`}</title>
+                        </circle>
                       )
                     })}
                   </svg>
