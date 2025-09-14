@@ -331,132 +331,334 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Cartes du Dashboard - 4 lignes */}
+      {/* Cards de résumé en haut */}
+      {dashboardCardsData && (
+        <div className="grid grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8 min-w-0">
+          {/* Card 1: Pris */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-red-100 dark:bg-red-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-red-700 dark:text-red-300 font-medium text-xs sm:text-sm">Pris</span>
+            </div>
+            <div className="p-2 sm:p-4 text-center">
+              <CalculationTooltip
+                value={dashboardCardsData.allTypes.pris}
+                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: ${dashboardCardsData.rtt.pris} jours (depuis 01/01)\n• CP: ${dashboardCardsData.cp.pris} jours (depuis 01/01)\n• CET: ${dashboardCardsData.cet.pris} jours (depuis 01/01)\n= ${dashboardCardsData.allTypes.pris} jours total`}
+              >
+                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">{dashboardCardsData.allTypes.pris}</div>
+              </CalculationTooltip>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                <div>{dashboardCardsData.rtt.pris} RTT</div>
+                <div>+ {dashboardCardsData.cp.pris} CP + {dashboardCardsData.cet.pris} CET</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Planifié */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-orange-100 dark:bg-orange-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-orange-700 dark:text-orange-300 font-medium text-xs sm:text-sm">Planifié</span>
+            </div>
+            <div className="p-2 sm:p-4 text-center">
+              <CalculationTooltip
+                value={dashboardCardsData.allTypes.restantPlanifie}
+                calculation={`Total des congés planifiés (marqués comme "Prévision"):\n• RTT: ${dashboardCardsData.rtt.restantPlanifie} jours\n• CP: ${dashboardCardsData.cp.restantPlanifie} jours\n• CET: ${dashboardCardsData.cet.restantPlanifie} jours\n= ${dashboardCardsData.allTypes.restantPlanifie} jours total`}
+              >
+                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">{dashboardCardsData.allTypes.restantPlanifie}</div>
+              </CalculationTooltip>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                <div>{dashboardCardsData.rtt.restantPlanifie} RTT</div>
+                <div>+ {dashboardCardsData.cp.restantPlanifie} CP + {dashboardCardsData.cet.restantPlanifie} CET</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: À planifier */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-green-100 dark:bg-green-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-green-700 dark:text-green-300 font-medium text-xs sm:text-sm">À planifier</span>
+            </div>
+            <div className="p-2 sm:p-4 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{dashboardCardsData.allTypes.restantNonPlanifie}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                <div>{dashboardCardsData.rtt.restantNonPlanifie} RTT</div>
+                <div>+ {dashboardCardsData.cp.restantNonPlanifie + dashboardCardsData.cet.restantNonPlanifie} CP / CET</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Disponible */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-blue-100 dark:bg-blue-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
+              <span className="text-blue-700 dark:text-blue-300 font-medium text-xs sm:text-sm">Disponible</span>
+            </div>
+            <div className="p-2 sm:p-4 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{dashboardCardsData.allTypes.restantDisponible}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                <div>Disponible</div>
+                <div>(A) planifier)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cartes spécifiques par type de congé */}
       {dashboardCardsData && (
         <div className="space-y-6 mb-8">
-          {/* Ligne 1: Tous types confondus */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Vue d'ensemble - Tous types</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">RTT + CP + CET + reliquats année précédente</p>
+          {/* Cartes CP */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-blue-600 dark:bg-blue-700 px-6 py-4">
+              <h2 className="text-xl font-bold text-white">Congés Payés (CP)</h2>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-5 gap-4">
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.allTypes.quotaInitial}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                {/* Quota initial CP */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Quota initial</div>
+                  <CalculationTooltip
+                    value="79,5"
+                    calculation={`Quota initial CP ${currentYear}:\n• 32 jours (Quota CP 2025)\n• + 47.5 jours (Reliquat CP 2024)\n= 79.5 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">79,5</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">47.5 Reliquat</div>
                 </div>
-                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.allTypes.pris}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
+                
+                {/* Pris CP */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
+                  <CalculationTooltip
+                    value="17"
+                    calculation={`CP pris depuis le 01/01/${currentYear}:\n• Congés marqués comme "Réels"\n• Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}\n= 17 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">17</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">17 CP pris</div>
                 </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.allTypes.restantPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
+                
+                {/* Planifié CP */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
+                  <CalculationTooltip
+                    value="7"
+                    calculation={`CP planifiés (marqués comme "Prévision"):\n• Congés futurs déjà planifiés\n• Statut: "Prévision" uniquement\n= 7 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">7</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">7 CP Planifié</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.allTypes.restantNonPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
+                
+                {/* À planifier CP */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
+                  <CalculationTooltip
+                    value="55.5"
+                    calculation={`CP restants à planifier:\n• Quota initial: 79.5 jours\n• - Pris: 17 jours\n• - Planifiés: 7 jours\n= 55.5 jours restants`}
+                  >
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">55.5</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 55.5 CP à Planifier</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.allTypes.restantDisponible}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
+                
+                {/* Disponible CP */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
+                  <CalculationTooltip
+                    value="62.5"
+                    calculation={`CP disponibles (planifiés + non planifiés):\n• Planifiés: 7 jours\n• + À planifier: 55.5 jours\n= 62.5 jours disponibles`}
+                  >
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">62.5</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Ligne 2: RTT uniquement */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-6 py-4 bg-red-600 dark:bg-red-700">
+          {/* Cartes RTT */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-red-600 dark:bg-red-700 px-6 py-4">
               <h2 className="text-xl font-bold text-white">RTT</h2>
-              <p className="text-sm text-red-100">RTT + reliquat RTT année précédente</p>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-5 gap-4">
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.rtt.quotaInitial}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                {/* Quota initial RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Quota initial</div>
+                  <CalculationTooltip
+                    value="29"
+                    calculation={`Quota initial RTT ${currentYear}:\n• 23 jours (Quota RTT 2025)\n• + 6 jours (Reliquat RTT 2024)\n= 29 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">29</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">6 Reliquat</div>
                 </div>
-                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.rtt.pris}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
+                
+                {/* Pris RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
+                  <CalculationTooltip
+                    value="5"
+                    calculation={`RTT pris depuis le 01/01/${currentYear}:
+• Congés marqués comme "Réels"
+• Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}
+= 5 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">5</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">5 RTT pris</div>
                 </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.rtt.restantPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
+                
+                {/* Planifié RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
+                  <CalculationTooltip
+                    value="3"
+                    calculation={`RTT planifiés (marqués comme "Prévision"):
+• Congés futurs déjà planifiés
+• Statut: "Prévision" uniquement
+= 3 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">3</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">3 RTT Planifié</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.rtt.restantNonPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
+                
+                {/* À planifier RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
+                  <CalculationTooltip
+                    value="21"
+                    calculation={`RTT restants à planifier:
+• Quota initial: 29 jours
+• - Pris: 5 jours
+• - Planifiés: 3 jours
+= 21 jours restants`}
+                  >
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">21</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 21 RTT à Planifier</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.rtt.restantDisponible}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
+                
+                {/* Disponible RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
+                  <CalculationTooltip
+                    value="24"
+                    calculation={`RTT disponibles (planifiés + non planifiés):
+• Planifiés: 3 jours
+• + À planifier: 21 jours
+= 24 jours disponibles`}
+                  >
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">24</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Ligne 3: CP uniquement */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-6 py-4 bg-blue-600 dark:bg-blue-700">
-              <h2 className="text-xl font-bold text-white">CP</h2>
-              <p className="text-sm text-blue-100">CP + reliquat CP année précédente</p>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-5 gap-4">
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.cp.quotaInitial}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
-                </div>
-                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.cp.pris}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
-                </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.cp.restantPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
-                </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.cp.restantNonPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.cp.restantDisponible}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Ligne 4: CET uniquement */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-6 py-4 bg-cyan-600 dark:bg-cyan-700">
+          {/* Cartes CET */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-cyan-600 dark:bg-cyan-700 px-6 py-4">
               <h2 className="text-xl font-bold text-white">CET</h2>
-              <p className="text-sm text-cyan-100">CET + reliquat CET année précédente</p>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-5 gap-4">
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.cet.quotaInitial}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                {/* Quota initial CET */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Quota initial</div>
+                  <CalculationTooltip
+                    value="12"
+                    calculation={`Quota initial CET ${currentYear}:
+• 12 jours (Quota CET 2025)
+• + 0 jours (Reliquat CET 2024)
+= 12 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">12</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">0 Reliquat</div>
                 </div>
-                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.cet.pris}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
+                
+                {/* Pris CET */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
+                  <CalculationTooltip
+                    value="0"
+                    calculation={`CET pris depuis le 01/01/${currentYear}:
+• Congés marqués comme "Réels"
+• Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}
+= 0 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">0</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">0 CET pris</div>
                 </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.cet.restantPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
+                
+                {/* Planifié CET */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
+                  <CalculationTooltip
+                    value="0"
+                    calculation={`CET planifiés (marqués comme "Prévision"):
+• Congés futurs déjà planifiés
+• Statut: "Prévision" uniquement
+= 0 jours total`}
+                  >
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">0</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">0 CET Planifié</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.cet.restantNonPlanifie}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
+                
+                {/* À planifier CET */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
+                  <CalculationTooltip
+                    value="12"
+                    calculation={`CET restants à planifier:
+• Quota initial: 12 jours
+• - Pris: 0 jours
+• - Planifiés: 0 jours
+= 12 jours restants`}
+                  >
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">12</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 12 CET à Planifier</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.cet.restantDisponible}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
+                
+                {/* Disponible CET */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
+                  <CalculationTooltip
+                    value="12"
+                    calculation={`CET disponibles (planifiés + non planifiés):
+• Planifiés: 0 jours
+• + À planifier: 12 jours
+= 12 jours disponibles`}
+                  >
+                    <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">12</div>
+                  </CalculationTooltip>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
                 </div>
               </div>
             </div>
@@ -468,18 +670,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Colonne gauche - Sections principales */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Section RTT */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="bg-red-600 dark:bg-red-700 px-6 py-4">
-              <h2 className="text-xl font-bold text-white">RTT</h2>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          {/* Graphique en barres RTT vs CP/CET */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
                 <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="29 = 23 jours (Quota RTT 2025) + 6 jours (Reliquat RTT 2024)">
-                    29
-                  </div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help">Évolution annuelle</div>
                   {/* Tooltip */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                     <div className="text-center">
@@ -547,91 +743,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Section CP/CET */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="bg-blue-600 dark:bg-blue-700 px-6 py-4">
-              <h2 className="text-xl font-bold text-white">CP / CET</h2>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Calcul détaillé du quota initial CP/CET">
-                    79,5
-                  </div>
-                  {/* Tooltip pour expliquer le calcul CP/CET */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold mb-1">Calcul du quota initial CP/CET</div>
-                      <div className="text-xs space-y-0.5">
-                        <div className="font-bold text-blue-400 dark:text-blue-600">32 jours (Quota 2025)</div>
-                        <div>• 27 jours (Quota CP 2025)</div>
-                        <div>• 5 jours (Quota CET 2025)</div>
-                        <div className="border-t border-gray-600 dark:border-gray-400 my-0.5"></div>
-                        <div className="font-bold text-orange-400 dark:text-orange-600">+ 47,5 jours (Reliquats 2024)</div>
-                        <div>• Reliquats CP et CET de 2024</div>
-                        <div className="border-t border-gray-600 dark:border-gray-400 my-0.5"></div>
-                        <div className="font-bold text-sm">= 79,5 jours total</div>
-                        <div className="text-xs text-gray-300 dark:text-gray-600">Au 31/05/2025</div>
-                      </div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
-                  </div>
-                </div>
-                <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota pris</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Total des jours CP/CET effectivement pris">
-                    17
-                  </div>
-                  {/* Tooltip pour expliquer les jours pris */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold">CP/CET pris</div>
-                      <div>Consommation au 11/09/2025</div>
-                      <div>Congés marqués comme "réels"</div>
-                      <div className="font-bold">= 17 jours</div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
-                  </div>
-                </div>
-                <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Planifié</div>
-                  <div className="text-lg font-bold text-green-600 dark:text-green-400 cursor-help" title="Total des jours CP/CET planifiés">
-                    7
-                  </div>
-                  {/* Tooltip pour expliquer les jours planifiés */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold">CP/CET planifiés</div>
-                      <div>Consommation au 11/09/2025</div>
-                      <div>Congés marqués comme "prévision"</div>
-                      <div className="font-bold">= 7 jours</div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
-                  </div>
-                </div>
-                <div className="group relative">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">À planifier</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white cursor-help" title="Jours CP/CET restants à planifier">
-                    55,5
-                  </div>
-                  {/* Tooltip pour expliquer les jours à planifier */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    <div className="text-center">
-                      <div className="font-semibold">CP/CET à planifier</div>
-                      <div>79,5 (total) - 17 (pris) - 7 (planifiés)</div>
-                      <div className="font-bold">= 55,5 jours</div>
-                      <div className="text-orange-300 dark:text-orange-700">⚠️ Échéance: 31/05/2026</div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Échéance: 31/05/2026
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Colonne droite - Informations complémentaires */}
@@ -785,8 +896,9 @@ export default function Dashboard() {
                           cy={y}
                           r="2"
                           fill="#ef4444"
-                          title={`Mois ${index + 1}: ${data.cumulativeRtt} jours RTT (${data.rttProgress.toFixed(1)}%)`}
-                        />
+                        >
+                          <title>{`Mois ${index + 1}: ${data.cumulativeRtt} jours RTT (${data.rttProgress.toFixed(1)}%)`}</title>
+                        </circle>
                       )
                     })}
                   </svg>
@@ -814,8 +926,9 @@ export default function Dashboard() {
                           cy={y}
                           r="2"
                           fill="#3b82f6"
-                          title={`Mois ${index + 1}: ${data.cumulativeCp + data.cumulativeCet} jours CP/CET (${data.cpCetProgress.toFixed(1)}%)`}
-                        />
+                        >
+                          <title>{`Mois ${index + 1}: ${data.cumulativeCp + data.cumulativeCet} jours CP/CET (${data.cpCetProgress.toFixed(1)}%)`}</title>
+                        </circle>
                       )
                     })}
                   </svg>
