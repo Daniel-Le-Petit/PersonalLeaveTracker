@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Plus, Edit } from 'lucide-react'
+import { ArrowLeft, Edit, ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -86,18 +86,37 @@ export default function CalendarPage() {
     return day === 0 || day === 6
   }
 
-
-
-  const handleAddLeave = () => {
-    setFormData({
-      type: 'cp',
-      startDate: '',
-      endDate: '',
-      isForecast: false,
-      notes: ''
-    })
-    setShowAddModal(true)
+  const goToPreviousYear = () => {
+    setCurrentDate(new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1))
   }
+
+  const goToNextYear = () => {
+    setCurrentDate(new Date(currentDate.getFullYear() + 1, currentDate.getMonth(), 1))
+  }
+
+  const adjustDate = (field: 'startDate' | 'endDate', direction: 'add' | 'subtract') => {
+    const currentDate = new Date(formData[field])
+    const newDate = new Date(currentDate)
+    
+    if (direction === 'add') {
+      newDate.setDate(currentDate.getDate() + 1)
+    } else {
+      newDate.setDate(currentDate.getDate() - 1)
+    }
+    
+    const year = newDate.getFullYear()
+    const month = String(newDate.getMonth() + 1).padStart(2, '0')
+    const day = String(newDate.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: dateStr
+    }))
+  }
+
+
+
 
   const handleEditLeave = (leave: LeaveEntry) => {
     setSelectedLeave(leave)
@@ -112,15 +131,24 @@ export default function CalendarPage() {
   }
 
   const handleDateClick = (date: Date) => {
+    console.log('Date cliquée:', date)
     const dayLeaves = getLeavesForDate(date)
+    console.log('Congés trouvés:', dayLeaves)
     
     if (dayLeaves.length > 0) {
       // Si il y a des congés ce jour, modifier le premier
+      console.log('Modification du congé:', dayLeaves[0])
       handleEditLeave(dayLeaves[0])
     } else {
       // Sinon, ajouter un nouveau congé
+      console.log('Ajout d\'un nouveau congé pour:', date)
       setSelectedDate(date)
-      const dateStr = date.toISOString().split('T')[0]
+      // Utiliser le format local pour éviter les décalages GMT
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${year}-${month}-${day}`
+      console.log('Date formatée:', dateStr)
       setFormData({
         type: 'cp',
         startDate: dateStr,
@@ -134,10 +162,15 @@ export default function CalendarPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('handleSubmit appelé')
+    console.log('showEditModal:', showEditModal)
+    console.log('selectedLeave:', selectedLeave)
+    console.log('formData:', formData)
     
     try {
       if (showEditModal && selectedLeave) {
         // Modifier un congé existant
+        console.log('Modification du congé existant')
         const updatedLeave: LeaveEntry = {
           ...selectedLeave,
           ...formData,
@@ -145,12 +178,14 @@ export default function CalendarPage() {
           updatedAt: new Date().toISOString()
         }
         
+        console.log('Congé mis à jour:', updatedLeave)
         await leaveStorage.updateLeave(updatedLeave)
         setLeaves(prev => prev.map(leave => leave.id === selectedLeave.id ? updatedLeave : leave))
         toast.success('Congé modifié avec succès')
         setShowEditModal(false)
       } else {
         // Ajouter un nouveau congé
+        console.log('Ajout d\'un nouveau congé')
         const newLeave: LeaveEntry = {
           id: Date.now().toString(),
           ...formData,
@@ -159,8 +194,14 @@ export default function CalendarPage() {
           updatedAt: new Date().toISOString()
         }
         
+        console.log('Nouveau congé créé:', newLeave)
         await leaveStorage.addLeave(newLeave)
-        setLeaves(prev => [...prev, newLeave])
+        console.log('Congé sauvegardé dans le storage')
+        setLeaves(prev => {
+          const newLeaves = [...prev, newLeave]
+          console.log('Nouvelle liste des congés:', newLeaves)
+          return newLeaves
+        })
         toast.success('Congé ajouté avec succès')
         setShowAddModal(false)
       }
@@ -226,13 +267,6 @@ export default function CalendarPage() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={handleAddLeave}
-                className="btn-primary flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nouveau congé</span>
-              </button>
             </div>
           </div>
         </div>
@@ -243,8 +277,31 @@ export default function CalendarPage() {
         {/* Calendrier multi-mois */}
         <div className="card">
           <div className="card-body">
-            <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">Calendrier des congés</h2>
+              
+              {/* Sélecteur d'année */}
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={goToPreviousYear}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  title="Année précédente"
+                >
+                  <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                </button>
+                
+                <div className="text-xl font-semibold text-gray-900 dark:text-white min-w-[80px] text-center">
+                  {currentDate.getFullYear()}
+                </div>
+                
+                <button
+                  onClick={goToNextYear}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  title="Année suivante"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                </button>
+              </div>
             </div>
 
             {/* Légende */}
@@ -318,9 +375,7 @@ export default function CalendarPage() {
                         const leaveStart = new Date(leave.startDate)
                         const leaveEnd = new Date(leave.endDate)
                         return currentDate >= leaveStart && 
-                               currentDate <= leaveEnd &&
-                               currentDate.getDay() !== 0 && // Pas le dimanche
-                               currentDate.getDay() !== 6    // Pas le samedi
+                               currentDate <= leaveEnd
                       })
                       
                       const isCurrentMonth = currentDate.getMonth() === month.getMonth()
@@ -401,7 +456,7 @@ export default function CalendarPage() {
                   value={formData.type}
                   onChange={(e) => setFormData({...formData, type: e.target.value as LeaveType})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de début"
+                  title="Sélectionner le type de congé"
                   required
                 >
                   <option value="cp">CP - Congés payés</option>
@@ -415,28 +470,64 @@ export default function CalendarPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Date de début
                 </label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de début"
-                  required
-                />
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('startDate', 'subtract')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Soustraire un jour"
+                  >
+                    <Minus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                    className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    title="Sélectionner la date de début"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('startDate', 'add')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Ajouter un jour"
+                  >
+                    <Plus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                </div>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Date de fin
                 </label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de fin"
-                  required
-                />
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('endDate', 'subtract')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Soustraire un jour"
+                  >
+                    <Minus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    title="Sélectionner la date de fin"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('endDate', 'add')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Ajouter un jour"
+                  >
+                    <Plus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                </div>
               </div>
               
               <div className="flex items-center space-x-2">
@@ -460,7 +551,7 @@ export default function CalendarPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de début"
+                  title="Sélectionner le type de congé"
                   rows={3}
                 />
               </div>
@@ -501,7 +592,7 @@ export default function CalendarPage() {
                   value={formData.type}
                   onChange={(e) => setFormData({...formData, type: e.target.value as LeaveType})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de début"
+                  title="Sélectionner le type de congé"
                   required
                 >
                   <option value="cp">CP - Congés payés</option>
@@ -515,28 +606,64 @@ export default function CalendarPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Date de début
                 </label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de début"
-                  required
-                />
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('startDate', 'subtract')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Soustraire un jour"
+                  >
+                    <Minus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                    className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    title="Sélectionner la date de début"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('startDate', 'add')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Ajouter un jour"
+                  >
+                    <Plus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                </div>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Date de fin
                 </label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de fin"
-                  required
-                />
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('endDate', 'subtract')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Soustraire un jour"
+                  >
+                    <Minus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    title="Sélectionner la date de fin"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustDate('endDate', 'add')}
+                    className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    title="Ajouter un jour"
+                  >
+                    <Plus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
+                </div>
               </div>
               
               <div className="flex items-center space-x-2">
@@ -560,7 +687,7 @@ export default function CalendarPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  title="Sélectionner la date de début"
+                  title="Sélectionner le type de congé"
                   rows={3}
                 />
               </div>
