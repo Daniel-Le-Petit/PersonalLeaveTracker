@@ -701,3 +701,166 @@ export function isValidFrenchDate(frenchDate: string): boolean {
          date.getFullYear() >= 2020 && 
          date.getFullYear() <= 2030
 }
+
+/**
+ * Calcule les données pour les cartes du dashboard
+ */
+export function calculateDashboardCards(
+  leaves: LeaveEntry[],
+  quotas: { type: LeaveType; yearlyQuota: number }[],
+  carryovers: CarryoverLeave[] = [],
+  year: number = new Date().getFullYear()
+): {
+  allTypes: {
+    quotaInitial: number;
+    pris: number;
+    restantPlanifie: number;
+    restantNonPlanifie: number;
+    restantDisponible: number;
+  };
+  rtt: {
+    quotaInitial: number;
+    pris: number;
+    restantPlanifie: number;
+    restantNonPlanifie: number;
+    restantDisponible: number;
+  };
+  cp: {
+    quotaInitial: number;
+    pris: number;
+    restantPlanifie: number;
+    restantNonPlanifie: number;
+    restantDisponible: number;
+  };
+  cet: {
+    quotaInitial: number;
+    pris: number;
+    restantPlanifie: number;
+    restantNonPlanifie: number;
+    restantDisponible: number;
+  };
+} {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  
+  // Récupérer les quotas
+  const rttQuota = quotas.find(q => q.type === 'rtt')?.yearlyQuota || 23;
+  const cpQuota = quotas.find(q => q.type === 'cp')?.yearlyQuota || 25;
+  const cetQuota = quotas.find(q => q.type === 'cet')?.yearlyQuota || 5;
+  
+  // Récupérer les reliquats
+  const rttCarryover = carryovers.find(c => c.type === 'rtt' && c.year === year - 1)?.days || 0;
+  const cpCarryover = carryovers.find(c => c.type === 'cp' && c.year === year - 1)?.days || 0;
+  const cetCarryover = carryovers.find(c => c.type === 'cet' && c.year === year - 1)?.days || 0;
+  
+  // Filtrer les congés de l'année courante
+  const yearLeaves = leaves.filter(leave => 
+    new Date(leave.startDate).getFullYear() === year
+  );
+  
+  // Calculer les congés pris (marqués comme réels depuis le dernier 31/05 pour tous types, 01/01 pour RTT/CP/CET)
+  const cutoffDate = year === currentYear ? '2025-05-31' : `${year}-12-31`;
+  const rttCutoffDate = year === currentYear ? '2025-01-01' : `${year}-01-01`;
+  
+  const allTypesPris = yearLeaves
+    .filter(leave => 
+      !leave.isForecast && 
+      new Date(leave.startDate) >= new Date(cutoffDate)
+    )
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+    
+  const rttPris = yearLeaves
+    .filter(leave => 
+      leave.type === 'rtt' && 
+      !leave.isForecast && 
+      new Date(leave.startDate) >= new Date(rttCutoffDate)
+    )
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+    
+  const cpPris = yearLeaves
+    .filter(leave => 
+      leave.type === 'cp' && 
+      !leave.isForecast && 
+      new Date(leave.startDate) >= new Date(rttCutoffDate)
+    )
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+    
+  const cetPris = yearLeaves
+    .filter(leave => 
+      leave.type === 'cet' && 
+      !leave.isForecast && 
+      new Date(leave.startDate) >= new Date(rttCutoffDate)
+    )
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+  
+  // Calculer les congés planifiés (marqués comme prévision)
+  const allTypesPlanifie = yearLeaves
+    .filter(leave => leave.isForecast)
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+    
+  const rttPlanifie = yearLeaves
+    .filter(leave => leave.type === 'rtt' && leave.isForecast)
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+    
+  const cpPlanifie = yearLeaves
+    .filter(leave => leave.type === 'cp' && leave.isForecast)
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+    
+  const cetPlanifie = yearLeaves
+    .filter(leave => leave.type === 'cet' && leave.isForecast)
+    .reduce((sum, leave) => sum + leave.workingDays, 0);
+  
+  // Calculer les quotas initiaux (quota + reliquat)
+  const allTypesQuotaInitial = rttQuota + cpQuota + cetQuota + rttCarryover + cpCarryover + cetCarryover;
+  const rttQuotaInitial = rttQuota + rttCarryover;
+  const cpQuotaInitial = cpQuota + cpCarryover;
+  const cetQuotaInitial = cetQuota + cetCarryover;
+  
+  // Calculer les restants
+  const allTypesRestantDisponible = Math.max(0, allTypesQuotaInitial - allTypesPris);
+  const allTypesRestantNonPlanifie = Math.max(0, allTypesRestantDisponible - allTypesPlanifie);
+  const allTypesRestantPlanifie = allTypesPlanifie;
+  
+  const rttRestantDisponible = Math.max(0, rttQuotaInitial - rttPris);
+  const rttRestantNonPlanifie = Math.max(0, rttRestantDisponible - rttPlanifie);
+  const rttRestantPlanifie = rttPlanifie;
+  
+  const cpRestantDisponible = Math.max(0, cpQuotaInitial - cpPris);
+  const cpRestantNonPlanifie = Math.max(0, cpRestantDisponible - cpPlanifie);
+  const cpRestantPlanifie = cpPlanifie;
+  
+  const cetRestantDisponible = Math.max(0, cetQuotaInitial - cetPris);
+  const cetRestantNonPlanifie = Math.max(0, cetRestantDisponible - cetPlanifie);
+  const cetRestantPlanifie = cetPlanifie;
+  
+  return {
+    allTypes: {
+      quotaInitial: allTypesQuotaInitial,
+      pris: allTypesPris,
+      restantPlanifie: allTypesRestantPlanifie,
+      restantNonPlanifie: allTypesRestantNonPlanifie,
+      restantDisponible: allTypesRestantDisponible
+    },
+    rtt: {
+      quotaInitial: rttQuotaInitial,
+      pris: rttPris,
+      restantPlanifie: rttRestantPlanifie,
+      restantNonPlanifie: rttRestantNonPlanifie,
+      restantDisponible: rttRestantDisponible
+    },
+    cp: {
+      quotaInitial: cpQuotaInitial,
+      pris: cpPris,
+      restantPlanifie: cpRestantPlanifie,
+      restantNonPlanifie: cpRestantNonPlanifie,
+      restantDisponible: cpRestantDisponible
+    },
+    cet: {
+      quotaInitial: cetQuotaInitial,
+      pris: cetPris,
+      restantPlanifie: cetRestantPlanifie,
+      restantNonPlanifie: cetRestantNonPlanifie,
+      restantDisponible: cetRestantDisponible
+    }
+  };
+}

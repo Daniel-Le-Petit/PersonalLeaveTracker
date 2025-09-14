@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { AppSettings, LeaveBalance, LeaveEntry, PublicHoliday, CarryoverLeave } from '../types'
-import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummarySeparated } from '../utils/leaveUtils'
+import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysForYear, getLeaveTypeLabel, getLeaveTypeColor, getLeaveTypeIcon, calculateMonthlyLeaveSummarySeparated, calculateDashboardCards } from '../utils/leaveUtils'
 import CalculationTooltip from '../components/CalculationTooltip'
 import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
@@ -192,6 +192,12 @@ export default function Dashboard() {
     return calculateMonthlyLeaveSummarySeparated(leaves, settings.quotas, carryovers, currentYear)
   }, [leaves, settings, carryovers, currentYear])
 
+  // Calculer les données pour les cartes du dashboard
+  const dashboardCardsData = useMemo(() => {
+    if (!settings?.quotas) return null
+    return calculateDashboardCards(leaves, settings.quotas, carryovers, currentYear)
+  }, [leaves, settings, carryovers, currentYear])
+
   // Calculer la répartition mensuelle réelle pour le graphique
   const monthlyLeaveData = useMemo(() => {
     const monthlyData = Array.from({ length: 12 }, (_, index) => {
@@ -325,84 +331,138 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Cards de résumé en haut */}
-      <div className="grid grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8 min-w-0">
-        {/* Card 1: Pris */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="bg-red-100 dark:bg-red-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
+      {/* Cartes du Dashboard - 4 lignes */}
+      {dashboardCardsData && (
+        <div className="space-y-6 mb-8">
+          {/* Ligne 1: Tous types confondus */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Vue d'ensemble - Tous types</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">RTT + CP + CET + reliquats année précédente</p>
             </div>
-            <span className="text-red-700 dark:text-red-300 font-medium text-xs sm:text-sm">Pris</span>
-          </div>
-          <div className="p-2 sm:p-4 text-center">
-            <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">41</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              <div>24 RTT</div>
-              <div>+ 17 CP + 0 CET</div>
+            <div className="p-6">
+              <div className="grid grid-cols-5 gap-4">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.allTypes.quotaInitial}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                </div>
+                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.allTypes.pris}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.allTypes.restantPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.allTypes.restantNonPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.allTypes.restantDisponible}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Card 2: Planifié */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="bg-orange-100 dark:bg-orange-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-              </svg>
+          {/* Ligne 2: RTT uniquement */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 bg-red-600 dark:bg-red-700">
+              <h2 className="text-xl font-bold text-white">RTT</h2>
+              <p className="text-sm text-red-100">RTT + reliquat RTT année précédente</p>
             </div>
-            <span className="text-orange-700 dark:text-orange-300 font-medium text-xs sm:text-sm">Planifié</span>
-          </div>
-          <div className="p-2 sm:p-4 text-center">
-            <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">15</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              <div>2 RTT</div>
-              <div>+ 7 CP + 6 CET</div>
+            <div className="p-6">
+              <div className="grid grid-cols-5 gap-4">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.rtt.quotaInitial}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                </div>
+                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.rtt.pris}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.rtt.restantPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.rtt.restantNonPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.rtt.restantDisponible}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Card 3: À planifier */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="bg-green-100 dark:bg-green-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
+          {/* Ligne 3: CP uniquement */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 bg-blue-600 dark:bg-blue-700">
+              <h2 className="text-xl font-bold text-white">CP</h2>
+              <p className="text-sm text-blue-100">CP + reliquat CP année précédente</p>
             </div>
-            <span className="text-green-700 dark:text-green-300 font-medium text-xs sm:text-sm">À planifier</span>
-          </div>
-          <div className="p-2 sm:p-4 text-center">
-            <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">58,5</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              <div>3 RTT</div>
-              <div>+ 55,5 CP / CET</div>
+            <div className="p-6">
+              <div className="grid grid-cols-5 gap-4">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.cp.quotaInitial}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                </div>
+                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.cp.pris}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.cp.restantPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.cp.restantNonPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.cp.restantDisponible}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Card 4: Disponible */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="bg-blue-100 dark:bg-blue-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-              </svg>
+          {/* Ligne 4: CET uniquement */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 bg-cyan-600 dark:bg-cyan-700">
+              <h2 className="text-xl font-bold text-white">CET</h2>
+              <p className="text-sm text-cyan-100">CET + reliquat CET année précédente</p>
             </div>
-            <span className="text-blue-700 dark:text-blue-300 font-medium text-xs sm:text-sm">Disponible</span>
-          </div>
-          <div className="p-2 sm:p-4 text-center">
-            <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">73,5</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              <div>Disponible</div>
-              <div>(A) planifier)</div>
+            <div className="p-6">
+              <div className="grid grid-cols-5 gap-4">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardCardsData.cet.quotaInitial}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quota initial</div>
+                </div>
+                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{dashboardCardsData.cet.pris}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Pris</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{dashboardCardsData.cet.restantPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant planifié</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardCardsData.cet.restantNonPlanifie}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant non planifié</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{dashboardCardsData.cet.restantDisponible}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Restant disponible</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Contenu principal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
