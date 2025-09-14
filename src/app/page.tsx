@@ -854,6 +854,151 @@ export default function Dashboard() {
               </div>
             </div>
 
+          {/* Calendrier de planification des congés - 6 mois */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Calendrier de planification des congés</h3>
+              <CalculationTooltip 
+                value="ℹ️"
+                calculation="Vue sur 6 mois&#10;• Carreaux rouges = RTT planifiés&#10;• Carreaux bleus = CP planifiés&#10;• Carreaux cyan = CET planifiés&#10;• Carreau bleu = Aujourd'hui&#10;• Carreaux gris = Week-ends"
+              >
+                <Info className="h-5 w-5 text-gray-500" />
+              </CalculationTooltip>
+            </div>
+            
+            {/* Légende */}
+            <div className="flex justify-center space-x-4 text-sm mb-6">
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-red-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">RTT planifiés</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">CP planifiés</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-cyan-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">CET planifiés</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">Aujourd'hui</span>
+              </div>
+            </div>
+            
+            {/* Grille du calendrier 6 mois */}
+            <div className="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 overflow-x-auto">
+              {/* En-têtes des mois */}
+              <div className="flex mb-4">
+                {Array.from({ length: 6 }, (_, monthIndex) => {
+                  const month = new Date(currentYear, new Date().getMonth() + monthIndex, 1)
+                  const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+                  const monthName = monthNames[month.getMonth()]
+                  
+                  return (
+                    <div key={monthIndex} className="flex-1 text-center min-w-[200px]">
+                      <div className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{monthName} {month.getFullYear()}</div>
+                      {/* En-têtes des jours de la semaine */}
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, dayIndex) => (
+                          <div key={dayIndex} className="text-xs text-gray-500 dark:text-gray-400 text-center p-1">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              
+              {/* Grille du calendrier - 6 mois */}
+              <div className="flex">
+                {Array.from({ length: 6 }, (_, monthIndex) => {
+                  const month = new Date(currentYear, new Date().getMonth() + monthIndex, 1)
+                  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1)
+                  const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0)
+                  const startDate = new Date(firstDay)
+                  startDate.setDate(startDate.getDate() - firstDay.getDay() + 1) // Commencer le lundi
+                  
+                  // Générer toutes les semaines du mois (jusqu'à 6 semaines)
+                  const weeks = []
+                  const maxWeeks = 6
+                  for (let week = 0; week < maxWeeks; week++) {
+                    const weekDays = []
+                    for (let day = 0; day < 7; day++) {
+                      const currentDate = new Date(startDate)
+                      currentDate.setDate(startDate.getDate() + (week * 7) + day)
+                      
+                      // Vérifier si c'est un jour de congé planifié
+                      const dayLeaves = leaves.filter(leave => {
+                        const leaveStart = new Date(leave.startDate)
+                        const leaveEnd = new Date(leave.endDate)
+                        return leave.isForecast && 
+                               currentDate >= leaveStart && 
+                               currentDate <= leaveEnd &&
+                               currentDate.getDay() !== 0 && // Pas le dimanche
+                               currentDate.getDay() !== 6    // Pas le samedi
+                      })
+                      
+                      let rttCount = 0
+                      let cpCount = 0
+                      let cetCount = 0
+                      
+                      dayLeaves.forEach(leave => {
+                        if (leave.type === 'rtt') rttCount++
+                        else if (leave.type === 'cp') cpCount++
+                        else if (leave.type === 'cet') cetCount++
+                      })
+                      
+                      const isCurrentMonth = currentDate.getMonth() === month.getMonth()
+                      const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6
+                      const isToday = currentDate.toDateString() === new Date().toDateString()
+                      
+                      // Déterminer la couleur du carreau
+                      let carreauColor = ''
+                      if (!isCurrentMonth) {
+                        carreauColor = 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600'
+                      } else if (isWeekend) {
+                        carreauColor = 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+                      } else if (isToday) {
+                        carreauColor = 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold'
+                      } else if (rttCount > 0) {
+                        carreauColor = 'bg-red-500 text-white font-medium'
+                      } else if (cpCount > 0) {
+                        carreauColor = 'bg-blue-500 text-white font-medium'
+                      } else if (cetCount > 0) {
+                        carreauColor = 'bg-cyan-500 text-white font-medium'
+                      } else {
+                        carreauColor = 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-500'
+                      }
+                      
+                      weekDays.push(
+                        <div
+                          key={day}
+                          className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-xs rounded cursor-pointer relative ${carreauColor}`}
+                          title={`${currentDate.getDate()}/${currentDate.getMonth() + 1}${rttCount > 0 || cpCount > 0 || cetCount > 0 ? `\nCongés: ${rttCount > 0 ? rttCount + ' RTT' : ''}${cpCount > 0 ? (rttCount > 0 ? ', ' : '') + cpCount + ' CP' : ''}${cetCount > 0 ? (rttCount > 0 || cpCount > 0 ? ', ' : '') + cetCount + ' CET' : ''}` : ''}`}
+                        >
+                          {currentDate.getDate()}
+                        </div>
+                      )
+                    }
+                    weeks.push(
+                      <div key={week} className="grid grid-cols-7 gap-1 mb-1">
+                        {weekDays}
+                      </div>
+                    )
+                  }
+                  
+                  return (
+                    <div key={monthIndex} className="flex-1 min-w-[200px]">
+                      {weeks}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
           {/* Bloc Incohérences détectées */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3 mb-4">
@@ -877,147 +1022,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Nouveau calendrier de planification */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Calendrier de planification des congés</h3>
-            <CalculationTooltip 
-              value="ℹ️"
-              calculation="Vue par semaine sur 3 mois&#10;• Points rouges = RTT planifiés&#10;• Points bleus = CP planifiés&#10;• Points cyan = CET planifiés&#10;• Case bleue = Aujourd'hui&#10;• Cases grises = Week-ends"
-            >
-              <Info className="h-5 w-5 text-gray-500" />
-            </CalculationTooltip>
-          </div>
-          
-          {/* Légende */}
-          <div className="flex justify-center space-x-4 text-sm mb-6">
-            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">RTT planifiés</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">CP planifiés</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-              <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">CET planifiés</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-              <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded"></div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">Aujourd'hui</span>
-            </div>
-          </div>
-          
-          {/* Calendrier hebdomadaire */}
-          <div className="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 overflow-x-auto">
-            {/* En-têtes des mois */}
-            <div className="flex mb-4">
-              {Array.from({ length: 3 }, (_, monthIndex) => {
-                const month = new Date(currentYear, new Date().getMonth() + monthIndex, 1)
-                const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
-                const monthName = monthNames[month.getMonth()]
-                
-                return (
-                  <div key={monthIndex} className="flex-1 text-center">
-                    <div className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{monthName} {month.getFullYear()}</div>
-                    {/* En-têtes des jours de la semaine */}
-                    <div className="grid grid-cols-7 gap-1 mb-2">
-                      {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, dayIndex) => (
-                        <div key={dayIndex} className="text-xs text-gray-500 dark:text-gray-400 text-center p-1">
-                          {day}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            
-            {/* Grille du calendrier */}
-            <div className="flex">
-              {Array.from({ length: 3 }, (_, monthIndex) => {
-                const month = new Date(currentYear, new Date().getMonth() + monthIndex, 1)
-                const firstDay = new Date(month.getFullYear(), month.getMonth(), 1)
-                const startDate = new Date(firstDay)
-                startDate.setDate(startDate.getDate() - firstDay.getDay() + 1) // Commencer le lundi
-                
-                // Générer les semaines (4 semaines par mois)
-                const weeks = []
-                for (let week = 0; week < 4; week++) {
-                  const weekDays = []
-                  for (let day = 0; day < 7; day++) {
-                    const currentDate = new Date(startDate)
-                    currentDate.setDate(startDate.getDate() + (week * 7) + day)
-                    
-                    // Vérifier si c'est un jour de congé planifié
-                    const dayLeaves = leaves.filter(leave => {
-                      const leaveStart = new Date(leave.startDate)
-                      const leaveEnd = new Date(leave.endDate)
-                      return leave.isForecast && 
-                             currentDate >= leaveStart && 
-                             currentDate <= leaveEnd &&
-                             currentDate.getDay() !== 0 && // Pas le dimanche
-                             currentDate.getDay() !== 6    // Pas le samedi
-                    })
-                    
-                    let rttCount = 0
-                    let cpCount = 0
-                    let cetCount = 0
-                    
-                    dayLeaves.forEach(leave => {
-                      if (leave.type === 'rtt') rttCount++
-                      else if (leave.type === 'cp') cpCount++
-                      else if (leave.type === 'cet') cetCount++
-                    })
-                    
-                    const isCurrentMonth = currentDate.getMonth() === month.getMonth()
-                    const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6
-                    const isToday = currentDate.toDateString() === new Date().toDateString()
-                    
-                    weekDays.push(
-                      <div
-                        key={day}
-                        className={`h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center text-xs rounded cursor-pointer relative ${
-                          !isCurrentMonth 
-                            ? 'text-gray-300 dark:text-gray-600' 
-                            : isWeekend 
-                              ? 'bg-gray-100 dark:bg-gray-800 text-gray-400' 
-                              : isToday
-                                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold'
-                                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
-                        }`}
-                        title={`${currentDate.getDate()}/${currentDate.getMonth() + 1}${rttCount > 0 || cpCount > 0 || cetCount > 0 ? `\nCongés: ${rttCount > 0 ? rttCount + ' RTT' : ''}${cpCount > 0 ? (rttCount > 0 ? ', ' : '') + cpCount + ' CP' : ''}${cetCount > 0 ? (rttCount > 0 || cpCount > 0 ? ', ' : '') + cetCount + ' CET' : ''}` : ''}`}
-                      >
-                        {currentDate.getDate()}
-                        
-                        {/* Indicateurs de congés */}
-                        {!isWeekend && isCurrentMonth && (rttCount > 0 || cpCount > 0 || cetCount > 0) && (
-                          <div className="absolute -bottom-1 left-0 right-0 flex justify-center space-x-0.5">
-                            {rttCount > 0 && <div className="w-1 h-1 bg-red-500 rounded-full"></div>}
-                            {cpCount > 0 && <div className="w-1 h-1 bg-blue-500 rounded-full"></div>}
-                            {cetCount > 0 && <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  }
-                  weeks.push(
-                    <div key={week} className="grid grid-cols-7 gap-1 mb-1">
-                      {weekDays}
-                    </div>
-                  )
-                }
-                
-                return (
-                  <div key={monthIndex} className="flex-1">
-                    {weeks}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
 
         {/* Colonne droite - Informations complémentaires */}
         <div className="space-y-6">

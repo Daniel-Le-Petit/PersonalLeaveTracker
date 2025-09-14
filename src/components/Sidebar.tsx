@@ -108,10 +108,11 @@ export default function Sidebar({ onExport, onImport, onEmail }: SidebarProps) {
   return (
     <>
       {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-4 right-4 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(true)}
           className="p-2 rounded-md bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700"
+          title="Ouvrir le menu"
         >
           <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
         </button>
@@ -120,12 +121,13 @@ export default function Sidebar({ onExport, onImport, onEmail }: SidebarProps) {
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-y-0 right-0 w-64 bg-white dark:bg-gray-800 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Navigation</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white whitespace-nowrap">Leave-Tracker Dashboard</h2>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                title="Fermer le menu"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -139,8 +141,8 @@ export default function Sidebar({ onExport, onImport, onEmail }: SidebarProps) {
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
         <div className="flex flex-col flex-grow bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
           <div className="flex items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Leave Tracker
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap">
+              Leave-Tracker Dashboard
             </h1>
           </div>
           <SidebarContent navigationItems={navigationItems} actionItems={actionItems} />
