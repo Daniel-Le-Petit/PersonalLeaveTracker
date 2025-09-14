@@ -428,7 +428,10 @@ export default function Dashboard() {
           {/* Cartes CP */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-blue-600 dark:bg-blue-700 px-6 py-4">
-              <h2 className="text-xl font-bold text-white">Congés Payés (CP)</h2>
+              <h2 className="text-xl font-bold text-white">
+                <span className="text-blue-200 dark:text-blue-300">Congés Payés</span>
+                <span className="text-white"> (CP)</span>
+              </h2>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-5 gap-4">
