@@ -342,18 +342,18 @@ export default function Dashboard() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
-              <span className="text-red-700 dark:text-red-300 font-medium text-xs sm:text-sm">Pris</span>
+              <span className="text-red-700 dark:text-red-300 font-medium text-sm">Pris</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
               <CalculationTooltip
-                value="46"
-                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: 24 jours (depuis 01/01)\n• CP: 17 jours (depuis 01/01)\n• CET: 5 jours (depuis 01/01)\n= 46 jours total`}
+                value="41"
+                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: 24 jours (depuis 01/01)\n• CP: 12 jours (depuis 01/01)\n• CET: 5 jours (depuis 01/01)\n= 41 jours total`}
               >
-                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">46</div>
+                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">41</div>
               </CalculationTooltip>
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 <div>24 RTT</div>
-                <div>+ 17 CP + 5 CET</div>
+                <div>+ 12 CP + 5 CET</div>
               </div>
             </div>
           </div>
@@ -366,7 +366,7 @@ export default function Dashboard() {
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
               </div>
-              <span className="text-orange-700 dark:text-orange-300 font-medium text-xs sm:text-sm">Planifié</span>
+              <span className="text-orange-700 dark:text-orange-300 font-medium text-sm">Planifié</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
               <CalculationTooltip
@@ -390,13 +390,13 @@ export default function Dashboard() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
-              <span className="text-green-700 dark:text-green-300 font-medium text-xs sm:text-sm">À planifier</span>
+              <span className="text-green-700 dark:text-green-300 font-medium text-sm">À planifier</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">58.5</div>
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">63.5</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 <div>3 RTT</div>
-                <div>+ 55.5 CP / CET</div>
+                <div>+ 60.5 CP / CET</div>
               </div>
             </div>
           </div>
@@ -409,12 +409,12 @@ export default function Dashboard() {
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
               </div>
-              <span className="text-blue-700 dark:text-blue-300 font-medium text-xs sm:text-sm">Disponible</span>
+              <span className="text-blue-700 dark:text-blue-300 font-medium text-xs">Disponible</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">67.5</div>
+              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">72.5</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>5 RTT + 62.5 CP</div>
+                <div>5 RTT + 67.5 CP</div>
                 <div>+ 0 CET</div>
               </div>
             </div>
@@ -451,12 +451,12 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
                   <CalculationTooltip
-                    value="17"
-                    calculation={`CP pris depuis le 01/01/${currentYear}:\n• Congés marqués comme "Réels"\n• Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}\n= 17 jours total`}
+                    value="12"
+                    calculation={`CP pris depuis le 01/01/${currentYear}:\n• Congés marqués comme "Réels"\n• Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}\n• Total CP: 17 jours - 5 jours CET = 12 jours CP`}
                   >
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">17</div>
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">12</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">17 CP pris</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">12 CP pris</div>
                 </div>
                 
                 {/* Planifié CP */}
@@ -475,22 +475,22 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
                   <CalculationTooltip
-                    value="55.5"
-                    calculation={`CP restants à planifier:\n• Quota initial: 79.5 jours\n• - Pris: 17 jours\n• - Planifiés: 7 jours\n= 55.5 jours restants`}
+                    value="60.5"
+                    calculation={`CP restants à planifier:\n• Quota initial: 79.5 jours\n• - Pris: 12 jours\n• - Planifiés: 7 jours\n= 60.5 jours restants`}
                   >
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">55.5</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">60.5</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 55.5 CP à Planifier</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 60.5 CP à Planifier</div>
                 </div>
                 
                 {/* Disponible CP */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
                   <CalculationTooltip
-                    value="62.5"
-                    calculation={`CP disponibles (planifiés + non planifiés):\n• Planifiés: 7 jours\n• + À planifier: 55.5 jours\n= 62.5 jours disponibles`}
+                    value="67.5"
+                    calculation={`CP disponibles (planifiés + non planifiés):\n• Planifiés: 7 jours\n• + À planifier: 60.5 jours\n= 67.5 jours disponibles`}
                   >
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">62.5</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">67.5</div>
                   </CalculationTooltip>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
                 </div>
@@ -715,7 +715,7 @@ export default function Dashboard() {
                 {/* Histogramme avec données réelles et courbes cumulatives */}
                 <div className="relative h-96 bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
                   {/* Graphique en barres */}
-                  <div className="h-64 flex items-end justify-between space-x-2 mb-4">
+                  <div className="h-64 flex items-end justify-between space-x-1 sm:space-x-2 mb-4">
                     {monthlyLeaveData.map((monthData, index) => {
                       const monthNames = ['Ja', 'Fe', 'M', 'Ar', 'M', 'Ju', 'Jl', 'Au', 'Se', 'Oc', 'N', 'D']
                       const maxHeight = 240
@@ -731,28 +731,28 @@ export default function Dashboard() {
                           <div className="flex flex-col space-y-0 cursor-help" title={`${monthNames[index]} ${currentYear}: ${monthData.rttDays} RTT (${monthData.rttPercent}%) + ${monthData.cpDays} CP (${monthData.cpPercent}%) + ${monthData.cetDays} CET (${monthData.cetPercent}%) = ${monthData.totalDays} jours total`}>
                             {monthData.rttDays > 0 && (
                               <div 
-                                className="w-8 bg-red-500 rounded-t" 
+                                className="w-4 sm:w-8 bg-red-500 rounded-t" 
                                 style={{height: `${rttHeight}px`}} 
                                 title={`${monthData.rttDays} jours RTT (${monthData.rttPercent}%)`}
                               ></div>
                             )}
                             {monthData.cpDays > 0 && (
                               <div 
-                                className="w-8 bg-blue-500" 
+                                className="w-4 sm:w-8 bg-blue-500" 
                                 style={{height: `${cpHeight}px`}} 
                                 title={`${monthData.cpDays} jours CP (${monthData.cpPercent}%)`}
                               ></div>
                             )}
                             {monthData.cetDays > 0 && (
                               <div 
-                                className="w-8 bg-cyan-500 rounded-b" 
+                                className="w-4 sm:w-8 bg-cyan-500 rounded-b" 
                                 style={{height: `${cetHeight}px`}} 
                                 title={`${monthData.cetDays} jours CET (${monthData.cetPercent}%)`}
                               ></div>
                             )}
                             {monthData.totalDays === 0 && (
                               <div 
-                                className="w-8 bg-gray-300 dark:bg-gray-600 rounded" 
+                                className="w-4 sm:w-8 bg-gray-300 dark:bg-gray-600 rounded" 
                                 style={{height: '10px'}} 
                                 title="Aucun congé ce mois"
                               ></div>
