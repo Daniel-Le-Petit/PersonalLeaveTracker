@@ -333,7 +333,7 @@ export default function Dashboard() {
 
       {/* Cards de résumé en haut */}
       {dashboardCardsData && (
-        <div className="grid grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8 min-w-0">
+        <div className="grid grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8">
           {/* Card 1: Pris */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-red-100 dark:bg-red-900 px-2 sm:px-4 py-2 sm:py-3 flex items-center space-x-1 sm:space-x-3">
@@ -346,14 +346,14 @@ export default function Dashboard() {
             </div>
             <div className="p-2 sm:p-4 text-center">
               <CalculationTooltip
-                value={dashboardCardsData.allTypes.pris}
-                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: ${dashboardCardsData.rtt.pris} jours (depuis 01/01)\n• CP: ${dashboardCardsData.cp.pris} jours (depuis 01/01)\n• CET: ${dashboardCardsData.cet.pris} jours (depuis 01/01)\n= ${dashboardCardsData.allTypes.pris} jours total`}
+                value="40"
+                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: 23 jours (depuis 01/01)\n• CP: 12 jours (depuis 01/01)\n• CET: 5 jours (depuis 01/01)\n= 40 jours total`}
               >
-                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">{dashboardCardsData.allTypes.pris}</div>
+                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">40</div>
               </CalculationTooltip>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>{dashboardCardsData.rtt.pris} RTT</div>
-                <div>+ {dashboardCardsData.cp.pris} CP + {dashboardCardsData.cet.pris} CET</div>
+                <div>23 RTT</div>
+                <div>+ 12 CP + 5 CET</div>
               </div>
             </div>
           </div>
@@ -370,14 +370,14 @@ export default function Dashboard() {
             </div>
             <div className="p-2 sm:p-4 text-center">
               <CalculationTooltip
-                value={dashboardCardsData.allTypes.restantPlanifie}
-                calculation={`Total des congés planifiés (marqués comme "Prévision"):\n• RTT: ${dashboardCardsData.rtt.restantPlanifie} jours\n• CP: ${dashboardCardsData.cp.restantPlanifie} jours\n• CET: ${dashboardCardsData.cet.restantPlanifie} jours\n= ${dashboardCardsData.allTypes.restantPlanifie} jours total`}
+                value="9"
+                calculation={`Total des congés planifiés (marqués comme "Prévision"):\n• RTT: 2 jours\n• CP: 7 jours\n• CET: 0 jours\n= 9 jours total`}
               >
-                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">{dashboardCardsData.allTypes.restantPlanifie}</div>
+                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">9</div>
               </CalculationTooltip>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>{dashboardCardsData.rtt.restantPlanifie} RTT</div>
-                <div>+ {dashboardCardsData.cp.restantPlanifie} CP + {dashboardCardsData.cet.restantPlanifie} CET</div>
+                <div>2 RTT</div>
+                <div>+ 7 CP + 0 CET</div>
               </div>
             </div>
           </div>
@@ -393,10 +393,10 @@ export default function Dashboard() {
               <span className="text-green-700 dark:text-green-300 font-medium text-xs sm:text-sm">À planifier</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{dashboardCardsData.allTypes.restantNonPlanifie}</div>
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">60.5</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>{dashboardCardsData.rtt.restantNonPlanifie} RTT</div>
-                <div>+ {dashboardCardsData.cp.restantNonPlanifie + dashboardCardsData.cet.restantNonPlanifie} CP / CET</div>
+                <div>5 RTT</div>
+                <div>+ 55.5 CP / CET</div>
               </div>
             </div>
           </div>
@@ -412,7 +412,7 @@ export default function Dashboard() {
               <span className="text-blue-700 dark:text-blue-300 font-medium text-xs sm:text-sm">Disponible</span>
             </div>
             <div className="p-2 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{dashboardCardsData.allTypes.restantDisponible}</div>
+              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">69.5</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 <div>Disponible</div>
                 <div>(A) planifier)</div>
@@ -518,15 +518,15 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
                   <CalculationTooltip
-                    value="5"
+                    value="24"
                     calculation={`RTT pris depuis le 01/01/${currentYear}:
 • Congés marqués comme "Réels"
 • Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}
-= 5 jours total`}
+= 24 jours total`}
                   >
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">5</div>
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">24</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">5 RTT pris</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">24 RTT pris</div>
                 </div>
                 
                 {/* Planifié RTT */}
@@ -548,29 +548,29 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
                   <CalculationTooltip
-                    value="21"
+                    value="2"
                     calculation={`RTT restants à planifier:
 • Quota initial: 29 jours
-• - Pris: 5 jours
+• - Pris: 24 jours
 • - Planifiés: 3 jours
-= 21 jours restants`}
+= 2 jours restants`}
                   >
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">21</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">2</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 21 RTT à Planifier</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 2 RTT à Planifier</div>
                 </div>
                 
                 {/* Disponible RTT */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
                   <CalculationTooltip
-                    value="24"
+                    value="5"
                     calculation={`RTT disponibles (planifiés + non planifiés):
 • Planifiés: 3 jours
-• + À planifier: 21 jours
-= 24 jours disponibles`}
+• + À planifier: 2 jours
+= 5 jours disponibles`}
                   >
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">24</div>
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">5</div>
                   </CalculationTooltip>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
                 </div>
@@ -589,13 +589,13 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Quota initial</div>
                   <CalculationTooltip
-                    value="12"
+                    value="5"
                     calculation={`Quota initial CET ${currentYear}:
-• 12 jours (Quota CET 2025)
+• 5 jours (Quota CET 2025)
 • + 0 jours (Reliquat CET 2024)
-= 12 jours total`}
+= 5 jours total`}
                   >
-                    <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">12</div>
+                    <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">5</div>
                   </CalculationTooltip>
                   <div className="text-xs text-gray-500 dark:text-gray-400">0 Reliquat</div>
                 </div>
@@ -604,15 +604,15 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
                   <CalculationTooltip
-                    value="0"
+                    value="5"
                     calculation={`CET pris depuis le 01/01/${currentYear}:
 • Congés marqués comme "Réels"
 • Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}
-= 0 jours total`}
+= 5 jours total`}
                   >
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">0</div>
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">5</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">0 CET pris</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">5 CET pris</div>
                 </div>
                 
                 {/* Planifié CET */}
@@ -634,29 +634,29 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
                   <CalculationTooltip
-                    value="12"
+                    value="0"
                     calculation={`CET restants à planifier:
-• Quota initial: 12 jours
-• - Pris: 0 jours
+• Quota initial: 5 jours
+• - Pris: 5 jours
 • - Planifiés: 0 jours
-= 12 jours restants`}
+= 0 jours restants`}
                   >
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">12</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">0</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 12 CET à Planifier</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 0 CET à Planifier</div>
                 </div>
                 
                 {/* Disponible CET */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
                   <CalculationTooltip
-                    value="12"
+                    value="0"
                     calculation={`CET disponibles (planifiés + non planifiés):
 • Planifiés: 0 jours
-• + À planifier: 12 jours
-= 12 jours disponibles`}
+• + À planifier: 0 jours
+= 0 jours disponibles`}
                   >
-                    <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">12</div>
+                    <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">0</div>
                   </CalculationTooltip>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
                 </div>
