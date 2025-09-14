@@ -86,73 +86,7 @@ export default function CalendarPage() {
     return day === 0 || day === 6
   }
 
-  const renderCalendar = () => {
-    const { daysInMonth, startingDay } = getDaysInMonth(currentDate)
-    const days = []
-    
-    // Ajouter les jours vides du début
-    for (let i = 0; i < startingDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-6 w-6 sm:h-8 sm:w-8 bg-gray-50 dark:bg-gray-800 rounded"></div>)
-    }
-    
-    // Ajouter les jours du mois
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-      const dayLeaves = getLeavesForDate(date)
-      const isWeekendDay = isWeekend(date)
-      const isToday = date.toDateString() === new Date().toDateString()
-      
-      // Déterminer la couleur du carreau
-      let carreauColor = ''
-      if (isWeekendDay) {
-        carreauColor = 'bg-gray-200 dark:bg-gray-700 text-gray-400'
-      } else if (isToday) {
-        carreauColor = 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold'
-      } else if (dayLeaves.length > 0) {
-        // Si plusieurs congés, prioriser RTT > CP > CET > Autres
-        const rttLeaves = dayLeaves.filter(l => l.type === 'rtt')
-        const cpLeaves = dayLeaves.filter(l => l.type === 'cp')
-        const cetLeaves = dayLeaves.filter(l => l.type === 'cet')
-        
-        if (rttLeaves.length > 0) {
-          carreauColor = 'bg-red-500 text-white font-medium'
-        } else if (cpLeaves.length > 0) {
-          carreauColor = 'bg-blue-500 text-white font-medium'
-        } else if (cetLeaves.length > 0) {
-          carreauColor = 'bg-cyan-500 text-white font-medium'
-        } else {
-          carreauColor = 'bg-orange-500 text-white font-medium'
-        }
-      } else {
-        carreauColor = 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-500'
-      }
-      
-      days.push(
-        <div 
-          key={day} 
-          className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-xs rounded cursor-pointer relative ${carreauColor}`}
-          title={`${day}/${currentDate.getMonth() + 1}${dayLeaves.length > 0 ? `\nCongés: ${dayLeaves.map(l => getLeaveTypeLabel(l.type)).join(', ')}` : ''}`}
-          onClick={() => handleDateClick(date)}
-        >
-          {day}
-        </div>
-      )
-    }
-    
-    return days
-  }
 
-  const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
-  }
-
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
-  }
-
-  const goToToday = () => {
-    setCurrentDate(new Date())
-  }
 
   const handleAddLeave = () => {
     setFormData({
@@ -309,28 +243,8 @@ export default function CalendarPage() {
         {/* Calendrier multi-mois */}
         <div className="card">
           <div className="card-body">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-center mb-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">Calendrier des congés</h2>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={goToPreviousMonth}
-                  className="btn-secondary"
-                >
-                  ← Précédent
-                </button>
-                <button
-                  onClick={goToToday}
-                  className="btn-primary"
-                >
-                  Aujourd'hui
-                </button>
-                <button
-                  onClick={goToNextMonth}
-                  className="btn-secondary"
-                >
-                  Suivant →
-                </button>
-              </div>
             </div>
 
             {/* Légende */}
@@ -357,12 +271,12 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* Grille du calendrier - 3 mois */}
+            {/* Grille du calendrier - 12 mois */}
             <div className="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 overflow-x-auto">
               {/* En-têtes des mois */}
               <div className="flex mb-4">
-                {Array.from({ length: 3 }, (_, monthIndex) => {
-                  const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthIndex, 1)
+                {Array.from({ length: 12 }, (_, monthIndex) => {
+                  const month = new Date(currentDate.getFullYear(), monthIndex, 1)
                   const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
                   const monthName = monthNames[month.getMonth()]
                   
@@ -382,10 +296,10 @@ export default function CalendarPage() {
                 })}
               </div>
               
-              {/* Grille du calendrier - 3 mois */}
+              {/* Grille du calendrier - 12 mois */}
               <div className="flex">
-                {Array.from({ length: 3 }, (_, monthIndex) => {
-                  const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthIndex, 1)
+                {Array.from({ length: 12 }, (_, monthIndex) => {
+                  const month = new Date(currentDate.getFullYear(), monthIndex, 1)
                   const firstDay = new Date(month.getFullYear(), month.getMonth(), 1)
                   const startDate = new Date(firstDay)
                   startDate.setDate(startDate.getDate() - firstDay.getDay() + 1) // Commencer le lundi
