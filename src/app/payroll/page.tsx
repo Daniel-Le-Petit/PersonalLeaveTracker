@@ -98,3 +98,4 @@ export default function PayrollPage() {
     </MainLayout>
   )
 }
+

@@ -72,18 +72,92 @@ export default function CalendarPage() {
   }
 
   const getLeavesForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0]
-    return leaves.filter(leave => {
+    // Utiliser le format local pour éviter les décalages GMT
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    
+    const filteredLeaves = leaves.filter(leave => {
       const start = new Date(leave.startDate)
       const end = new Date(leave.endDate)
       const current = new Date(dateStr)
-      return current >= start && current <= end
+      const isInRange = current >= start && current <= end
+      return isInRange
     })
+    
+    return filteredLeaves
   }
 
   const isWeekend = (date: Date) => {
     const day = date.getDay()
     return day === 0 || day === 6
+  }
+
+  const isHoliday = (date: Date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    
+    // Jours fériés fixes
+    const fixedHolidays = [
+      { month: 1, day: 1 },   // Jour de l'An
+      { month: 5, day: 1 },   // Fête du Travail
+      { month: 5, day: 8 },   // Victoire 1945
+      { month: 7, day: 14 },  // Fête Nationale
+      { month: 8, day: 15 },  // Assomption
+      { month: 11, day: 1 },  // Toussaint
+      { month: 11, day: 11 }, // Armistice
+      { month: 12, day: 25 }  // Noël
+    ]
+    
+    // Vérifier les jours fériés fixes
+    for (const holiday of fixedHolidays) {
+      if (month === holiday.month && day === holiday.day) {
+        return true
+      }
+    }
+    
+    // Calculer Pâques (algorithme de Gauss)
+    const easter = calculateEaster(year)
+    const easterMonday = new Date(easter)
+    easterMonday.setDate(easter.getDate() + 1)
+    
+    const ascension = new Date(easter)
+    ascension.setDate(easter.getDate() + 39)
+    
+    const whitMonday = new Date(easter)
+    whitMonday.setDate(easter.getDate() + 50)
+    
+    // Jours fériés variables
+    const variableHolidays = [easter, easterMonday, ascension, whitMonday]
+    
+    for (const holiday of variableHolidays) {
+      if (holiday.getMonth() + 1 === month && holiday.getDate() === day) {
+        return true
+      }
+    }
+    
+    return false
+  }
+
+  const calculateEaster = (year: number) => {
+    const a = year % 19
+    const b = Math.floor(year / 100)
+    const c = year % 100
+    const d = Math.floor(b / 4)
+    const e = b % 4
+    const f = Math.floor((b + 8) / 25)
+    const g = Math.floor((b - f + 1) / 3)
+    const h = (19 * a + b - d - g + 15) % 30
+    const i = Math.floor(c / 4)
+    const k = c % 4
+    const l = (32 + 2 * e + 2 * i - h - k) % 7
+    const m = Math.floor((a + 11 * h + 22 * l) / 451)
+    const n = Math.floor((h + l - 7 * m + 114) / 31)
+    const p = (h + l - 7 * m + 114) % 31
+    
+    return new Date(year, n - 1, p + 1)
   }
 
   const goToPreviousYear = () => {
@@ -131,24 +205,19 @@ export default function CalendarPage() {
   }
 
   const handleDateClick = (date: Date) => {
-    console.log('Date cliquée:', date)
     const dayLeaves = getLeavesForDate(date)
-    console.log('Congés trouvés:', dayLeaves)
     
     if (dayLeaves.length > 0) {
       // Si il y a des congés ce jour, modifier le premier
-      console.log('Modification du congé:', dayLeaves[0])
       handleEditLeave(dayLeaves[0])
     } else {
       // Sinon, ajouter un nouveau congé
-      console.log('Ajout d\'un nouveau congé pour:', date)
       setSelectedDate(date)
       // Utiliser le format local pour éviter les décalages GMT
       const year = date.getFullYear()
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const day = String(date.getDate()).padStart(2, '0')
       const dateStr = `${year}-${month}-${day}`
-      console.log('Date formatée:', dateStr)
       setFormData({
         type: 'cp',
         startDate: dateStr,
@@ -162,15 +231,10 @@ export default function CalendarPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('handleSubmit appelé')
-    console.log('showEditModal:', showEditModal)
-    console.log('selectedLeave:', selectedLeave)
-    console.log('formData:', formData)
     
     try {
       if (showEditModal && selectedLeave) {
         // Modifier un congé existant
-        console.log('Modification du congé existant')
         const updatedLeave: LeaveEntry = {
           ...selectedLeave,
           ...formData,
@@ -178,14 +242,16 @@ export default function CalendarPage() {
           updatedAt: new Date().toISOString()
         }
         
-        console.log('Congé mis à jour:', updatedLeave)
         await leaveStorage.updateLeave(updatedLeave)
-        setLeaves(prev => prev.map(leave => leave.id === selectedLeave.id ? updatedLeave : leave))
+        
+        // Recharger les données depuis le storage
+        const updatedLeaves = await leaveStorage.getLeaves()
+        setLeaves(updatedLeaves)
+        
         toast.success('Congé modifié avec succès')
         setShowEditModal(false)
       } else {
         // Ajouter un nouveau congé
-        console.log('Ajout d\'un nouveau congé')
         const newLeave: LeaveEntry = {
           id: Date.now().toString(),
           ...formData,
@@ -194,14 +260,15 @@ export default function CalendarPage() {
           updatedAt: new Date().toISOString()
         }
         
-        console.log('Nouveau congé créé:', newLeave)
         await leaveStorage.addLeave(newLeave)
-        console.log('Congé sauvegardé dans le storage')
-        setLeaves(prev => {
-          const newLeaves = [...prev, newLeave]
-          console.log('Nouvelle liste des congés:', newLeaves)
-          return newLeaves
-        })
+        
+        // Recharger les données depuis le storage
+        const updatedLeaves = await leaveStorage.getLeaves()
+        setLeaves(updatedLeaves)
+        
+        // Forcer un rechargement du calendrier
+        setCurrentDate(prev => new Date(prev.getTime()))
+        
         toast.success('Congé ajouté avec succès')
         setShowAddModal(false)
       }
@@ -323,6 +390,14 @@ export default function CalendarPage() {
                 <span className="font-medium text-gray-700 dark:text-gray-300">Autres</span>
               </div>
               <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-blue-300 border-2 border-blue-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">Prévision</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-yellow-300 dark:bg-yellow-600 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">Jours fériés</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
                 <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded"></div>
                 <span className="font-medium text-gray-700 dark:text-gray-300">Aujourd'hui</span>
               </div>
@@ -371,21 +446,19 @@ export default function CalendarPage() {
                       currentDate.setDate(startDate.getDate() + (week * 7) + day)
                       
                       // Vérifier si c'est un jour de congé
-                      const dayLeaves = leaves.filter(leave => {
-                        const leaveStart = new Date(leave.startDate)
-                        const leaveEnd = new Date(leave.endDate)
-                        return currentDate >= leaveStart && 
-                               currentDate <= leaveEnd
-                      })
+                      const dayLeaves = getLeavesForDate(currentDate)
                       
                       const isCurrentMonth = currentDate.getMonth() === month.getMonth()
                       const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6
                       const isToday = currentDate.toDateString() === new Date().toDateString()
+                      const isHolidayDay = isHoliday(currentDate)
                       
                       // Déterminer la couleur du carreau
                       let carreauColor = ''
                       if (!isCurrentMonth) {
                         carreauColor = 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600'
+                      } else if (isHolidayDay) {
+                        carreauColor = 'bg-yellow-300 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 font-bold'
                       } else if (isWeekend) {
                         carreauColor = 'bg-gray-200 dark:bg-gray-700 text-gray-400'
                       } else if (isToday) {
@@ -396,14 +469,17 @@ export default function CalendarPage() {
                         const cpLeaves = dayLeaves.filter(l => l.type === 'cp')
                         const cetLeaves = dayLeaves.filter(l => l.type === 'cet')
                         
+                        // Vérifier si c'est un congé en prévision
+                        const isForecast = dayLeaves.some(l => l.isForecast)
+                        
                         if (rttLeaves.length > 0) {
-                          carreauColor = 'bg-red-500 text-white font-medium'
+                          carreauColor = isForecast ? 'bg-red-300 text-red-800 font-medium border-2 border-red-500' : 'bg-red-500 text-white font-medium'
                         } else if (cpLeaves.length > 0) {
-                          carreauColor = 'bg-blue-500 text-white font-medium'
+                          carreauColor = isForecast ? 'bg-blue-300 text-blue-800 font-medium border-2 border-blue-500' : 'bg-blue-500 text-white font-medium'
                         } else if (cetLeaves.length > 0) {
-                          carreauColor = 'bg-cyan-500 text-white font-medium'
+                          carreauColor = isForecast ? 'bg-cyan-300 text-cyan-800 font-medium border-2 border-cyan-500' : 'bg-cyan-500 text-white font-medium'
                         } else {
-                          carreauColor = 'bg-orange-500 text-white font-medium'
+                          carreauColor = isForecast ? 'bg-orange-300 text-orange-800 font-medium border-2 border-orange-500' : 'bg-orange-500 text-white font-medium'
                         }
                       } else {
                         carreauColor = 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-500'
@@ -413,7 +489,7 @@ export default function CalendarPage() {
                         <div
                           key={day}
                           className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-xs rounded cursor-pointer relative ${carreauColor}`}
-                          title={`${currentDate.getDate()}/${currentDate.getMonth() + 1}${dayLeaves.length > 0 ? `\nCongés: ${dayLeaves.map(l => getLeaveTypeLabel(l.type)).join(', ')}` : ''}`}
+                          title={`${currentDate.getDate()}/${currentDate.getMonth() + 1}${dayLeaves.length > 0 ? `\nCongés: ${dayLeaves.map(l => `${getLeaveTypeLabel(l.type)}${l.isForecast ? ' (Prévision)' : ''}`).join(', ')}` : ''}`}
                           onClick={() => handleDateClick(currentDate)}
                         >
                           {currentDate.getDate()}

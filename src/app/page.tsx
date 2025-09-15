@@ -350,12 +350,20 @@ export default function Dashboard() {
                 value="41"
                 calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: 24 jours (depuis 01/01)\n• CP: 12 jours (depuis 01/01)\n• CET: 5 jours (depuis 01/01)\n= 41 jours total`}
               >
-                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">41</div>
+                <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">41</div>
               </CalculationTooltip>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>24 RTT</div>
-                <div>+ 12 CP + 5 CET</div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">24</span>
+                </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">12</span>
+                </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">5</span>
+                </div>
               </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Reliquat</div>
             </div>
           </div>
 
@@ -374,12 +382,20 @@ export default function Dashboard() {
                 value="9"
                 calculation={`Total des congés planifiés (marqués comme "Prévision"):\n• RTT: 2 jours\n• CP: 7 jours\n• CET: 0 jours\n= 9 jours total`}
               >
-                <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">9</div>
+                <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">9</div>
               </CalculationTooltip>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>2 RTT</div>
-                <div>+ 7 CP + 0 CET</div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">2</span>
+                </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">7</span>
+                </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">0</span>
+                </div>
               </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Reliquat</div>
             </div>
           </div>
 
@@ -395,10 +411,18 @@ export default function Dashboard() {
             </div>
             <div className="p-1 sm:p-4 text-center">
               <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">63.5</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>3 RTT</div>
-                <div>+ 60.5 CP / CET</div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">3</span>
+                </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">60.5</span>
+                </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">0</span>
+                </div>
               </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Reliquat</div>
             </div>
           </div>
 
@@ -413,11 +437,19 @@ export default function Dashboard() {
               <span className="text-blue-700 dark:text-blue-300 font-medium text-sm">Disponible</span>
             </div>
             <div className="p-1 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">72.5</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                <div>5 RTT + 67.5 CP</div>
-                <div>+ 0 CET</div>
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">72.5</div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">5</span>
+                </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">67.5</span>
+                </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">0</span>
+                </div>
               </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Reliquat</div>
             </div>
           </div>
         </div>
@@ -426,6 +458,114 @@ export default function Dashboard() {
       {/* Cartes spécifiques par type de congé */}
       {dashboardCardsData && (
         <div className="space-y-6 mb-8">
+          {/* Cartes RTT */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-red-600 dark:bg-red-700 px-6 py-4">
+              <h2 className="text-xl font-bold text-white">RTT</h2>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-5 gap-1 sm:gap-4">
+                {/* Quota initial RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Quota initial</div>
+                  <CalculationTooltip
+                    value="29"
+                    calculation={`Quota initial RTT ${currentYear}:\n• 23 jours (Quota RTT 2025)\n• + 6 jours (Reliquat RTT 2024)\n= 29 jours total`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">29</div>
+                  </CalculationTooltip>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">6</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">6 Reliquat</div>
+                </div>
+                
+                {/* Pris RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
+                  <CalculationTooltip
+                    value="24"
+                    calculation={`RTT pris depuis le 01/01/${currentYear}:
+• Congés marqués comme "Réels"
+• Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}
+= 24 jours total`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">24</div>
+                  </CalculationTooltip>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">24</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">24 Reliquat</div>
+                </div>
+                
+                {/* Planifié RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
+                  <CalculationTooltip
+                    value="2"
+                    calculation={`RTT planifiés (marqués comme "Prévision"):
+• Congés futurs déjà planifiés
+• Statut: "Prévision" uniquement
+= 2 jours total`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">2</div>
+                  </CalculationTooltip>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">2</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 Reliquat</div>
+                </div>
+                
+                {/* À planifier RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
+                  <CalculationTooltip
+                    value="3"
+                    calculation={`RTT restants à planifier:
+• Quota initial: 29 jours
+• - Pris: 24 jours
+• - Planifiés: 2 jours
+= 3 jours restants`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">3</div>
+                  </CalculationTooltip>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">3</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">3 Reliquat</div>
+                </div>
+                
+                {/* Disponible RTT */}
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
+                  <CalculationTooltip
+                    value="5"
+                    calculation={`RTT disponibles (planifiés + non planifiés):
+• Planifiés: 2 jours
+• + À planifier: 3 jours
+= 5 jours disponibles`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">5</div>
+                  </CalculationTooltip>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">5</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">5 Reliquat</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Cartes CP */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-blue-600 dark:bg-blue-700 px-6 py-4">
@@ -445,7 +585,12 @@ export default function Dashboard() {
                   >
                     <div className="text-lg sm:text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">79,5</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">47.5 Reliquat</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">47.5</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Reliquat</div>
                 </div>
                 
                 {/* Pris CP */}
@@ -457,7 +602,12 @@ export default function Dashboard() {
                   >
                     <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">12</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">12 CP pris</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">12</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">12 CP pris</div>
                 </div>
                 
                 {/* Planifié CP */}
@@ -467,9 +617,14 @@ export default function Dashboard() {
                     value="7"
                     calculation={`CP planifiés (marqués comme "Prévision"):\n• Congés futurs déjà planifiés\n• Statut: "Prévision" uniquement\n= 7 jours total`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">7</div>
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">7</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">7 CP Planifié</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">7</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">7 CP Planifié</div>
                 </div>
                 
                 {/* À planifier CP */}
@@ -481,7 +636,12 @@ export default function Dashboard() {
                   >
                     <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">60.5</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 60.5 CP à Planifier</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">60.5</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">+ 60.5 CP à Planifier</div>
                 </div>
                 
                 {/* Disponible CP */}
@@ -491,92 +651,14 @@ export default function Dashboard() {
                     value="67.5"
                     calculation={`CP disponibles (planifiés + non planifiés):\n• Planifiés: 7 jours\n• + À planifier: 60.5 jours\n= 67.5 jours disponibles`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">67.5</div>
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">67.5</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Cartes RTT */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
-            <div className="bg-red-600 dark:bg-red-700 px-6 py-4">
-              <h2 className="text-xl font-bold text-white">RTT</h2>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-5 gap-1 sm:gap-4">
-                {/* Quota initial RTT */}
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Quota initial</div>
-                  <CalculationTooltip
-                    value="29"
-                    calculation={`Quota initial RTT ${currentYear}:\n• 23 jours (Quota RTT 2025)\n• + 6 jours (Reliquat RTT 2024)\n= 29 jours total`}
-                  >
-                    <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">29</div>
-                  </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">6 Reliquat</div>
-                </div>
-                
-                {/* Pris RTT */}
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
-                  <CalculationTooltip
-                    value="24"
-                    calculation={`RTT pris depuis le 01/01/${currentYear}:
-• Congés marqués comme "Réels"
-• Période: 01/01 au ${new Date().toLocaleDateString('fr-FR')}
-= 24 jours total`}
-                  >
-                    <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">24</div>
-                  </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">24 RTT pris</div>
-                </div>
-                
-                {/* Planifié RTT */}
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
-                  <CalculationTooltip
-                    value="2"
-                    calculation={`RTT planifiés (marqués comme "Prévision"):
-• Congés futurs déjà planifiés
-• Statut: "Prévision" uniquement
-= 2 jours total`}
-                  >
-                    <div className="text-lg sm:text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">2</div>
-                  </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">2 RTT Planifié</div>
-                </div>
-                
-                {/* À planifier RTT */}
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planifier</div>
-                  <CalculationTooltip
-                    value="3"
-                    calculation={`RTT restants à planifier:
-• Quota initial: 29 jours
-• - Pris: 24 jours
-• - Planifiés: 2 jours
-= 3 jours restants`}
-                  >
-                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">3</div>
-                  </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">+ 3 RTT à Planifier</div>
-                </div>
-                
-                {/* Disponible RTT */}
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Disponible</div>
-                  <CalculationTooltip
-                    value="5"
-                    calculation={`RTT disponibles (planifiés + non planifiés):
-• Planifiés: 2 jours
-• + À planifier: 3 jours
-= 5 jours disponibles`}
-                  >
-                    <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">5</div>
-                  </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">67.5</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Disponible</div>
                 </div>
               </div>
             </div>
@@ -599,9 +681,14 @@ export default function Dashboard() {
 • + 0 jours (Reliquat CET 2024)
 = 5 jours total`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">5</div>
+                    <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">5</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">0 Reliquat</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">0</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">0 Reliquat</div>
                 </div>
                 
                 {/* Pris CET */}
@@ -616,7 +703,12 @@ export default function Dashboard() {
                   >
                     <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">5</div>
                   </CalculationTooltip>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">5 CET pris</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">5</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">5 Reliquat</div>
                 </div>
                 
                 {/* Planifié CET */}
@@ -629,7 +721,7 @@ export default function Dashboard() {
 • Statut: "Prévision" uniquement
 = 0 jours total`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 cursor-help">0</div>
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">0</div>
                   </CalculationTooltip>
                   <div className="text-xs text-gray-500 dark:text-gray-400">0 CET Planifié</div>
                 </div>
@@ -660,7 +752,7 @@ export default function Dashboard() {
 • + À planifier: 0 jours
 = 0 jours disponibles`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1 cursor-help">0</div>
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">0</div>
                   </CalculationTooltip>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Disponible</div>
                 </div>
@@ -715,8 +807,18 @@ export default function Dashboard() {
                 
                 {/* Histogramme avec données réelles et courbes cumulatives */}
                 <div className="relative h-96 bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
+                  {/* Échelle verticale */}
+                  <div className="absolute left-0 top-0 h-64 flex flex-col justify-between text-xs text-gray-500 dark:text-gray-400 pr-2">
+                    {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((num) => (
+                      <div key={num} className="flex items-center">
+                        <div className="w-4 h-px bg-gray-300 dark:bg-gray-600 mr-1"></div>
+                        <span className="text-xs">{num}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
                   {/* Graphique en barres */}
-                  <div className="h-64 flex items-end justify-between space-x-1 sm:space-x-2 mb-4">
+                  <div className="h-64 flex items-end justify-between space-x-1 sm:space-x-2 mb-4 ml-8">
                     {monthlyLeaveData.map((monthData, index) => {
                       const monthNames = ['Ja', 'Fe', 'M', 'Ar', 'M', 'Ju', 'Jl', 'Au', 'Se', 'Oc', 'N', 'D']
                       const maxHeight = 240
@@ -771,7 +873,7 @@ export default function Dashboard() {
                     
                     {/* Grille de fond */}
                     <div className="absolute inset-0 flex justify-between">
-                      {Array.from({ length: 13 }).map((_, i) => (
+                      {Array.from({ length: 12 }).map((_, i) => (
                         <div key={i} className="w-8 flex justify-center">
                           <div className="w-px h-full bg-gray-200 dark:bg-gray-600"></div>
                         </div>
@@ -860,7 +962,7 @@ export default function Dashboard() {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Calendrier de planification des congés</h3>
               <CalculationTooltip 
                 value="ℹ️"
-                calculation="Vue sur 6 mois&#10;• Carreaux rouges = RTT planifiés&#10;• Carreaux bleus = CP planifiés&#10;• Carreaux cyan = CET planifiés&#10;• Carreau bleu = Aujourd'hui&#10;• Carreaux gris = Week-ends"
+                calculation="Vue sur 6 mois&#10;• Carreaux rouges = RTT planifiés&#10;• Carreaux bleus = CP planifiés&#10;• Carreaux cyan = CET planifiés&#10;• Carreaux orange = Autres planifiés&#10;• Carreau bleu = Aujourd'hui&#10;• Carreaux gris = Week-ends"
               >
                 <Info className="h-5 w-5 text-gray-500" />
               </CalculationTooltip>
@@ -879,6 +981,10 @@ export default function Dashboard() {
               <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
                 <div className="w-4 h-4 bg-cyan-500 rounded"></div>
                 <span className="font-medium text-gray-700 dark:text-gray-300">CET planifiés</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <div className="w-4 h-4 bg-orange-500 rounded"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">Autres planifiés</span>
               </div>
               <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
                 <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded"></div>
@@ -943,11 +1049,13 @@ export default function Dashboard() {
                       let rttCount = 0
                       let cpCount = 0
                       let cetCount = 0
+                      let otherCount = 0
                       
                       dayLeaves.forEach(leave => {
                         if (leave.type === 'rtt') rttCount++
                         else if (leave.type === 'cp') cpCount++
                         else if (leave.type === 'cet') cetCount++
+                        else otherCount++
                       })
                       
                       const isCurrentMonth = currentDate.getMonth() === month.getMonth()
@@ -968,6 +1076,8 @@ export default function Dashboard() {
                         carreauColor = 'bg-blue-500 text-white font-medium'
                       } else if (cetCount > 0) {
                         carreauColor = 'bg-cyan-500 text-white font-medium'
+                      } else if (otherCount > 0) {
+                        carreauColor = 'bg-orange-500 text-white font-medium'
                       } else {
                         carreauColor = 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-500'
                       }
@@ -976,7 +1086,7 @@ export default function Dashboard() {
                         <div
                           key={day}
                           className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-xs rounded cursor-pointer relative ${carreauColor}`}
-                          title={`${currentDate.getDate()}/${currentDate.getMonth() + 1}${rttCount > 0 || cpCount > 0 || cetCount > 0 ? `\nCongés: ${rttCount > 0 ? rttCount + ' RTT' : ''}${cpCount > 0 ? (rttCount > 0 ? ', ' : '') + cpCount + ' CP' : ''}${cetCount > 0 ? (rttCount > 0 || cpCount > 0 ? ', ' : '') + cetCount + ' CET' : ''}` : ''}`}
+                          title={`${currentDate.getDate()}/${currentDate.getMonth() + 1}${rttCount > 0 || cpCount > 0 || cetCount > 0 || otherCount > 0 ? `\nCongés: ${rttCount > 0 ? rttCount + ' RTT' : ''}${cpCount > 0 ? (rttCount > 0 ? ', ' : '') + cpCount + ' CP' : ''}${cetCount > 0 ? (rttCount > 0 || cpCount > 0 ? ', ' : '') + cetCount + ' CET' : ''}${otherCount > 0 ? (rttCount > 0 || cpCount > 0 || cetCount > 0 ? ', ' : '') + otherCount + ' Autres' : ''}` : ''}`}
                         >
                           {currentDate.getDate()}
                         </div>
