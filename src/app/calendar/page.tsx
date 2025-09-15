@@ -160,6 +160,18 @@ export default function CalendarPage() {
     return new Date(year, n - 1, p + 1)
   }
 
+  const goToPreviousMonth = () => {
+    const newDate = new Date(currentDate)
+    newDate.setMonth(newDate.getMonth() - 1)
+    setCurrentDate(newDate)
+  }
+
+  const goToNextMonth = () => {
+    const newDate = new Date(currentDate)
+    newDate.setMonth(newDate.getMonth() + 1)
+    setCurrentDate(newDate)
+  }
+
   const goToPreviousYear = () => {
     setCurrentDate(new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1))
   }
@@ -315,29 +327,6 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Link href="/" className="btn-secondary">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Retour
-                </Link>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    📅 Calendrier des congés
-                  </h1>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Visualisez vos congés dans un calendrier
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -345,7 +334,10 @@ export default function CalendarPage() {
         <div className="card">
           <div className="card-body">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Calendrier des congés</h2>
+              <Link href="/" className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+                <h2 className="text-lg font-bold">Calendrier des Congés</h2>
+              </Link>
               
               {/* Sélecteur d'année */}
               <div className="flex items-center space-x-4">
@@ -408,7 +400,7 @@ export default function CalendarPage() {
               {/* En-têtes des mois */}
               <div className="flex mb-4">
                 {Array.from({ length: 12 }, (_, monthIndex) => {
-                  const month = new Date(currentDate.getFullYear(), monthIndex, 1)
+                  const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthIndex, 1)
                   const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
                   const monthName = monthNames[month.getMonth()]
                   
@@ -431,7 +423,7 @@ export default function CalendarPage() {
               {/* Grille du calendrier - 12 mois */}
               <div className="flex">
                 {Array.from({ length: 12 }, (_, monthIndex) => {
-                  const month = new Date(currentDate.getFullYear(), monthIndex, 1)
+                  const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthIndex, 1)
                   const firstDay = new Date(month.getFullYear(), month.getMonth(), 1)
                   const startDate = new Date(firstDay)
                   startDate.setDate(startDate.getDate() - firstDay.getDay() + 1) // Commencer le lundi
