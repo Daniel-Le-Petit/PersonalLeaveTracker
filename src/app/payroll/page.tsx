@@ -343,24 +343,9 @@ POSSIBLES CAUSES:
           </div>
           
           <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">CP acquis depuis 31/05</span>
-              <div className="text-right">
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{currentPayrollData.cpAcquired}</div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">jours</div>
-              </div>
-            </div>
             
             <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">CP écoulés à ajouter</span>
-              <div className="text-right">
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{currentPayrollData.cpElapsed}</div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">jours</div>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">CP restant (réel+prévision)</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">A) Nbr de jours de CP en Reliquat</span>
               <div className="text-right">
                 <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{currentPayrollData.cpRemaining}</div>
                 <div className="text-xs text-blue-600 dark:text-blue-400">jours</div>
@@ -368,7 +353,7 @@ POSSIBLES CAUSES:
             </div>
             
             <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">RTT Pris sur {monthNames[selectedMonth - 1]}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">B) Nbr de RTT Pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}</span>
               <div className="text-right">
                 <div className="text-lg font-bold text-red-600 dark:text-red-400">{currentPayrollData.rttTaken}</div>
                 <div className="text-xs text-red-600 dark:text-red-400">jours</div>
@@ -376,7 +361,7 @@ POSSIBLES CAUSES:
             </div>
             
             <div className="flex justify-between items-center p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Solde CET {currentYear}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">D) Solde CET (mois précédent)</span>
               <div className="text-right">
                 <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">{currentPayrollData.cetBalance}</div>
                 <div className="text-xs text-cyan-600 dark:text-cyan-400">jours</div>
@@ -414,26 +399,34 @@ POSSIBLES CAUSES:
           
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">RTT Pris (calculé)</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">A) Nbr de jours de CP en Reliquat à fin {monthNames[selectedMonth - 1]} dans Leave-tracker</span>
               <div className="text-right">
-                <div className="text-lg font-bold text-green-600 dark:text-green-400">{currentLeaveTrackerData.rttTaken}</div>
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">{47.5 - currentLeaveTrackerData.cpTaken}</div>
                 <div className="text-xs text-green-600 dark:text-green-400">jours</div>
               </div>
             </div>
             
             <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">CP Pris (calculé)</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">B) Nbr de RTT Pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} (calculé dans Leave-tracker) (avec les dates)</span>
               <div className="text-right">
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{currentLeaveTrackerData.cpTaken}</div>
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{currentLeaveTrackerData.rttTaken}</div>
                 <div className="text-xs text-blue-600 dark:text-blue-400">jours</div>
               </div>
             </div>
             
             <div className="flex justify-between items-center p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400">CET Pris (calculé)</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">C) Nbr de CP Pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} (calculé dans Leave-tracker) (avec les dates)</span>
               <div className="text-right">
-                <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">{currentLeaveTrackerData.cetTaken}</div>
+                <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">{currentLeaveTrackerData.cpTaken}</div>
                 <div className="text-xs text-cyan-600 dark:text-cyan-400">jours</div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <span className="text-sm text-gray-600 dark:text-gray-400">D) Nbr de CET Pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} (calculé dans Leave-tracker) (avec les dates)</span>
+              <div className="text-right">
+                <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{currentLeaveTrackerData.cetTaken}</div>
+                <div className="text-xs text-purple-600 dark:text-purple-400">jours</div>
               </div>
             </div>
             
@@ -686,7 +679,7 @@ POSSIBLES CAUSES:
 
       {/* Section de saisie des données de feuille de paie */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Saisie des données</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Saisie des Données de Feuille de Paie</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -821,7 +814,13 @@ POSSIBLES CAUSES:
                 const rttCount = monthLeaves.filter(leave => leave.type === 'rtt').reduce((sum, leave) => sum + leave.workingDays, 0)
                 const cpCount = monthLeaves.filter(leave => leave.type === 'cp').reduce((sum, leave) => sum + leave.workingDays, 0)
                 const cetCount = monthLeaves.filter(leave => leave.type === 'cet').reduce((sum, leave) => sum + leave.workingDays, 0)
-                const cpDates = monthLeaves.filter(leave => leave.type === 'cp').map(leave => leave.startDate)
+                
+                // Récupérer toutes les dates CP avec plus de détails
+                const cpLeaves = monthLeaves.filter(leave => leave.type === 'cp')
+                const cpDates = cpLeaves.map(leave => {
+                  const date = new Date(leave.startDate)
+                  return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')} (${leave.workingDays}j)`
+                })
                 
                 // Reliquat CP (exemple - à adapter selon votre logique)
                 const reliquatCP = 47.5 - cpCount
@@ -850,7 +849,7 @@ POSSIBLES CAUSES:
                     <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
                       <div 
                         className="text-blue-600 dark:text-blue-400 font-medium cursor-help"
-                        title={`Calcul: Somme des workingDays des congés CP pris en ${monthNames[previousMonth - 1]} ${previousYear} = ${cpCount} jours. Dates: ${cpDates.length > 0 ? cpDates.join(', ') : 'Aucune'}`}
+                        title={`Calcul CP ${monthNames[previousMonth - 1]} ${previousYear}:\n${cpDates.length > 0 ? cpDates.map(date => `• ${date}`).join('\n') : '• Aucune date CP'}\n\nTotal: ${cpCount} jours ouvrés`}
                       >
                         {cpCount}
                       </div>

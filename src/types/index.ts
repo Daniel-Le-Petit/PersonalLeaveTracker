@@ -96,20 +96,6 @@ export interface PayrollValidation {
   year: number;
   
   // Données saisies vs calculées
-  cpAvenir: {
-    saisie: number;
-    calculee: number;
-    difference: number;
-    status: 'valid' | 'warning' | 'error';
-  };
-  
-  cpEcoules: {
-    saisie: number;
-    calculee: number;
-    difference: number;
-    status: 'valid' | 'warning' | 'error';
-  };
-  
   cpReliquat: {
     saisie: number;
     calculee: number;

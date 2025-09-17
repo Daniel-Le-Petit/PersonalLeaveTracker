@@ -243,8 +243,6 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
       id: editingData?.id || Date.now().toString(),
       month: formData.month!,
       year: formData.year!,
-      cpAvenir: formData.cpAvenir || 0,
-      cpEcoules: formData.cpEcoules || 0,
       cpReliquat: formData.cpReliquat || 0,
       rttPrisDansMois: formData.rttPrisDansMois || 0,
       soldeCet: formData.soldeCet || 0,

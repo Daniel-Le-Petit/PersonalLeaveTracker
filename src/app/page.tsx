@@ -10,7 +10,6 @@ import CalculationTooltip from '../components/CalculationTooltip'
 import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
 import LeaveCalendar from '../components/LeaveCalendar'
-import PayrollValidation from '../components/PayrollValidation'
 import EmailReportModal from '../components/EmailReportModal'
 import MainLayout from '../components/MainLayout'
 
@@ -645,25 +644,8 @@ export default function Dashboard() {
                     </div>
       )}
 
-      {/* Contenu principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Colonne gauche - Sections principales */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Section Validation Feuilles de Paie */}
-          <div data-payroll-validation>
-            <PayrollValidation
-              leaves={leaves}
-              currentYear={currentYear}
-              onDataUpdate={() => {
-                // Recharger les données si nécessaire
-                console.log('Données de validation mises à jour')
-              }}
-              onYearChange={setCurrentYear}
-            />
-          </div>
-          {/* Bloc Évolution annuelle en pleine largeur */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      {/* Bloc Évolution annuelle en pleine largeur */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
               <div className="space-y-4">
                 <div className="flex justify-start items-center">
                   <div className="group relative">
@@ -852,7 +834,11 @@ export default function Dashboard() {
               </div>
             </div>
 
-
+      {/* Contenu principal */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Colonne gauche - Sections principales */}
+        <div className="lg:col-span-2 space-y-6">
+          
           {/* Bloc Incohérences détectées */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3 mb-4">
@@ -876,19 +862,6 @@ export default function Dashboard() {
                 title="Aller à la page Validation feuille de paye pour corriger les incohérences"
               >
                 Page Validation
-              </button>
-              <button 
-                onClick={() => {
-                  // Scroll vers la section PayrollValidation
-                  const element = document.querySelector('[data-payroll-validation]')
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' })
-                  }
-                }}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                title="Aller à la section de validation dans cette page"
-              >
-                Validation Ici
               </button>
             </div>
           </div>
