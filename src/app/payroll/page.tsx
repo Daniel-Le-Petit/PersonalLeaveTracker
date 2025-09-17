@@ -151,11 +151,15 @@ export default function PayrollPage() {
     }
   }
 
-  // Calculer les données Leave-Tracker pour le mois sélectionné
+  // Calculer les données Leave-Tracker pour le mois précédent
   const getLeaveTrackerDataForMonth = (month: number, year: number) => {
+    // Calculer le mois précédent
+    const previousMonth = month === 1 ? 12 : month - 1
+    const previousYear = month === 1 ? year - 1 : year
+    
     const monthLeaves = leaves.filter(leave => {
       const leaveDate = new Date(leave.startDate)
-      return leaveDate.getMonth() + 1 === month && leaveDate.getFullYear() === year
+      return leaveDate.getMonth() + 1 === previousMonth && leaveDate.getFullYear() === previousYear
     })
 
     const rttLeaves = monthLeaves.filter(leave => leave.type === 'rtt')
@@ -190,12 +194,12 @@ export default function PayrollPage() {
 • Différence: ${Math.abs(currentPayrollData.rttTaken - currentLeaveTrackerData.rttTaken)} jours
 
 CALCUL LEAVE-TRACKER:
-• Filtrage des congés RTT pour ${monthNames[selectedMonth - 1]} ${currentYear}
+• Filtrage des congés RTT pour ${monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} ${selectedMonth === 1 ? currentYear - 1 : currentYear} (mois précédent)
 • Somme des workingDays (jours ouvrés) de chaque congé RTT
 • Résultat: ${currentLeaveTrackerData.rttTaken} jours
 
 POSSIBLES CAUSES:
-• Congés RTT non saisis dans Leave-Tracker
+• Congés RTT non saisis dans Leave-Tracker pour le mois précédent
 • Erreur de saisie dans la feuille de paie
 • Différence de calcul des jours ouvrés`
       })
@@ -213,13 +217,13 @@ POSSIBLES CAUSES:
 • Différence: ${Math.abs(currentPayrollData.cpDates.length - currentLeaveTrackerData.cpTaken)} jours
 
 CALCUL LEAVE-TRACKER:
-• Filtrage des congés CP pour ${monthNames[selectedMonth - 1]} ${currentYear}
+• Filtrage des congés CP pour ${monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} ${selectedMonth === 1 ? currentYear - 1 : currentYear} (mois précédent)
 • Somme des workingDays (jours ouvrés) de chaque congé CP
 • Dates trouvées: ${currentLeaveTrackerData.cpDates.length > 0 ? currentLeaveTrackerData.cpDates.join(', ') : 'Aucune date'}
 • Résultat: ${currentLeaveTrackerData.cpTaken} jours
 
 POSSIBLES CAUSES:
-• Congés CP non saisis dans Leave-Tracker
+• Congés CP non saisis dans Leave-Tracker pour le mois précédent
 • Dates incorrectes dans la feuille de paie
 • Différence de calcul des jours ouvrés
 • Congés CP marqués comme "Prévision" non comptés`
@@ -233,22 +237,22 @@ POSSIBLES CAUSES:
         payrollValue: currentPayrollData.cetTaken,
         trackerValue: currentLeaveTrackerData.cetTaken,
         explanation: `CET Incohérence détectée:
-• Feuille de paie: ${currentPayrollData.cetTaken} jours CET pris en ${monthNames[selectedMonth - 1]}
+• Feuille de paie: ${currentPayrollData.cetTaken} jours CET pris en ${monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} (mois précédent)
 • Leave-Tracker: ${currentLeaveTrackerData.cetTaken} jours CET pris
 • Différence: ${Math.abs(currentPayrollData.cetTaken - currentLeaveTrackerData.cetTaken)} jours
 
 CALCUL LEAVE-TRACKER:
-• Filtrage des congés CET pour ${monthNames[selectedMonth - 1]} ${currentYear}
+• Filtrage des congés CET pour ${monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} ${selectedMonth === 1 ? currentYear - 1 : currentYear} (mois précédent)
 • Somme des workingDays (jours ouvrés) de chaque congé CET
 • Résultat: ${currentLeaveTrackerData.cetTaken} jours
 
 SOLDE CET:
 • Solde CET ${currentYear}: ${currentPayrollData.cetBalance} jours (quota initial)
-• CET pris ce mois: ${currentPayrollData.cetTaken} jours
+• CET pris en ${monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}: ${currentPayrollData.cetTaken} jours
 • CET restant: ${currentPayrollData.cetBalance - currentPayrollData.cetTaken} jours
 
 POSSIBLES CAUSES:
-• Congés CET non saisis dans Leave-Tracker
+• Congés CET non saisis dans Leave-Tracker pour le mois précédent
 • Erreur de saisie dans la feuille de paie
 • Différence de calcul des jours ouvrés
 • Congés CET marqués comme "Prévision" non comptés`
@@ -473,7 +477,7 @@ POSSIBLES CAUSES:
               <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center mr-2">
                 <span className="text-white text-xs font-bold">RTT</span>
               </div>
-              RTT Pris
+              RTT Pris (mois précédent)
             </h3>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -497,7 +501,7 @@ POSSIBLES CAUSES:
               {currentPayrollData.rttTaken !== currentLeaveTrackerData.rttTaken && (
                 <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700/30 rounded text-xs text-gray-600 dark:text-gray-400">
                   <div className="font-medium mb-1">Calcul Leave-Tracker:</div>
-                  <div>• Filtrage congés RTT pour {monthNames[selectedMonth - 1]} {currentYear}</div>
+                  <div>• Filtrage congés RTT pour {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} {selectedMonth === 1 ? currentYear - 1 : currentYear}</div>
                   <div>• Somme workingDays (jours ouvrés)</div>
                   <div>• Résultat: {currentLeaveTrackerData.rttTaken} jours</div>
                 </div>
@@ -511,7 +515,7 @@ POSSIBLES CAUSES:
               <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center mr-2">
                 <span className="text-white text-xs font-bold">CP</span>
               </div>
-              CP Pris
+              CP Pris (mois précédent)
             </h3>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -535,7 +539,7 @@ POSSIBLES CAUSES:
               {currentPayrollData.cpDates.length !== currentLeaveTrackerData.cpTaken && (
                 <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700/30 rounded text-xs text-gray-600 dark:text-gray-400">
                   <div className="font-medium mb-1">Calcul Leave-Tracker:</div>
-                  <div>• Filtrage congés CP pour {monthNames[selectedMonth - 1]} {currentYear}</div>
+                  <div>• Filtrage congés CP pour {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} {selectedMonth === 1 ? currentYear - 1 : currentYear}</div>
                   <div>• Somme workingDays (jours ouvrés)</div>
                   <div>• Dates: {currentLeaveTrackerData.cpDates.length > 0 ? currentLeaveTrackerData.cpDates.join(', ') : 'Aucune'}</div>
                   <div>• Résultat: {currentLeaveTrackerData.cpTaken} jours</div>
@@ -550,7 +554,7 @@ POSSIBLES CAUSES:
               <div className="w-6 h-6 bg-cyan-500 rounded-lg flex items-center justify-center mr-2">
                 <span className="text-white text-xs font-bold">CET</span>
               </div>
-              CET Pris
+              CET Pris (mois précédent)
             </h3>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -574,15 +578,15 @@ POSSIBLES CAUSES:
               {currentPayrollData.cetTaken !== currentLeaveTrackerData.cetTaken && (
                 <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700/30 rounded text-xs text-gray-600 dark:text-gray-400">
                   <div className="font-medium mb-1">Calcul Leave-Tracker:</div>
-                  <div>• Filtrage congés CET pour {monthNames[selectedMonth - 1]} {currentYear}</div>
+                  <div>• Filtrage congés CET pour {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} {selectedMonth === 1 ? currentYear - 1 : currentYear}</div>
                   <div>• Somme workingDays (jours ouvrés)</div>
                   <div>• Résultat: {currentLeaveTrackerData.cetTaken} jours</div>
                 </div>
               )}
               <div className="mt-2 p-2 bg-cyan-50 dark:bg-cyan-900/20 rounded text-xs text-cyan-700 dark:text-cyan-300">
-                <div className="font-medium mb-1">Solde CET {currentYear}:</div>
+                <div className="font-medium mb-1">Solde CET {currentYear} (mois précédent):</div>
                 <div>• Quota initial: {currentPayrollData.cetBalance} jours</div>
-                <div>• CET pris ce mois: {currentPayrollData.cetTaken} jours</div>
+                <div>• CET pris en {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}: {currentPayrollData.cetTaken} jours</div>
                 <div>• CET restant: {currentPayrollData.cetBalance - currentPayrollData.cetTaken} jours</div>
               </div>
             </div>
@@ -728,33 +732,31 @@ POSSIBLES CAUSES:
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              RTT Pris sur {monthNames[selectedMonth - 1]}
+              RTT Pris (mois précédent)
             </label>
             <input 
               type="number" 
               defaultValue="4"
-              className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-300"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               readOnly
             />
-            <p className="text-xs text-green-600 dark:text-green-400 mt-1">✅ Cohérent avec les calculs</p>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Solde CET 2025
+              Solde CET (mois précédent)
             </label>
             <input 
               type="number" 
               defaultValue="5"
-              className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-300"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               readOnly
             />
-            <p className="text-xs text-green-600 dark:text-green-400 mt-1">✅ Correct</p>
           </div>
           
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              CP Pris {monthNames[selectedMonth - 1]} (dates)
+              CP Pris (mois précédent) - Dates
             </label>
             <textarea 
               rows={3}
@@ -767,18 +769,6 @@ POSSIBLES CAUSES:
               {currentPayrollData.cpDates.length} dates dans la feuille de paie
             </p>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Jours fériés du mois
-            </label>
-            <input 
-              type="text"
-              defaultValue="2025-08-15"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              readOnly
-            />
-          </div>
         </div>
         
         <div className="flex justify-end space-x-4 mt-6">
@@ -788,6 +778,101 @@ POSSIBLES CAUSES:
           <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
             Valider les Données
           </button>
+        </div>
+      </div>
+
+      {/* Tableau annuel */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Tableau Annuel {currentYear}</h2>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-700">
+                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-900 dark:text-white">
+                  Mois
+                </th>
+                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-900 dark:text-white">
+                  Reliquat CP
+                </th>
+                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-900 dark:text-white">
+                  Nbr RTT Mois précédent
+                </th>
+                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-900 dark:text-white">
+                  Nbr CP Mois précédent
+                </th>
+                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-900 dark:text-white">
+                  Nbr CET Mois précédent
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthNames.map((month, index) => {
+                const monthNum = index + 1
+                const previousMonth = monthNum === 1 ? 12 : monthNum - 1
+                const previousYear = monthNum === 1 ? currentYear - 1 : currentYear
+                
+                // Calculer les données pour ce mois
+                const monthLeaves = leaves.filter(leave => {
+                  const leaveDate = new Date(leave.startDate)
+                  return leaveDate.getMonth() + 1 === previousMonth && leaveDate.getFullYear() === previousYear
+                })
+                
+                const rttCount = monthLeaves.filter(leave => leave.type === 'rtt').reduce((sum, leave) => sum + leave.workingDays, 0)
+                const cpCount = monthLeaves.filter(leave => leave.type === 'cp').reduce((sum, leave) => sum + leave.workingDays, 0)
+                const cetCount = monthLeaves.filter(leave => leave.type === 'cet').reduce((sum, leave) => sum + leave.workingDays, 0)
+                const cpDates = monthLeaves.filter(leave => leave.type === 'cp').map(leave => leave.startDate)
+                
+                // Reliquat CP (exemple - à adapter selon votre logique)
+                const reliquatCP = 47.5 - cpCount
+                
+                return (
+                  <tr key={monthNum} className={monthNum === selectedMonth ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}>
+                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-900 dark:text-white">
+                      {month}
+                    </td>
+                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                      <div 
+                        className="text-blue-600 dark:text-blue-400 font-medium cursor-help"
+                        title={`Calcul: Reliquat initial (47.5) - CP pris en ${monthNames[previousMonth - 1]} (${cpCount} jours) = ${reliquatCP}`}
+                      >
+                        {reliquatCP.toFixed(1)}
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                      <div 
+                        className="text-red-600 dark:text-red-400 font-medium cursor-help"
+                        title={`Calcul: Somme des workingDays des congés RTT pris en ${monthNames[previousMonth - 1]} ${previousYear} = ${rttCount} jours`}
+                      >
+                        {rttCount}
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                      <div 
+                        className="text-blue-600 dark:text-blue-400 font-medium cursor-help"
+                        title={`Calcul: Somme des workingDays des congés CP pris en ${monthNames[previousMonth - 1]} ${previousYear} = ${cpCount} jours. Dates: ${cpDates.length > 0 ? cpDates.join(', ') : 'Aucune'}`}
+                      >
+                        {cpCount}
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                      <div 
+                        className="text-cyan-600 dark:text-cyan-400 font-medium cursor-help"
+                        title={`Calcul: Somme des workingDays des congés CET pris en ${monthNames[previousMonth - 1]} ${previousYear} = ${cetCount} jours`}
+                      >
+                        {cetCount}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          <p><strong>Légende:</strong> Survolez les chiffres pour voir les détails des calculs.</p>
+          <p><strong>Mois en surbrillance:</strong> Mois actuellement sélectionné ({monthNames[selectedMonth - 1]})</p>
         </div>
       </div>
 
@@ -802,10 +887,10 @@ POSSIBLES CAUSES:
               Recommandations de Correction
             </h3>
             <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-              <li>• <strong>CP Initial :</strong> Corrigé de 79.5 à 74.5 (suppression des 5 CET)</li>
-              <li>• <strong>CP Restant :</strong> Vérifier le calcul de la feuille de paie (différence de 9 jours)</li>
-              <li>• <strong>CET :</strong> Correctement séparé des CP (5 jours)</li>
-              <li>• <strong>RTT :</strong> Calculs cohérents (4 jours en juillet)</li>
+              <li>• <strong>Formulaire simplifié :</strong> Suppression des champs inutiles (CP acquis, CP écoulés, Jours fériés)</li>
+              <li>• <strong>Logique mois précédent :</strong> Tous les champs correspondent au mois précédent</li>
+              <li>• <strong>Tableau annuel :</strong> Vue d'ensemble avec calculs automatiques et tooltips détaillés</li>
+              <li>• <strong>Reliquat CP :</strong> Calculé automatiquement (Reliquat initial - CP pris)</li>
             </ul>
           </div>
         </div>

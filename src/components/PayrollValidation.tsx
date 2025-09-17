@@ -153,8 +153,6 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
     return {
       month: data.month,
       year: data.year,
-      cpAvenir: { saisie: data.cpAvenir, calculee: 0, difference: 0, status: 'valid' },
-      cpEcoules: { saisie: data.cpEcoules, calculee: 0, difference: 0, status: 'valid' },
       cpReliquat: { saisie: data.cpReliquat, calculee: 0, difference: 0, status: 'valid' },
       rttPrisDansMois: rttValidation,
       soldeCet: { 
