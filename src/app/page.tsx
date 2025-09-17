@@ -348,24 +348,29 @@ export default function Dashboard() {
             <div className="p-1 sm:p-4 text-center">
               <CalculationTooltip
                 value="41"
-                calculation={`Total des congés pris depuis le 31/05/${currentYear}:\n• RTT: 24 jours (depuis 01/01)\n• CP: 12 jours (depuis 01/01)\n• CET: 5 jours (depuis 01/01)\n= 41 jours total`}
+                calculation={`Total des congés pris depuis le 31/05/${currentYear} (VÉRIFICATION):
+• RTT: 24 jours (depuis 01/01)
+• CP: 12 jours (depuis 01/01) 
+• CET: 5 jours (depuis 01/01)
+• = 41 jours total
+• ✅ CALCUL CORRECT: 24 + 12 + 5 = 41`}
               >
                 <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">41</div>
               </CalculationTooltip>
               <div className="flex justify-center space-x-2 mt-2">
                 <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">24</span>
-                  </div>
+                        </div>
                 <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">12</span>
-                </div>
+                        </div>
                 <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">5</span>
                 </div>
               </div>
-            </div>
-          </div>
-
+                        </div>
+                      </div>
+                            
           {/* Card 2: Planifié */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-green-100 dark:bg-green-900 px-1 sm:px-4 py-1 sm:py-3 flex items-center space-x-1 sm:space-x-3">
@@ -373,31 +378,31 @@ export default function Dashboard() {
                 <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
-                        </div>
-              <span className="text-green-700 dark:text-green-300 font-medium text-sm">Planif.</span>
-                        </div>
+                    </div>
+              <span className="text-green-700 dark:text-green-300 font-medium text-sm">Réservé</span>
+                              </div>
             <div className="p-1 sm:p-4 text-center">
               <CalculationTooltip
                 value="9"
-                calculation={`Total des congés planifiés (marqués comme "Prévision"):\n• RTT: 2 jours\n• CP: 7 jours\n• CET: 0 jours\n= 9 jours total`}
+                calculation={`Total des congés réservés (marqués comme "Prévision"):\n• RTT: 2 jours\n• CP: 7 jours\n• CET: 0 jours\n= 9 jours total`}
               >
                 <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">9</div>
               </CalculationTooltip>
               <div className="flex justify-center space-x-2 mt-2">
                 <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">2</span>
-                        </div>
+                              </div>
                 <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">7</span>
-                      </div>
+                            </div>
                 <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">0</span>
-                    </div>
-                              </div>
-                              </div>
-                            </div>
-                            
-          {/* Card 3: À planifier */}
+                                  </div>
+                                </div>
+                                  </div>
+                                </div>
+                                
+          {/* Card 3: À poser */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-green-100 dark:bg-green-900 px-1 sm:px-4 py-1 sm:py-3 flex items-center space-x-1 sm:space-x-3">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -405,42 +410,16 @@ export default function Dashboard() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                                   </div>
-              <span className="text-green-700 dark:text-green-300 font-medium text-sm">À planif.</span>
-                                </div>
+              <span className="text-green-700 dark:text-green-300 font-medium text-sm">À poser</span>
+                                  </div>
             <div className="p-1 sm:p-4 text-center">
               <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">63.5</div>
               <div className="flex justify-center space-x-2 mt-2">
                 <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">3</span>
-                </div>
+                                </div>
                 <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">60.5</span>
-                </div>
-                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">0</span>
-                </div>
-              </div>
-                                  </div>
-                                </div>
-                                
-          {/* Card 4: Disponible */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
-            <div className="bg-green-100 dark:bg-green-900 px-1 sm:px-4 py-1 sm:py-3 flex items-center space-x-1 sm:space-x-3">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                </svg>
-                                  </div>
-              <span className="text-green-700 dark:text-green-300 font-medium text-sm">Dispon.</span>
-                                  </div>
-            <div className="p-1 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">72.5</div>
-              <div className="flex justify-center space-x-2 mt-2">
-                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">5</span>
-                                </div>
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">67.5</span>
                               </div>
                 <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">0</span>
@@ -448,7 +427,33 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-        </div>
+
+          {/* Card 4: Disponible */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
+            <div className="bg-green-100 dark:bg-green-900 px-1 sm:px-4 py-1 sm:py-3 flex items-center space-x-1 sm:space-x-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+                      </div>
+              <span className="text-green-700 dark:text-green-300 font-medium text-sm">Dispo.</span>
+                    </div>
+            <div className="p-1 sm:p-4 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">72.5</div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">5</span>
+                  </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">67.5</span>
+                        </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">0</span>
+                        </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
       )}
 
       {/* Cartes spécifiques par type de congé */}
@@ -458,98 +463,159 @@ export default function Dashboard() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-red-600 dark:bg-red-700 px-6 py-2">
               <h2 className="text-lg font-bold text-white">RTT (Réduction du Temps de Travail)</h2>
-                      </div>
+                </div>
             <div className="p-6">
               <div className="grid grid-cols-5 gap-1 sm:gap-4">
                 {/* Quota initial RTT */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Initial</div>
                   <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">29</div>
-                    </div>
-                
+              </div>
+                            
                 {/* Pris RTT */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
-                  <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1">24</div>
-                  </div>
+                  <CalculationTooltip
+                    value="24"
+                    calculation={`RTT Pris ${currentYear} (VÉRIFICATION):
+• RTT pris total: 24 jours
+• Vérification feuille: 4 jours en juillet
+• RTT initial: 29 jours (23 quota + 6 reliquat)
+• RTT restant: 29 - 24 = 5 jours
+• ✅ CALCUL CORRECT: 24 jours RTT`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">24</div>
+                  </CalculationTooltip>
+                    </div>
                 
                 {/* Planifié RTT */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Réservé</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">2</div>
-                </div>
-                
-                {/* À planifier RTT */}
+                  </div>
+                                
+                {/* À poser RTT */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planif</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À poser</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">3</div>
-                </div>
-                            
+              </div>
+                                
                 {/* Disponible RTT */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Dispo.</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">5</div>
-                </div>
-                  </div>
-                </div>
               </div>
-                            
+            </div>
+          </div>
+        </div>
+
           {/* Cartes CP */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-blue-600 dark:bg-blue-700 px-6 py-2">
               <h2 className="text-lg font-bold text-white">
-                <span className="text-blue-200 dark:text-blue-300">Congés Payés</span>
-                <span className="text-white"> (CP)</span>
+                <span className="text-blue-200 dark:text-blue-300">CP</span>
+                <span className="text-white"> (Congés Payés)</span>
               </h2>
-                    </div>
+                </div>
             <div className="p-6">
               <div className="grid grid-cols-5 gap-1 sm:gap-4">
                 {/* Quota initial CP */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Initial</div>
-                  <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">79,5</div>
+                  <CalculationTooltip
+                    value="74,5"
+                    calculation={`CP Initial ${currentYear} (CORRIGÉ):
+• 27 jours (Quota CP 2025)
+• + 47.5 jours (Reliquat CP 2024)
+• = 74.5 jours total
+• ❌ ERREUR PRÉCÉDENTE: 79.5 (incluait 5 CET à tort)
+• ✅ CORRECTION: CET séparé (5 jours)`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">74,5</div>
+                  </CalculationTooltip>
                 </div>
                                 
                 {/* Pris CP */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
-                  <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1">12</div>
-                </div>
+                          <CalculationTooltip
+                    value="12"
+                    calculation={`CP Pris ${currentYear} (VÉRIFICATION):
+• Total CP pris: 17 jours
+• - CET pris: 5 jours
+• = 12 jours CP purs
+• Vérification feuille: 5 jours en juillet
+• ✅ CALCUL CORRECT: 12 jours CP`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">12</div>
+                          </CalculationTooltip>
+                        </div>
                 
                 {/* Planifié CP */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Réservé</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">7</div>
-                </div>
-                
-                {/* À planifier CP */}
+                      </div>
+                            
+                {/* À poser CP */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planif</div>
-                  <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">60.5</div>
-                </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À poser</div>
+                          <CalculationTooltip
+                    value="55.5"
+                    calculation={`CP À poser (VÉRIFICATION):
+• CP initial: 74.5 jours
+• - CP pris: 12 jours
+• - CP réservés: 7 jours
+• = 55.5 jours à poser
+• Feuille de paie: 64.5 jours restants
+• ❌ DIFFÉRENCE: 9 jours (vérifier calculs)`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">55.5</div>
+                          </CalculationTooltip>
+                    </div>
                 
                 {/* Disponible CP */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Dispo.</div>
-                  <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">67.5</div>
+                          <CalculationTooltip
+                    value="62.5"
+                    calculation={`CP Disponible (VÉRIFICATION):
+• CP réservés: 7 jours
+• + CP à poser: 55.5 jours
+• = 62.5 jours disponibles
+• Feuille de paie: 64.5 jours restants
+• ❌ DIFFÉRENCE: 2 jours (vérifier calculs)`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">62.5</div>
+                          </CalculationTooltip>
+                  </div>
+        </div>
                 </div>
-        </div>
-          </div>
-        </div>
-
+              </div>
+                            
           {/* Cartes CET */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-cyan-600 dark:bg-cyan-700 px-6 py-2">
               <h2 className="text-lg font-bold text-white">CET</h2>
-                </div>
+                    </div>
             <div className="p-6">
               <div className="grid grid-cols-5 gap-1 sm:gap-4">
                 {/* Quota initial CET */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Initial</div>
-                  <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">5</div>
+                          <CalculationTooltip
+                    value="5"
+                    calculation={`CET Initial ${currentYear} (VÉRIFICATION):
+• 5 jours (Quota CET 2025)
+• Vérification feuille: 5 jours solde CET
+• ✅ CORRECT: CET séparé des CP
+• CET pris: 5 jours
+• CET restant: 0 jours`}
+                  >
+                    <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">5</div>
+                          </CalculationTooltip>
                 </div>
-                
+                                
                 {/* Pris CET */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pris</div>
@@ -558,31 +624,44 @@ export default function Dashboard() {
                 
                 {/* Planifié CET */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Planifié</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Réservé</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">0</div>
-                </div>
-                
-                {/* À planifier CET */}
+              </div>
+                                
+                {/* À poser CET */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À planif</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À poser</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">0</div>
-                </div>
+                                  </div>
                 
                 {/* Disponible CET */}
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Dispo.</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">0</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                    </div>
       )}
 
       {/* Contenu principal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Colonne gauche - Sections principales */}
         <div className="lg:col-span-2 space-y-6">
+          
+          {/* Section Validation Feuilles de Paie */}
+          <div data-payroll-validation>
+            <PayrollValidation
+              leaves={leaves}
+              currentYear={currentYear}
+              onDataUpdate={() => {
+                // Recharger les données si nécessaire
+                console.log('Données de validation mises à jour')
+              }}
+              onYearChange={setCurrentYear}
+            />
+          </div>
           {/* Bloc Évolution annuelle en pleine largeur */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="space-y-4">
@@ -599,19 +678,19 @@ export default function Dashboard() {
                           <div>• <span className="font-bold text-cyan-400 dark:text-cyan-600">Cyan</span> = Jours CET pris par mois</div>
                           <div>• Barres empilées = Total des congés</div>
                           <div>• Courbes = Progression cumulée (%)</div>
-                        </div>
-                      </div>
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
-                    </div>
-                  </div>
+              </div>
                 </div>
-                
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+            </div>
+          </div>
+        </div>
+
                 {/* Légende professionnelle */}
                 <div className="flex justify-center space-x-6 text-sm mb-6">
                   <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
                     <div className="w-4 h-4 bg-red-500 rounded-sm shadow-sm"></div>
                     <span className="font-medium text-gray-700 dark:text-gray-300">RTT</span>
-                  </div>
+        </div>
                   <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
                     <div className="w-4 h-4 bg-blue-500 rounded-sm shadow-sm"></div>
                     <span className="font-medium text-gray-700 dark:text-gray-300">CP</span>
@@ -619,9 +698,9 @@ export default function Dashboard() {
                   <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
                     <div className="w-4 h-4 bg-cyan-500 rounded-sm shadow-sm"></div>
                     <span className="font-medium text-gray-700 dark:text-gray-300">CET</span>
-                  </div>
-                </div>
-                
+          </div>
+            </div>
+            
                 {/* Histogramme avec données réelles et courbes cumulatives */}
                 <div className="relative h-96 bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
                   {/* Échelle verticale */}
@@ -630,9 +709,9 @@ export default function Dashboard() {
                       <div key={num} className="flex items-center">
                         <div className="w-4 h-px bg-gray-300 dark:bg-gray-600 mr-1"></div>
                         <span className="text-xs">{num}</span>
-                      </div>
+                </div>
                     ))}
-                  </div>
+                </div>
                   
                   {/* Graphique en barres */}
                   <div className="h-64 flex items-end justify-between space-x-1 sm:space-x-2 mb-4 ml-8">
@@ -677,12 +756,12 @@ export default function Dashboard() {
                                 title="Aucun congé ce mois"
                               ></div>
                             )}
-              </div>
+                </div>
                           <span className="text-xs text-gray-600 dark:text-gray-400">{monthNames[index]}</span>
             </div>
                       )
                     })}
-          </div>
+            </div>
 
                   {/* Courbes cumulatives */}
                   <div className="relative h-20 border-t border-gray-300 dark:border-gray-600 pt-2">
@@ -693,7 +772,7 @@ export default function Dashboard() {
                       {Array.from({ length: 12 }).map((_, i) => (
                         <div key={i} className="w-8 flex justify-center">
                           <div className="w-px h-full bg-gray-200 dark:bg-gray-600"></div>
-                        </div>
+                  </div>
                       ))}
         </div>
 
@@ -762,17 +841,17 @@ export default function Dashboard() {
                       <div className="flex items-center space-x-1">
                         <div className="w-3 h-0.5 bg-red-500" style={{ borderTop: '2px dashed #ef4444' }}></div>
                         <span className="text-gray-600 dark:text-gray-400">RTT</span>
-                      </div>
+                  </div>
                       <div className="flex items-center space-x-1">
                         <div className="w-3 h-0.5 bg-blue-500" style={{ borderTop: '2px dashed #3b82f6' }}></div>
                         <span className="text-gray-600 dark:text-gray-400">CP/CET</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
+            </div>
+                  </div>
+                  </div>
               </div>
             </div>
-            
+
 
           {/* Bloc Incohérences détectées */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -785,21 +864,39 @@ export default function Dashboard() {
             <div className="space-y-2 mb-4">
               <div className="text-sm text-gray-700 dark:text-gray-300">
                 • CET: Différence de 5 j
+              </div>
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                • Utilisez la section "Validation Feuilles de Paie" ci-dessous pour vérifier et corriger
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button 
+                onClick={handleCorrigerIncoherences}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                title="Aller à la page Validation feuille de paye pour corriger les incohérences"
+              >
+                Page Validation
+              </button>
+              <button 
+                onClick={() => {
+                  // Scroll vers la section PayrollValidation
+                  const element = document.querySelector('[data-payroll-validation]')
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' })
+                  }
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                title="Aller à la section de validation dans cette page"
+              >
+                Validation Ici
+              </button>
+            </div>
           </div>
-        </div>
-            <button 
-              onClick={handleCorrigerIncoherences}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              title="Aller à la page Validation feuille de paye pour corriger les incohérences"
-            >
-              Corriger maintenant
-            </button>
-          </div>
-        </div>
 
 
         {/* Colonne droite - Informations complémentaires */}
         <div className="space-y-6">
+        </div>
         </div>
       </div>
 

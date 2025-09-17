@@ -76,16 +76,14 @@ export interface PayrollData {
   year: number;
   
   // Données de la feuille de paie
-  cpAvenir: number; // Solde CP à venir
-  cpEcoules: number; // Solde CP écoulés
-  cpReliquat: number; // Solde CP reliquat
-  rttPrisDansMois: number; // Jour RTT Pris dans Mois
-  soldeCet: number; // Solde CET
+  cpReliquat: number; // Reliquat CP du mois précédent
+  rttPrisDansMois: number; // RTT pris du mois précédent
+  soldeCet: number; // Solde CET du mois précédent
   
-  // CP pris le mois précédent (dates spécifiques)
+  // CP pris du mois précédent (dates spécifiques)
   cpPrisMoisPrecedent: string[]; // ["2025-07-15", "2025-07-16", "2025-07-17", "2025-07-18"]
   
-  // Jours fériés du mois
+  // Jours fériés du mois précédent
   joursFeries: string[]; // ["2025-07-14"]
   
   // Métadonnées

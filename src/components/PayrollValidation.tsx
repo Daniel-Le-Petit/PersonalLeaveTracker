@@ -182,17 +182,18 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
       setEditingData(data)
       setFormData(data)
     } else {
+      // Calculer les valeurs suggérées basées sur les congés existants
+      const expected = calculateExpectedData(selectedMonth, currentYear)
+      
       setEditingData(null)
       setFormData({
         month: selectedMonth,
         year: currentYear,
-        cpAvenir: 0,
-        cpEcoules: 0,
-        cpReliquat: 0,
-        rttPrisDansMois: 0,
-        soldeCet: 0,
-        cpPrisMoisPrecedent: [],
-        joursFeries: []
+        cpReliquat: 47.5, // Reliquat CP du mois précédent
+        rttPrisDansMois: expected.rttPrisDansMois, // RTT pris du mois précédent
+        soldeCet: 5, // Solde CET du mois précédent
+        cpPrisMoisPrecedent: [], // CP pris du mois précédent (dates)
+        joursFeries: [] // Jours fériés du mois précédent
       })
     }
     setIsModalOpen(true)
@@ -265,9 +266,108 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
   }
 
   const handleDelete = (id: string) => {
-    const updatedData = payrollData.filter(d => d.id !== id)
+    if (confirm('Êtes-vous sûr de vouloir supprimer ces données de feuille de paie ?')) {
+      const updatedData = payrollData.filter(d => d.id !== id)
+      savePayrollData(updatedData)
+      toast.success('Données supprimées')
+    }
+  }
+
+  const handleExport = () => {
+    const data = {
+      payrollData,
+      currentYear,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    }
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `payroll-validation-data-${currentYear}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    toast.success('Données de validation exportées avec succès')
+  }
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      
+      if (data.payrollData && Array.isArray(data.payrollData)) {
+        await savePayrollData(data.payrollData)
+        toast.success('Données de validation importées avec succès')
+      } else {
+        toast.error('Format de fichier invalide')
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'import:', error)
+      toast.error('Erreur lors de l\'import des données')
+    }
+  }
+
+  const handleAutoCorrect = (data: PayrollData) => {
+    const expected = calculateExpectedData(data.month, data.year)
+    
+    const correctedData: PayrollData = {
+      ...data,
+      rttPrisDansMois: expected.rttPrisDansMois,
+      soldeCet: expected.cetPrisDansMois,
+      updatedAt: new Date().toISOString()
+    }
+
+    const updatedData = payrollData.map(d => d.id === data.id ? correctedData : d)
     savePayrollData(updatedData)
-    toast.success('Données supprimées')
+    toast.success('Données corrigées automatiquement')
+  }
+
+  const handleValidateAll = () => {
+    const expected = calculateExpectedData(selectedMonth, currentYear)
+    
+    // Créer ou mettre à jour les données pour le mois sélectionné
+    const existingData = payrollData.find(d => d.month === selectedMonth && d.year === currentYear)
+    
+    if (existingData) {
+      // Mettre à jour les données existantes
+      const updatedData = payrollData.map(d => 
+        d.id === existingData.id 
+          ? {
+              ...d,
+              rttPrisDansMois: expected.rttPrisDansMois,
+              soldeCet: expected.cetPrisDansMois,
+              updatedAt: new Date().toISOString()
+            }
+          : d
+      )
+      savePayrollData(updatedData)
+      toast.success('Données validées et mises à jour automatiquement')
+    } else {
+      // Créer de nouvelles données
+      const newData: PayrollData = {
+        id: Date.now().toString(),
+        month: selectedMonth,
+        year: currentYear,
+        cpReliquat: 47.5,
+        rttPrisDansMois: expected.rttPrisDansMois,
+        soldeCet: expected.cetPrisDansMois,
+        cpPrisMoisPrecedent: [],
+        joursFeries: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      const updatedData = [...payrollData, newData]
+      savePayrollData(updatedData)
+      toast.success('Nouvelles données créées automatiquement')
+    }
   }
 
   const getStatusIcon = (status: 'valid' | 'warning' | 'error') => {
@@ -288,6 +388,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
 
   return (
     <div className="card">
+
       <div className="card-header">
         <div className="flex flex-col space-y-2">
           <div className="flex justify-between items-start">
@@ -298,6 +399,50 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Vérifiez que les données de votre feuille de paie correspondent à ce qui a été saisi dans Leave Tracker
               </p>
+              
+              {/* Boutons d'action rapides */}
+              <div className="flex items-center space-x-2 mt-3">
+                <button
+                  onClick={() => openModal()}
+                  className="flex items-center space-x-1 px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                  title="Ajouter des données de feuille de paie"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Ajouter</span>
+                </button>
+                
+                <button
+                  onClick={handleValidateAll}
+                  className="flex items-center space-x-1 px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
+                  title="Validation automatique"
+                >
+                  <CheckCircle className="w-3 h-3" />
+                  <span>Auto</span>
+                </button>
+                
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  className="hidden"
+                  id="import-payroll"
+                />
+                <label
+                  htmlFor="import-payroll"
+                  className="flex items-center space-x-1 px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded-md cursor-pointer transition-colors"
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>Import</span>
+                </label>
+                
+                <button
+                  onClick={handleExport}
+                  className="flex items-center space-x-1 px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>Export</span>
+                </button>
+              </div>
               <div className="flex items-center space-x-4 mt-2">
                 <div className="flex items-center space-x-2">
                   <button
@@ -340,14 +485,90 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
       </div>
 
       <div className="card-body">
+        {/* Boutons d'action principaux - TOUJOURS VISIBLES */}
+        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Actions Disponibles
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Vous pouvez créer, modifier ou valider automatiquement vos données de feuille de paie
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <button
+              onClick={() => openModal()}
+              className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md hover:shadow-lg min-w-[200px]"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="font-medium">
+                {validations.length === 0 ? 'Ajouter des données' : 'Ajouter une autre feuille'}
+              </span>
+            </button>
+            
+            <button
+              onClick={handleValidateAll}
+              className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-md hover:shadow-lg min-w-[200px]"
+            >
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-medium">
+                Validation Automatique
+              </span>
+            </button>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              💡 Conseil: Utilisez "Validation Automatique" pour créer des données basées sur vos congés enregistrés
+            </p>
+          </div>
+        </div>
+
+        {/* Section d'information sur les calculs automatiques */}
+        {(() => {
+          const expected = calculateExpectedData(selectedMonth, currentYear)
+          return (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-white text-sm font-bold">i</span>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                    Données calculées automatiquement pour {monthNames[selectedMonth - 1]} {currentYear}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-blue-700 dark:text-blue-300">
+                    <div>
+                      <strong>RTT pris ({monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}):</strong> {expected.rttPrisDansMois} jours
+                    </div>
+                    <div>
+                      <strong>CET pris ({monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}):</strong> {expected.cetPrisDansMois} jours
+                    </div>
+                    <div>
+                      <strong>CP pris ({monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}):</strong> {expected.cpPrisMoisPrecedent} jours
+                    </div>
+                    <div>
+                      <strong>Périodes RTT trouvées:</strong> {expected.rttLeavesDates.length} période(s)
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-blue-100 dark:bg-blue-800/30 rounded text-xs">
+                    <strong>Logique:</strong> Toutes les données correspondent au mois précédent ({monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]})
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
         {validations.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-8 bg-gray-50 dark:bg-gray-700/30 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
             <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-500 dark:text-gray-400 mb-2">
               Aucune donnée de feuille de paie saisie pour {monthNames[selectedMonth - 1]} {currentYear}
             </p>
-            <p className="text-sm text-gray-400 mt-2">
-              Cliquez sur "Ajouter" pour commencer la validation
+            <p className="text-sm text-gray-400">
+              Utilisez "Validation Automatique" pour créer des données basées sur vos congés enregistrés
             </p>
           </div>
         ) : (
@@ -383,6 +604,15 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
+                      {validation.statusGlobal !== 'valid' && (
+                        <button
+                          onClick={() => handleAutoCorrect(data)}
+                          className="p-2 text-gray-600 hover:text-yellow-600 transition-colors"
+                          title="Corriger automatiquement"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(data.id)}
                         className="p-2 text-gray-600 hover:text-red-600 transition-colors"
@@ -604,6 +834,8 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                 <button
                   onClick={closeModal}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  title="Fermer"
+                  aria-label="Fermer le modal"
                 >
                   <XCircle className="w-6 h-6" />
                 </button>
@@ -620,6 +852,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                       value={formData.month || ''}
                       onChange={(e) => setFormData({...formData, month: parseInt(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      aria-label="Sélectionner le mois"
                     >
                       {monthNames.map((month, index) => (
                         <option key={index} value={index + 1}>{month}</option>
@@ -635,85 +868,110 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                       value={formData.year || ''}
                       onChange={(e) => setFormData({...formData, year: parseInt(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="Ex: 2025"
+                      aria-label="Saisir l'année"
                     />
                   </div>
                 </div>
 
-                {/* Soldes CP */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      CP à venir
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.cpAvenir || ''}
-                      onChange={(e) => setFormData({...formData, cpAvenir: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      CP écoulés
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.cpEcoules || ''}
-                      onChange={(e) => setFormData({...formData, cpEcoules: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      CP reliquat
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.cpReliquat || ''}
-                      onChange={(e) => setFormData({...formData, cpReliquat: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
+                {/* Reliquat CP calculé */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    CP Reliquat (mois précédent)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.cpReliquat || ''}
+                    onChange={(e) => setFormData({...formData, cpReliquat: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Ex: 47.5"
+                    aria-label="Saisir le reliquat CP du mois précédent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Reliquat du mois précédent - CP pris du mois précédent
+                  </p>
                 </div>
 
                 {/* RTT et CET */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      RTT Pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}
+                      RTT Pris (mois précédent)
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={formData.rttPrisDansMois || ''}
-                      onChange={(e) => setFormData({...formData, rttPrisDansMois: e.target.value === '' ? 0 : parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.rttPrisDansMois || ''}
+                        onChange={(e) => setFormData({...formData, rttPrisDansMois: e.target.value === '' ? 0 : parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        placeholder="Ex: 4"
+                        aria-label="Saisir le nombre de jours RTT pris du mois précédent"
+                      />
+                      {(() => {
+                        const expected = calculateExpectedData(formData.month || selectedMonth, formData.year || currentYear)
+                        if (expected.rttPrisDansMois !== (formData.rttPrisDansMois || 0)) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setFormData({...formData, rttPrisDansMois: expected.rttPrisDansMois})}
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
+                              title={`Suggéré: ${expected.rttPrisDansMois} jours (basé sur les congés enregistrés)`}
+                            >
+                              {expected.rttPrisDansMois}
+                            </button>
+                          )
+                        }
+                        return null
+                      })()}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      RTT pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Solde CET {currentYear}
+                      Solde CET (mois précédent)
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={formData.soldeCet || ''}
-                      onChange={(e) => setFormData({...formData, soldeCet: e.target.value === '' ? 0 : parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.soldeCet || ''}
+                        onChange={(e) => setFormData({...formData, soldeCet: e.target.value === '' ? 0 : parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        placeholder="Ex: 5"
+                        aria-label="Saisir le solde CET du mois précédent"
+                      />
+                      {(() => {
+                        const expected = calculateExpectedData(formData.month || selectedMonth, formData.year || currentYear)
+                        if (expected.cetPrisDansMois !== (formData.soldeCet || 0)) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setFormData({...formData, soldeCet: expected.cetPrisDansMois})}
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
+                              title={`Suggéré: ${expected.cetPrisDansMois} jours (basé sur les congés enregistrés)`}
+                            >
+                              {expected.cetPrisDansMois}
+                            </button>
+                          )
+                        }
+                        return null
+                      })()}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Solde CET du mois précédent - CET pris du mois précédent
+                    </p>
                   </div>
                 </div>
 
                 {/* CP pris mois précédent */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    CP {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} (dates)
+                    CP Pris (mois précédent) - Dates
                   </label>
                   <textarea
                     value={(formData.cpPrisMoisPrecedent || []).join('\n')}
@@ -726,14 +984,14 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                     rows={6}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Formats acceptés: DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD (une date par ligne)
+                    CP pris sur {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} - Formats acceptés: DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD
                   </p>
                 </div>
 
                 {/* Jours fériés */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Jours fériés du mois
+                    Jours fériés (mois précédent)
                   </label>
                   <textarea
                     value={(formData.joursFeries || []).join('\n')}
@@ -746,7 +1004,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
                     rows={4}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Formats acceptés: DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD (une date par ligne)
+                    Jours fériés de {monthNames[selectedMonth === 1 ? 11 : selectedMonth - 2]} - Formats acceptés: DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD
                   </p>
                 </div>
               </div>
