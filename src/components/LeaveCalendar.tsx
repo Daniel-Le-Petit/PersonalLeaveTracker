@@ -34,18 +34,12 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
   onLeaveDelete,
   onYearChange
 }) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [displayYear, setDisplayYear] = useState(currentYear);
   const [viewMode] = useState<'calendar' | 'timeline'>('calendar');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Synchroniser displayYear avec currentYear
-  React.useEffect(() => {
-    setDisplayYear(currentYear);
-  }, [currentYear]);
 
   // Détection mobile
   React.useEffect(() => {
@@ -63,20 +57,20 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
       // Filtrer les jours fériés pour l'année courante du calendrier
       return holidays.filter(h => {
         const holidayYear = new Date(h.date).getFullYear();
-        return holidayYear === displayYear;
+        return holidayYear === currentYear;
       });
     }
     
     // Générer les jours fériés pour l'année courante du calendrier
     const holidaysForYear = [
-      { date: `${displayYear}-01-01`, name: 'Jour de l\'An' },
-      { date: `${displayYear}-05-01`, name: 'Fête du Travail' },
-      { date: `${displayYear}-05-08`, name: 'Victoire 1945' },
-      { date: `${displayYear}-07-14`, name: 'Fête Nationale' },
-      { date: `${displayYear}-08-15`, name: 'Assomption' },
-      { date: `${displayYear}-11-01`, name: 'Toussaint' },
-      { date: `${displayYear}-11-11`, name: 'Armistice' },
-      { date: `${displayYear}-12-25`, name: 'Noël' }
+      { date: `${currentYear}-01-01`, name: 'Jour de l\'An' },
+      { date: `${currentYear}-05-01`, name: 'Fête du Travail' },
+      { date: `${currentYear}-05-08`, name: 'Victoire 1945' },
+      { date: `${currentYear}-07-14`, name: 'Fête Nationale' },
+      { date: `${currentYear}-08-15`, name: 'Assomption' },
+      { date: `${currentYear}-11-01`, name: 'Toussaint' },
+      { date: `${currentYear}-11-11`, name: 'Armistice' },
+      { date: `${currentYear}-12-25`, name: 'Noël' }
     ];
 
     // Ajouter les fêtes mobiles (approximation simple)
@@ -173,132 +167,13 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
     return suggestions.sort((a, b) => b.priority.localeCompare(a.priority));
   }, [leaves, currentYear, holidaysArray]);
 
-  // Génération du calendrier
-  const calendarDays = useMemo(() => {
-    const year = displayYear;
-    const firstDay = new Date(year, currentMonth, 1);
-    const lastDay = new Date(year, currentMonth + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
-    const days: CalendarDay[] = [];
-    const today = new Date();
-    
-    // Debug: afficher les congés chargés
-    console.log('Congés chargés pour le calendrier:', leaves);
-    console.log('Année courante:', currentYear);
-    console.log('Mois courant:', currentMonth);
-    console.log('Jours fériés:', holidaysArray);
-    
-    for (let i = 0; i < 42; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      
-      const isCurrentMonth = date.getMonth() === currentMonth;
-      const isToday = date.toDateString() === today.toDateString();
-      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      
-      // Debug pour les week-ends
-      if (isWeekend && isCurrentMonth) {
-        console.log(`Week-end détecté: ${date.toDateString()}, jour: ${date.getDay()}`);
-      }
-      
-      // Vérifier si c'est un jour férié
-      const holiday = holidaysArray.find(h => 
-        new Date(h.date).toDateString() === date.toDateString()
-      );
-      
-      // Debug pour les jours fériés
-      if (holiday && isCurrentMonth) {
-        console.log(`Jour férié détecté: ${date.toDateString()}, ${holiday.name}`);
-      }
-      
-      // Vérifier si c'est un jour de congé (seulement sur les jours ouvrés)
-      const leave = leaves.find(l => {
-        const startDate = new Date(l.startDate);
-        const endDate = new Date(l.endDate);
-        
-        // Normaliser les dates pour comparaison (ignorer l'heure)
-        const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        const normalizedStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-        const normalizedEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-        
-        // Vérifier si la date est dans la période du congé
-        const isInPeriod = currentDate >= normalizedStart && currentDate <= normalizedEnd;
-        
-        // Ne montrer le congé que sur les jours ouvrés (pas les week-ends ni jours fériés)
-        // ET seulement si le congé appartient à l'année courante du calendrier
-        if (isInPeriod && !isWeekend && !holiday && startDate.getFullYear() === currentYear) {
-          return true;
-        }
-        
-        return false;
-      });
-
-      // Suggestions pour ce jour
-      const daySuggestions = smartSuggestions.filter(s => 
-        s.date.toDateString() === date.toDateString()
-      );
-
-      days.push({
-        date,
-        isCurrentMonth,
-        isToday,
-        isWeekend,
-        isHoliday: !!holiday,
-        holidayName: holiday?.name,
-        leave,
-        suggestions: daySuggestions.map(s => s.reason)
-      });
-    }
-    
-    return days;
-  }, [currentMonth, currentYear, leaves, holidaysArray, smartSuggestions]);
 
   const monthNames = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  // Calculer les jours pris pour le mois courant
-  const currentMonthStats = useMemo(() => {
-    const monthLeaves = leaves.filter(leave => {
-      const leaveDate = new Date(leave.startDate);
-      return leaveDate.getFullYear() === currentYear && leaveDate.getMonth() === currentMonth;
-    });
 
-    const rttDays = monthLeaves
-      .filter(leave => leave.type === 'rtt')
-      .reduce((sum, leave) => sum + leave.workingDays, 0);
-
-    const cpDays = monthLeaves
-      .filter(leave => leave.type === 'cp')
-      .reduce((sum, leave) => sum + leave.workingDays, 0);
-
-    return { rttDays, cpDays };
-  }, [leaves, currentYear, currentMonth]);
-
-  const goToPreviousMonth = () => {
-    setCurrentMonth(prev => {
-      if (prev === 0) {
-        // Si on est en janvier, on passe à décembre de l'année précédente
-        // Mais on reste dans l'année courante du calendrier pour l'instant
-        return 11;
-      }
-      return prev - 1;
-    });
-  };
-
-  const goToNextMonth = () => {
-    setCurrentMonth(prev => {
-      if (prev === 11) {
-        // Si on est en décembre, on passe à janvier de l'année suivante
-        // Mais on reste dans l'année courante du calendrier pour l'instant
-        return 0;
-      }
-      return prev + 1;
-    });
-  };
 
   const setCurrentYear = (year: number) => {
     if (onYearChange) {
@@ -402,104 +277,171 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
                     →
                   </button>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={goToPreviousMonth}
-                    className="px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    title="Mois précédent"
-                  >
-                    ←
-                  </button>
-                  <span className="px-3 py-1 text-sm font-medium bg-blue-500 text-white rounded">{monthNames[currentMonth]}</span>
-                  <button
-                    onClick={goToNextMonth}
-                    className="px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    title="Mois suivant"
-                  >
-                    →
-                  </button>
-                </div>
               </div>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center space-x-4">
                   <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                    ℹ️ RTT du mois = {currentMonthStats.rttDays}
+                    ℹ️ RTT total = {leaves.filter(leave => 
+                      new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
+                    ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
                   </span>
                   <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                    ℹ️ CP/CET du mois = {currentMonthStats.cpDays}
+                    ℹ️ CP/CET total = {leaves.filter(leave => 
+                      new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
+                    ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Grille du calendrier */}
-            <div className="grid grid-cols-7 gap-1 mb-4">
-              {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
-                <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {day}
-                </div>
-              ))}
-            </div>
-            
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map((day, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleDayClick(day)}
-                  className={`
-                    min-h-[80px] p-1 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer
-                    transition-all duration-200 hover:shadow-md hover:scale-105
-                    ${day.isToday ? 'ring-2 ring-blue-500' : ''}
-                    ${day.isWeekend || day.isHoliday ? 'bg-gray-100 dark:bg-gray-800' : ''}
-                    ${!day.isWeekend && !day.isHoliday ? (day.isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800') : ''}
-                    ${day.leave ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}
-                  `}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className={`text-sm font-medium ${
-                      day.isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400'
-                    }`}>
-                      {day.date.getDate()}
-                    </span>
-                    {day.isHoliday && (
-                      <Gift className="h-3 w-3 text-red-500" />
-                    )}
-                  </div>
+            {/* Calendrier horizontal scrollable - 12 mois */}
+            <div className="overflow-x-auto">
+              <div className="flex space-x-6 min-w-max">
+                {Array.from({ length: 12 }, (_, monthIndex) => {
+                  const month = monthIndex
+                  const year = currentYear
+                  const firstDay = new Date(year, month, 1)
+                  const lastDay = new Date(year, month + 1, 0)
+                  const startDate = new Date(firstDay)
+                  startDate.setDate(startDate.getDate() - firstDay.getDay())
                   
-                  {day.leave && (
-                    <div className={`text-xs p-1 rounded mb-1 ${getLeaveColor(day.leave)} flex items-center justify-between`}>
-                      <span>{day.leave.type.toUpperCase()}</span>
-                      {day.leave.isForecast && (
-                        <span className="text-xs opacity-75">(P)</span>
-                      )}
-                    </div>
-                  )}
+                  const monthDays: CalendarDay[] = []
+                  const today = new Date()
                   
-                  {/* Indicateur d'ajout pour les jours vides */}
-                  {!day.leave && day.isCurrentMonth && !day.isWeekend && (
-                    <div className="flex items-center justify-center h-6 mb-1">
-                      <Plus className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  )}
-                  
-                  
-                  {day.suggestions && day.suggestions.length > 0 && (
-                    <div className="space-y-1">
-                      {day.suggestions.slice(0, 2).map((suggestion, idx) => (
-                        <div key={idx} className={`text-xs p-1 rounded ${getSuggestionColor(suggestion)}`}>
-                          {suggestion}
+                  for (let i = 0; i < 42; i++) {
+                    const date = new Date(startDate)
+                    date.setDate(startDate.getDate() + i)
+                    
+                    const isCurrentMonth = date.getMonth() === month
+                    const isToday = date.toDateString() === today.toDateString()
+                    const isWeekend = date.getDay() === 0 || date.getDay() === 6
+                    
+                    // Vérifier si c'est un jour férié
+                    const holiday = holidaysArray.find(h => 
+                      new Date(h.date).toDateString() === date.toDateString()
+                    )
+                    
+                    // Vérifier si c'est un jour de congé
+                    const leave = leaves.find(l => {
+                      const startDate = new Date(l.startDate)
+                      const endDate = new Date(l.endDate)
+                      
+                      const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+                      const normalizedStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
+                      const normalizedEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())
+                      
+                      const isInPeriod = currentDate >= normalizedStart && currentDate <= normalizedEnd
+                      
+                      // Afficher les congés seulement sur les jours du mois courant
+                      if (isInPeriod && !isWeekend && !holiday && startDate.getFullYear() === year && isCurrentMonth) {
+                        return true
+                      }
+                      
+                      return false
+                    })
+
+                    // Suggestions pour ce jour
+                    const daySuggestions = smartSuggestions.filter(s => 
+                      s.date.toDateString() === date.toDateString()
+                    )
+
+                    monthDays.push({
+                      date,
+                      isCurrentMonth,
+                      isToday,
+                      isWeekend,
+                      isHoliday: !!holiday,
+                      holidayName: holiday?.name,
+                      leave,
+                      suggestions: daySuggestions.map(s => s.reason)
+                    })
+                  }
+
+                  return (
+                    <div key={month} className="flex-shrink-0 w-80">
+                      {/* En-tête du mois */}
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                          {monthNames[month]} {year}
+                        </h3>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {monthDays.filter(day => day.isCurrentMonth && day.leave).length} congés
                         </div>
-                      ))}
+                      </div>
+
+                      {/* En-têtes des jours */}
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
+                          <div key={day} className="p-1 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Grille du mois */}
+                      <div className="grid grid-cols-7 gap-1">
+                        {monthDays.map((day, dayIndex) => (
+                          <div
+                            key={dayIndex}
+                            onClick={() => handleDayClick(day)}
+                            className={`
+                              min-h-[60px] p-1 border border-gray-200 dark:border-gray-700 rounded cursor-pointer
+                              transition-all duration-200 hover:shadow-md hover:scale-105
+                              ${day.isToday ? 'ring-2 ring-blue-500' : ''}
+                              ${day.isWeekend || day.isHoliday ? 'bg-gray-100 dark:bg-gray-800' : ''}
+                              ${!day.isWeekend && !day.isHoliday ? (day.isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800') : ''}
+                              ${day.leave ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}
+                            `}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className={`text-xs font-medium ${
+                                day.isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+                              }`}>
+                                {day.date.getDate()}
+                              </span>
+                              {day.isHoliday && (
+                                <Gift className="h-2 w-2 text-red-500" />
+                              )}
+                            </div>
+                            
+                            {day.leave && (
+                              <div className={`text-xs p-1 rounded mb-1 ${getLeaveColor(day.leave)} flex items-center justify-between`}>
+                                <span className="text-xs">{day.leave.type.toUpperCase()}</span>
+                                {day.leave.isForecast && (
+                                  <span className="text-xs opacity-75">(P)</span>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Indicateur d'ajout pour les jours vides */}
+                            {!day.leave && day.isCurrentMonth && !day.isWeekend && !day.isHoliday && (
+                              <div className="flex items-center justify-center h-4 mb-1">
+                                <Plus className="h-2 w-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+                            )}
+                            
+                            {day.suggestions && day.suggestions.length > 0 && (
+                              <div className="space-y-1">
+                                {day.suggestions.slice(0, 1).map((suggestion, idx) => (
+                                  <div key={idx} className={`text-xs p-1 rounded ${getSuggestionColor(suggestion)}`}>
+                                    {suggestion}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {day.holidayName && (
+                              <div className="text-xs text-red-600 dark:text-red-400 font-medium truncate">
+                                {day.holidayName}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                  
-                  {day.holidayName && (
-                    <div className="text-xs text-red-600 dark:text-red-400 font-medium">
-                      {day.holidayName}
-                    </div>
-                  )}
-                </div>
-              ))}
+                  )
+                })}
+              </div>
             </div>
           </>
         ) : (

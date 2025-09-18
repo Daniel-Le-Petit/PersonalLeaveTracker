@@ -38,13 +38,25 @@ export default function ComparisonPage() {
   }
 
   const handleExport = () => {
+    // Charger les données de feuille de paie depuis localStorage
+    let payrollData = {}
+    try {
+      const savedPayrollData = localStorage.getItem('payrollDataByMonth')
+      if (savedPayrollData) {
+        payrollData = JSON.parse(savedPayrollData)
+      }
+    } catch (error) {
+      console.log('Erreur lors du chargement des données de feuille de paie:', error)
+    }
+
     const data = {
       leaves,
       settings,
       holidays,
       carryovers,
+      payrollData,
       exportDate: new Date().toISOString(),
-      version: '1.0'
+      version: '1.1'
     }
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -72,6 +84,11 @@ export default function ComparisonPage() {
       if (data.settings) await leaveStorage.saveSettings(data.settings)
       if (data.holidays) await leaveStorage.saveHolidays(data.holidays)
       if (data.carryovers) await leaveStorage.saveCarryoverLeaves(data.carryovers)
+      
+      // Importer les données de feuille de paie
+      if (data.payrollData) {
+        localStorage.setItem('payrollDataByMonth', JSON.stringify(data.payrollData))
+      }
       
       toast.success('Données importées avec succès')
       await loadData()
@@ -163,6 +180,9 @@ export default function ComparisonPage() {
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                         Mois
                       </th>
+                      <th colSpan={1} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                        {/* Colonne vide */}
+                      </th>
                       <th colSpan={4} className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-200 dark:bg-blue-800 border-r border-gray-200 dark:border-gray-700">
                         Réel
                       </th>
@@ -171,6 +191,9 @@ export default function ComparisonPage() {
                       </th>
                     </tr>
                     <tr>
+                      <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                        {/* Colonne vide décalée */}
+                      </th>
                       <th className="px-2 py-3 text-center text-sm font-medium text-gray-900 dark:text-white bg-blue-100 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700">
                         RTT
                       </th>
@@ -202,6 +225,10 @@ export default function ComparisonPage() {
                       <tr key={index} className={index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}>
                         <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700">
                           {monthData.monthName}
+                        </td>
+                        {/* Colonne vide décalée */}
+                        <td className="px-2 py-2 text-center text-sm border-r border-gray-200 dark:border-gray-700">
+                          {/* Vide */}
                         </td>
                         {/* RTT Réel */}
                         <td className="px-2 py-2 text-center text-sm text-yellow-600 dark:text-yellow-400 font-semibold border-r border-gray-200 dark:border-gray-700">

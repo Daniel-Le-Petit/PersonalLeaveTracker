@@ -28,7 +28,7 @@ export interface AppSettings {
   firstDayOfWeek: 'monday' | 'sunday';
   country: string;
   publicHolidays: PublicHoliday[];
-  quotas: { type: LeaveType; yearlyQuota: number }[];
+  quotas: { type: LeaveType; yearlyQuota: number; carryover?: number }[];
   darkMode: boolean;
   notifications: boolean;
   // Legacy properties for backward compatibility

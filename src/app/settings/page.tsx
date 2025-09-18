@@ -154,13 +154,13 @@ export default function SettingsPage() {
     }
   }
 
-  const updateQuota = (type: string, value: number) => {
+  const updateQuota = (type: string, value: number, field: 'yearlyQuota' | 'carryover' = 'yearlyQuota') => {
     if (!settings) return
 
     setSettings({
       ...settings,
       quotas: settings.quotas.map(quota =>
-        quota.type === type ? { ...quota, yearlyQuota: value } : quota
+        quota.type === type ? { ...quota, [field]: value } : quota
       )
     })
   }
@@ -265,27 +265,51 @@ export default function SettingsPage() {
             </div>
             <div className="card-body">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {settings.quotas.map((quota) => (
-                  <div key={quota.type} className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {quota.type.toUpperCase()} (Congés payés)
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="number"
-                        min="0"
-                        max="365"
-                        value={quota.yearlyQuota}
-                        onChange={(e) => updateQuota(quota.type, parseInt(e.target.value) || 0)}
-                        className="input w-20"
-                      />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">jours</span>
-                    </div>
+                {/* Quota RTT */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    RTT
+                  </label>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    (Applicable au 1er Jan)
                   </div>
-                ))}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="365"
+                      value={settings.quotas.find(q => q.type === 'rtt')?.yearlyQuota || 23}
+                      onChange={(e) => updateQuota('rtt', parseInt(e.target.value) || 0)}
+                      className="input w-20"
+                    />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">jours</span>
+                  </div>
+                </div>
+
+                {/* Quota CP */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    CP
+                  </label>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    (Applicable au 31 Mai)
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="365"
+                      value={settings.quotas.find(q => q.type === 'cp')?.yearlyQuota || 27}
+                      onChange={(e) => updateQuota('cp', parseInt(e.target.value) || 0)}
+                      className="input w-20"
+                    />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">jours</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
 
           {/* Préférences générales */}
           <div className="card">

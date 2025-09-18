@@ -76,6 +76,63 @@ export default function PayrollPage() {
     savePayrollDataToStorage(newData)
     toast.success(`Données sauvegardées pour ${monthNames[selectedMonth - 1]} ${currentYear}`)
   }
+
+  // Fonction pour valider les données saisies
+  const validatePayrollData = () => {
+    const errors = []
+    const warnings = []
+
+    // Vérifications obligatoires
+    if (!payrollData.cpReliquat || payrollData.cpReliquat < 0) {
+      errors.push('Le reliquat CP doit être un nombre positif')
+    }
+
+    if (payrollData.rttPrisDansMois === undefined || payrollData.rttPrisDansMois < 0) {
+      errors.push('Le nombre de RTT pris doit être un nombre positif')
+    }
+
+    if (payrollData.soldeCet === undefined || payrollData.soldeCet < 0) {
+      errors.push('Le solde CET doit être un nombre positif')
+    }
+
+    // Vérifications de cohérence
+    if (payrollData.cpReliquat && payrollData.cpReliquat > 50) {
+      warnings.push('Le reliquat CP semble élevé (> 50 jours)')
+    }
+
+    if (payrollData.rttPrisDansMois && payrollData.rttPrisDansMois > 10) {
+      warnings.push('Le nombre de RTT pris semble élevé (> 10 jours)')
+    }
+
+    // Vérifier les dates CP
+    const cpDates = payrollData.cpPrisMoisPrecedent || []
+    const cetDates = payrollData.cetPrisMoisPrecedent || []
+    
+    if (cpDates.length > 0) {
+      const invalidDates = cpDates.filter(date => !date.match(/^\d{4}-\d{2}-\d{2}$/))
+      if (invalidDates.length > 0) {
+        errors.push('Format de date invalide dans les CP pris')
+      }
+    }
+
+    if (cetDates.length > 0) {
+      const invalidDates = cetDates.filter(date => !date.match(/^\d{4}-\d{2}-\d{2}$/))
+      if (invalidDates.length > 0) {
+        errors.push('Format de date invalide dans les CET pris')
+      }
+    }
+
+    // Afficher les résultats
+    if (errors.length > 0) {
+      toast.error(`Erreurs détectées: ${errors.join(', ')}`)
+    } else if (warnings.length > 0) {
+      toast.success(`Données validées avec avertissements: ${warnings.join(', ')}`)
+    } else {
+      toast.success('✅ Toutes les données sont valides et cohérentes')
+    }
+
+    return errors.length === 0
+  }
   
   // Fonction pour charger les données d'un mois/année spécifique
   const loadMonthData = (month: number, year: number) => {
@@ -138,8 +195,9 @@ export default function PayrollPage() {
     const data = {
       leaves,
       holidays,
+      payrollDataByMonth,
       exportDate: new Date().toISOString(),
-      version: '1.0'
+      version: '1.1'
     }
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -165,6 +223,12 @@ export default function PayrollPage() {
       
       if (data.leaves) await leaveStorage.saveLeaves(data.leaves)
       if (data.holidays) await leaveStorage.saveHolidays(data.holidays)
+      
+      // Importer les données de feuille de paie
+      if (data.payrollDataByMonth) {
+        setPayrollDataByMonth(data.payrollDataByMonth)
+        savePayrollDataToStorage(data.payrollDataByMonth)
+      }
       
       toast.success('Données importées avec succès')
       await loadData()
@@ -673,9 +737,8 @@ POSSIBLES CAUSES:
             
         <div className="flex justify-between items-center mt-6">
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            💾 Les données sont sauvegardées automatiquement lors du changement de mois/année
             {payrollDataByMonth[getMonthYearKey(selectedMonth, currentYear)] && (
-              <span className="ml-2 text-green-600 dark:text-green-400">✅ Données sauvegardées</span>
+              <span className="text-green-600 dark:text-green-400">✅ Données sauvegardées</span>
             )}
           </div>
           <div className="flex space-x-4">
@@ -685,7 +748,10 @@ POSSIBLES CAUSES:
             >
               💾 Sauvegarder
             </button>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+            <button 
+              onClick={validatePayrollData}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
               Valider les Données
             </button>
           </div>
@@ -719,8 +785,30 @@ POSSIBLES CAUSES:
                   <p className="text-sm mt-2">Saisissez et sauvegardez des données pour les voir apparaître ici</p>
                   </div>
                 ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                <div className="space-y-4">
+                  {/* Légende */}
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Légende des colonnes :</h3>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>• <strong>A-FPD/A-LT:</strong> Reliquat CP (Feuille de Paie / Leave-Tracker)</div>
+                      <div>• <strong>B-FPD/B-LT:</strong> RTT Pris (Feuille de Paie / Leave-Tracker)</div>
+                      <div>• <strong>C-FPD/C-LT:</strong> CP Pris (Feuille de Paie / Leave-Tracker)</div>
+                      <div>• <strong>D-FPD/D-LT:</strong> CET Pris (Feuille de Paie / Leave-Tracker)</div>
+                    </div>
+                    <div className="mt-3 flex items-center space-x-4 text-xs">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-green-200 dark:bg-green-800 rounded"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Valeurs identiques</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-red-200 dark:bg-red-800 rounded"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Valeurs différentes</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-700">
                         <th className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-left font-semibold text-gray-900 dark:text-white">
@@ -757,7 +845,16 @@ POSSIBLES CAUSES:
                     </thead>
                     <tbody>
                       {Object.entries(payrollDataByMonth)
-                        .sort(([a], [b]) => b.localeCompare(a)) // Trier par date décroissante
+                        .sort(([a], [b]) => {
+                          // Trier par année puis par mois (décroissant)
+                          const [yearA, monthA] = a.split('-').map(Number)
+                          const [yearB, monthB] = b.split('-').map(Number)
+                          
+                          if (yearA !== yearB) {
+                            return yearB - yearA // Année décroissante
+                          }
+                          return monthB - monthA // Mois décroissant
+                        })
                         .map(([key, data]) => {
                           const [year, month] = key.split('-')
                           const monthIndex = parseInt(month) - 1
@@ -787,33 +884,39 @@ POSSIBLES CAUSES:
                           const dFPD = data.soldeCet || 0
                           const dLT = cetCount
                           
+                          // Déterminer si les valeurs sont identiques
+                          const aEqual = aFPD === aLT
+                          const bEqual = bFPD === bLT
+                          const cEqual = cFPD === cLT
+                          const dEqual = dFPD === dLT
+
                           return (
                             <tr key={key} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                               <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 font-medium text-gray-900 dark:text-white">
                                 {monthNames[monthIndex]} {year}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${aEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {aFPD}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${aEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {aLT}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-red-600 dark:text-red-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${bEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {bFPD}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-red-600 dark:text-red-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${bEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {bLT}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-green-600 dark:text-green-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${cEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {cFPD}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-green-600 dark:text-green-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${cEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {cLT}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-cyan-600 dark:text-cyan-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${dEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {dFPD}
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center text-cyan-600 dark:text-cyan-400 font-medium">
+                              <td className={`border border-gray-300 dark:border-gray-600 px-2 py-3 text-center font-medium ${dEqual ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
                                 {dLT}
                               </td>
                               <td className="border border-gray-300 dark:border-gray-600 px-2 py-3 text-center">
@@ -833,6 +936,7 @@ POSSIBLES CAUSES:
                         })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
                 )}
               </div>
@@ -1076,8 +1180,8 @@ POSSIBLES CAUSES:
               </tr>
             </thead>
             <tbody>
-              {monthNames.map((month, index) => {
-                const monthNum = index + 1
+              {monthNames.slice().reverse().map((month, index) => {
+                const monthNum = 12 - index
                 const previousMonth = monthNum === 1 ? 12 : monthNum - 1
                 const previousYear = monthNum === 1 ? currentYear - 1 : currentYear
                 

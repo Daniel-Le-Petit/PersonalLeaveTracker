@@ -9,7 +9,7 @@ import { calculateLeaveBalances, calculateLeaveStats, formatDate, getHolidaysFor
 import CalculationTooltip from '../components/CalculationTooltip'
 import { leaveStorage } from '../utils/storage'
 import CumulativeCharts from '../components/CumulativeCharts'
-import LeaveCalendar from '../components/LeaveCalendar'
+import PayrollValidation from '../components/PayrollValidation'
 import EmailReportModal from '../components/EmailReportModal'
 import MainLayout from '../components/MainLayout'
 
@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [monthlySummary, setMonthlySummary] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
   const [monthlySummarySeparated, setMonthlySummarySeparated] = useState<{ months: any[]; yearlyTotals: any } | null>(null)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
+  const [payrollData, setPayrollData] = useState<Record<string, any>>({})
 
   const goToPreviousYear = () => {
     setCurrentYear(prev => prev - 1)
@@ -89,6 +90,17 @@ export default function Dashboard() {
         carryoversData = []
       }
 
+      // Charger les données de feuille de paie depuis localStorage
+      try {
+        const savedPayrollData = localStorage.getItem('payrollDataByMonth')
+        if (savedPayrollData) {
+          setPayrollData(JSON.parse(savedPayrollData))
+        }
+      } catch (error) {
+        console.log('Erreur lors du chargement des données de feuille de paie:', error)
+        setPayrollData({})
+      }
+
       setLeaves(leavesData)
       setSettings(settingsData)
       setHolidays(holidaysData)
@@ -123,25 +135,15 @@ export default function Dashboard() {
   }
 
   const handleExport = () => {
-    // Récupérer les données de la feuille de paie depuis le localStorage
-    const payrollDataByMonth = localStorage.getItem('payrollDataByMonth')
-    const parsedPayrollData = payrollDataByMonth ? JSON.parse(payrollDataByMonth) : {}
-    
-    // Debug: vérifier si les données sont présentes
-    console.log('Données de feuille de paie à exporter:', parsedPayrollData)
-    
     const data = {
       leaves,
       settings,
       holidays,
       carryovers,
-      payrollData: parsedPayrollData,
-        exportDate: new Date().toISOString(),
+      payrollData,
+      exportDate: new Date().toISOString(),
       version: '1.1'
     }
-    
-    // Debug: vérifier les données complètes
-    console.log('Données complètes à exporter:', data)
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -153,13 +155,7 @@ export default function Dashboard() {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
       
-    // Message de confirmation avec détails
-    const payrollDataCount = Object.keys(parsedPayrollData).length
-    if (payrollDataCount > 0) {
-      toast.success(`Données exportées avec succès (${payrollDataCount} entrées de feuille de paie incluses)`)
-    } else {
-      toast.success('Données exportées avec succès (aucune donnée de feuille de paie trouvée)')
-    }
+    toast.success('Données exportées avec succès')
   }
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,10 +171,10 @@ export default function Dashboard() {
       if (data.holidays) await leaveStorage.saveHolidays(data.holidays)
       if (data.carryovers) await leaveStorage.saveCarryoverLeaves(data.carryovers)
       
-      // Importer les données de la feuille de paie si elles existent
+      // Importer les données de feuille de paie
       if (data.payrollData) {
         localStorage.setItem('payrollDataByMonth', JSON.stringify(data.payrollData))
-        toast.success('Données de feuille de paie importées avec succès')
+        setPayrollData(data.payrollData)
       }
       
       toast.success('Données importées avec succès')
@@ -379,10 +375,16 @@ export default function Dashboard() {
               >
                 <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">41</div>
               </CalculationTooltip>
-              <div className="flex justify-center space-x-1 mt-2">
-                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">24</span>
-                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">12</span>
-                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">5</span>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">24</span>
+                        </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">12</span>
+                        </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">5</span>
+                </div>
               </div>
                         </div>
                       </div>
@@ -404,11 +406,17 @@ export default function Dashboard() {
               >
                 <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">9</div>
               </CalculationTooltip>
-              <div className="flex justify-center space-x-1 mt-2">
-                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">2</span>
-                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">7</span>
-                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">0</span>
-              </div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">2</span>
+                              </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">7</span>
+                            </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">0</span>
+                                  </div>
+                                </div>
                                   </div>
                                 </div>
                                 
@@ -423,12 +431,18 @@ export default function Dashboard() {
               <span className="text-green-700 dark:text-green-300 font-medium text-sm">À poser</span>
                                   </div>
             <div className="p-1 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">63.5</div>
-              <div className="flex justify-center space-x-1 mt-2">
-                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">3</span>
-                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">60.5</span>
-                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">0</span>
-              </div>
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">53.5</div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">3</span>
+                                </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">50.5</span>
+                              </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">0</span>
+                            </div>
+                    </div>
                   </div>
                 </div>
 
@@ -443,29 +457,22 @@ export default function Dashboard() {
               <span className="text-green-700 dark:text-green-300 font-medium text-sm">Dispo.</span>
                     </div>
             <div className="p-1 sm:p-4 text-center">
-              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">72.5</div>
-              <div className="flex justify-center space-x-1 mt-2">
-                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">5</span>
-                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">67.5</span>
-                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">0</span>
-              </div>
+              <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">62.5</div>
+              <div className="flex justify-center space-x-2 mt-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">5</span>
+                  </div>
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">57.5</span>
+                        </div>
+                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">0</span>
+                        </div>
+                        </div>
                       </div>
                     </div>
                   </div>
       )}
-
-      {/* Légende des cartes */}
-      <div className="flex justify-center space-x-4 mb-8">
-        <div className="flex items-center space-x-2 bg-red-500 px-3 py-2 rounded-lg">
-          <span className="text-white text-sm font-medium">RTT</span>
-        </div>
-        <div className="flex items-center space-x-2 bg-blue-900 px-3 py-2 rounded-lg">
-          <span className="text-white text-sm font-medium">CP</span>
-        </div>
-        <div className="flex items-center space-x-2 bg-blue-300 px-3 py-2 rounded-lg">
-          <span className="text-white text-sm font-medium">CET</span>
-        </div>
-      </div>
 
       {/* Cartes spécifiques par type de congé */}
       {dashboardCardsData && (
@@ -534,15 +541,14 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Initial</div>
                   <CalculationTooltip
-                    value="74,5"
+                    value="69,5"
                     calculation={`CP Initial ${currentYear} (CORRIGÉ):
 • 27 jours (Quota CP 2025)
-• + 47.5 jours (Reliquat CP 2024)
-• = 74.5 jours total
-• ❌ ERREUR PRÉCÉDENTE: 79.5 (incluait 5 CET à tort)
-• ✅ CORRECTION: CET séparé (5 jours)`}
+• + 43.5 jours (Reliquat CP 2024)
+• = 69.5 jours total
+• ✅ CALCUL CORRECT: 27 + 43.5 = 69.5`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">74,5</div>
+                    <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 cursor-help">69,5</div>
                   </CalculationTooltip>
                 </div>
                                 
@@ -572,16 +578,15 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À poser</div>
                           <CalculationTooltip
-                    value="55.5"
-                    calculation={`CP À poser (VÉRIFICATION):
-• CP initial: 74.5 jours
+                    value="50.5"
+                    calculation={`CP À poser (CORRIGÉ):
+• CP initial: 69.5 jours
 • - CP pris: 12 jours
 • - CP réservés: 7 jours
-• = 55.5 jours à poser
-• Feuille de paie: 64.5 jours restants
-• ❌ DIFFÉRENCE: 9 jours (vérifier calculs)`}
+• = 50.5 jours à poser
+• ✅ CALCUL CORRECT: 69.5 - 12 - 7 = 50.5`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">55.5</div>
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">50.5</div>
                           </CalculationTooltip>
                     </div>
                 
@@ -589,15 +594,14 @@ export default function Dashboard() {
                 <div className="text-center">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Dispo.</div>
                           <CalculationTooltip
-                    value="62.5"
-                    calculation={`CP Disponible (VÉRIFICATION):
+                    value="57.5"
+                    calculation={`CP Disponible (CORRIGÉ):
 • CP réservés: 7 jours
-• + CP à poser: 55.5 jours
-• = 62.5 jours disponibles
-• Feuille de paie: 64.5 jours restants
-• ❌ DIFFÉRENCE: 2 jours (vérifier calculs)`}
+• + CP à poser: 50.5 jours
+• = 57.5 jours disponibles
+• ✅ CALCUL CORRECT: 7 + 50.5 = 57.5`}
                   >
-                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">62.5</div>
+                    <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">57.5</div>
                           </CalculationTooltip>
                   </div>
         </div>
@@ -656,8 +660,12 @@ export default function Dashboard() {
                     </div>
       )}
 
-      {/* Bloc Évolution annuelle en pleine largeur */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+      {/* Contenu principal */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Colonne gauche - Sections principales */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Bloc Évolution annuelle en pleine largeur */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="space-y-4">
                 <div className="flex justify-start items-center">
                   <div className="group relative">
@@ -846,11 +854,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-      {/* Contenu principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Colonne gauche - Sections principales */}
-        <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Bloc Incohérences détectées */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3 mb-4">
@@ -862,28 +866,23 @@ export default function Dashboard() {
             <div className="space-y-2 mb-4">
               <div className="text-sm text-gray-700 dark:text-gray-300">
                 • CET: Différence de 5 j
-              </div>
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                • Utilisez la section "Validation Feuilles de Paie" ci-dessous pour vérifier et corriger
-              </div>
-            </div>
-            <div className="flex space-x-3">
-              <button 
-                onClick={handleCorrigerIncoherences}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                title="Aller à la page Validation feuille de paye pour corriger les incohérences"
-              >
-                Page Validation
-              </button>
-            </div>
           </div>
+        </div>
+                <button 
+              onClick={handleCorrigerIncoherences}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              title="Aller à la page Validation feuille de paye pour corriger les incohérences"
+            >
+              Corriger maintenant
+                </button>
+              </div>
+            </div>
 
 
         {/* Colonne droite - Informations complémentaires */}
         <div className="space-y-6">
         </div>
-        </div>
-      </div>
+            </div>
 
       {/* Modal d'envoi d'email */}
       <EmailReportModal
