@@ -127,6 +127,9 @@ export default function Dashboard() {
     const payrollDataByMonth = localStorage.getItem('payrollDataByMonth')
     const parsedPayrollData = payrollDataByMonth ? JSON.parse(payrollDataByMonth) : {}
     
+    // Debug: vérifier si les données sont présentes
+    console.log('Données de feuille de paie à exporter:', parsedPayrollData)
+    
     const data = {
       leaves,
       settings,
@@ -136,6 +139,9 @@ export default function Dashboard() {
         exportDate: new Date().toISOString(),
       version: '1.1'
     }
+    
+    // Debug: vérifier les données complètes
+    console.log('Données complètes à exporter:', data)
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -147,7 +153,13 @@ export default function Dashboard() {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
       
-    toast.success('Données exportées avec succès')
+    // Message de confirmation avec détails
+    const payrollDataCount = Object.keys(parsedPayrollData).length
+    if (payrollDataCount > 0) {
+      toast.success(`Données exportées avec succès (${payrollDataCount} entrées de feuille de paie incluses)`)
+    } else {
+      toast.success('Données exportées avec succès (aucune donnée de feuille de paie trouvée)')
+    }
   }
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
