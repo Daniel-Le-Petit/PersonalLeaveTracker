@@ -123,13 +123,18 @@ export default function Dashboard() {
   }
 
   const handleExport = () => {
+    // Récupérer les données de la feuille de paie depuis le localStorage
+    const payrollDataByMonth = localStorage.getItem('payrollDataByMonth')
+    const parsedPayrollData = payrollDataByMonth ? JSON.parse(payrollDataByMonth) : {}
+    
     const data = {
       leaves,
       settings,
       holidays,
       carryovers,
+      payrollData: parsedPayrollData,
         exportDate: new Date().toISOString(),
-      version: '1.0'
+      version: '1.1'
     }
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -157,6 +162,12 @@ export default function Dashboard() {
       if (data.settings) await leaveStorage.saveSettings(data.settings)
       if (data.holidays) await leaveStorage.saveHolidays(data.holidays)
       if (data.carryovers) await leaveStorage.saveCarryoverLeaves(data.carryovers)
+      
+      // Importer les données de la feuille de paie si elles existent
+      if (data.payrollData) {
+        localStorage.setItem('payrollDataByMonth', JSON.stringify(data.payrollData))
+        toast.success('Données de feuille de paie importées avec succès')
+      }
       
       toast.success('Données importées avec succès')
       await loadData()
@@ -356,16 +367,10 @@ export default function Dashboard() {
               >
                 <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1 cursor-help">41</div>
               </CalculationTooltip>
-              <div className="flex justify-center space-x-2 mt-2">
-                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">24</span>
-                        </div>
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">12</span>
-                        </div>
-                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">5</span>
-                </div>
+              <div className="flex justify-center space-x-1 mt-2">
+                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">24</span>
+                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">12</span>
+                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">5</span>
               </div>
                         </div>
                       </div>
@@ -387,17 +392,11 @@ export default function Dashboard() {
               >
                 <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 cursor-help">9</div>
               </CalculationTooltip>
-              <div className="flex justify-center space-x-2 mt-2">
-                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">2</span>
-                              </div>
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">7</span>
-                            </div>
-                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">0</span>
-                                  </div>
-                                </div>
+              <div className="flex justify-center space-x-1 mt-2">
+                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">2</span>
+                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">7</span>
+                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">0</span>
+              </div>
                                   </div>
                                 </div>
                                 
@@ -413,17 +412,11 @@ export default function Dashboard() {
                                   </div>
             <div className="p-1 sm:p-4 text-center">
               <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">63.5</div>
-              <div className="flex justify-center space-x-2 mt-2">
-                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">3</span>
-                                </div>
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">60.5</span>
-                              </div>
-                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">0</span>
-                            </div>
-                    </div>
+              <div className="flex justify-center space-x-1 mt-2">
+                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">3</span>
+                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">60.5</span>
+                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">0</span>
+              </div>
                   </div>
                 </div>
 
@@ -439,21 +432,28 @@ export default function Dashboard() {
                     </div>
             <div className="p-1 sm:p-4 text-center">
               <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">72.5</div>
-              <div className="flex justify-center space-x-2 mt-2">
-                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">5</span>
-                  </div>
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">67.5</span>
-                        </div>
-                <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">0</span>
-                        </div>
-                        </div>
+              <div className="flex justify-center space-x-1 mt-2">
+                <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">5</span>
+                <span className="text-white text-xs font-bold bg-blue-900 px-2 py-1 rounded">67.5</span>
+                <span className="text-white text-xs font-bold bg-blue-300 px-2 py-1 rounded">0</span>
+              </div>
                       </div>
                     </div>
                   </div>
       )}
+
+      {/* Légende des cartes */}
+      <div className="flex justify-center space-x-4 mb-8">
+        <div className="flex items-center space-x-2 bg-red-500 px-3 py-2 rounded-lg">
+          <span className="text-white text-sm font-medium">RTT</span>
+        </div>
+        <div className="flex items-center space-x-2 bg-blue-900 px-3 py-2 rounded-lg">
+          <span className="text-white text-sm font-medium">CP</span>
+        </div>
+        <div className="flex items-center space-x-2 bg-blue-300 px-3 py-2 rounded-lg">
+          <span className="text-white text-sm font-medium">CET</span>
+        </div>
+      </div>
 
       {/* Cartes spécifiques par type de congé */}
       {dashboardCardsData && (
