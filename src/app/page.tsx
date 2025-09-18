@@ -420,7 +420,7 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                                 
-          {/* Card 3: À poser */}
+          {/* Card 3: Poser */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
             <div className="bg-green-100 dark:bg-green-900 px-1 sm:px-4 py-1 sm:py-3 flex items-center space-x-1 sm:space-x-3">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -428,7 +428,7 @@ export default function Dashboard() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                                   </div>
-              <span className="text-green-700 dark:text-green-300 font-medium text-sm">À poser</span>
+              <span className="text-green-700 dark:text-green-300 font-medium text-sm">Poser</span>
                                   </div>
             <div className="p-1 sm:p-4 text-center">
               <div className="text-xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">53.5</div>
@@ -512,9 +512,9 @@ export default function Dashboard() {
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">2</div>
                   </div>
                                 
-                {/* À poser RTT */}
+                {/* Poser RTT */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À poser</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Poser</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">3</div>
               </div>
                                 
@@ -574,12 +574,12 @@ export default function Dashboard() {
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">7</div>
                       </div>
                             
-                {/* À poser CP */}
+                {/* Poser CP */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À poser</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Poser</div>
                           <CalculationTooltip
                     value="50.5"
-                    calculation={`CP À poser (CORRIGÉ):
+                    calculation={`CP Poser (CORRIGÉ):
 • CP initial: 69.5 jours
 • - CP pris: 12 jours
 • - CP réservés: 7 jours
@@ -643,9 +643,9 @@ export default function Dashboard() {
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">0</div>
               </div>
                                 
-                {/* À poser CET */}
+                {/* Poser CET */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">À poser</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Poser</div>
                   <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mb-1">0</div>
                                   </div>
                 
