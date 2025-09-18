@@ -83,6 +83,9 @@ export interface PayrollData {
   // CP pris du mois précédent (dates spécifiques)
   cpPrisMoisPrecedent: string[]; // ["2025-07-15", "2025-07-16", "2025-07-17", "2025-07-18"]
   
+  // CET pris du mois précédent (dates spécifiques)
+  cetPrisMoisPrecedent: string[]; // ["2025-07-22", "2025-07-23"]
+  
   // Jours fériés du mois précédent
   joursFeries: string[]; // ["2025-07-14"]
   

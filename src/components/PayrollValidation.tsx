@@ -247,6 +247,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
       rttPrisDansMois: formData.rttPrisDansMois || 0,
       soldeCet: formData.soldeCet || 0,
       cpPrisMoisPrecedent: normalizedCpPris,
+      cetPrisMoisPrecedent: [],
       joursFeries: normalizedJoursFeries,
       createdAt: editingData?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -355,6 +356,7 @@ export default function PayrollValidation({ leaves, currentYear, onDataUpdate, o
         rttPrisDansMois: expected.rttPrisDansMois,
         soldeCet: expected.cetPrisDansMois,
         cpPrisMoisPrecedent: [],
+        cetPrisMoisPrecedent: [],
         joursFeries: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
