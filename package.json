@@ -9,8 +9,10 @@
     "start": "next start -p ${PORT:-3001}",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "export": "next build && next export",
-    "analyze": "ANALYZE=true npm run build"
+    "export": "next build",
+    "analyze": "ANALYZE=true npm run build",
+    "build:static": "next build",
+    "preview": "npx serve@latest out"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

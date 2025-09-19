@@ -1,18 +1,19 @@
 services:
-  - type: web
+  - type: static
     name: leave-tracker
-    env: node
+    env: static
     plan: free
     buildCommand: npm install && npm run build
-    startCommand: npm start
+    staticPublishPath: ./out
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
       - key: NEXT_PUBLIC_APP_NAME
         value: Leave Tracker
       - key: NEXT_PUBLIC_APP_VERSION
         value: 1.0.0
-    healthCheckPath: /
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     autoDeploy: true

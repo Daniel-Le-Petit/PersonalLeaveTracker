@@ -311,7 +311,7 @@ export default function HistoryPage() {
                           <button
                             onClick={() => {
                               // Naviguer vers la page d'édition
-                              router.push(`/edit/${leave.id}`)
+                              router.push(`/edit?id=${leave.id}`)
                             }}
                             className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
                             title="Modifier"

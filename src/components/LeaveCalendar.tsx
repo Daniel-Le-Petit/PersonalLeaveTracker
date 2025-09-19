@@ -278,20 +278,6 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
                   </button>
                 </div>
               </div>
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                    ℹ️ RTT total = {leaves.filter(leave => 
-                      new Date(leave.startDate).getFullYear() === currentYear && leave.type === 'rtt'
-                    ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
-                  </span>
-                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                    ℹ️ CP/CET total = {leaves.filter(leave => 
-                      new Date(leave.startDate).getFullYear() === currentYear && (leave.type === 'cp' || leave.type === 'cet')
-                    ).reduce((sum, leave) => sum + leave.workingDays, 0)} jours
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Calendrier horizontal scrollable - 12 mois */}

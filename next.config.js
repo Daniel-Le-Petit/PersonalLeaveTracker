@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Configuration pour le déploiement statique
+  output: 'export',
   trailingSlash: true,
   images: {
     unoptimized: true,
@@ -14,37 +15,8 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   
-  // Configuration des en-têtes pour mobile
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          // Optimisations pour mobile
-          {
-            key: 'Viewport-Width',
-            value: 'device-width',
-          },
-          {
-            key: 'Mobile-Optimized',
-            value: 'true',
-          },
-        ],
-      },
-    ]
-  },
+  // Note: Les headers personnalisés ne sont pas supportés avec output: 'export'
+  // Les headers de sécurité seront gérés par le serveur web (Render)
   
   // Configuration webpack pour optimiser les bundles
   webpack: (config, { dev, isServer }) => {
